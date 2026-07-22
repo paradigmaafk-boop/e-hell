@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | HEL Аццкое Пламя</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dark-theme">
+    <div id="sparks-container"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo">
+                <span class="flame">🔥</span> [HEL] Аццкое Пламя <span class="flame">🔥</span>
+            </div>
+            <h2>Вход в Доску Почета</h2>
+            <p style="opacity: 0.6; margin-bottom: 20px; font-size: 0.9rem;">
+                Только для администратора
+            </p>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="flash-error">{{ messages[0] }}</div>
+                {% endif %}
+            {% endwith %}
+            <form method="POST">
+                <div class="input-group">
+                    <label>Логин</label>
+                    <input type="text" name="login" placeholder="Введите логин" required>
+                </div>
+                <div class="input-group">
+                    <label>Пароль</label>
+                    <input type="password" name="password" placeholder="Введите пароль" required>
+                </div>
+                <button type="submit" class="btn-primary">Войти в Пламя</button>
+            </form>
+            <div style="margin-top: 20px;">
+                <a href="/" style="color: #ffaa44; text-decoration: none; opacity: 0.7;">← На главную</a>
+            </div>
+            <div class="footer-text">Только для членов союза</div>
+        </div>
+    </div>
+
+    <script>
+        function createSparks() {
+            const container = document.getElementById('sparks-container');
+            if (!container) return;
+            const colors = ['#ff7e00', '#ff4500', '#ffcc00', '#ffaa00', '#ff5500'];
+            for (let i = 0; i < 50; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('spark');
+                const size = Math.random() * 14 + 8;
+                spark.style.width = size + 'px';
+                spark.style.height = size + 'px';
+                spark.style.left = Math.random() * 100 + '%';
+                spark.style.top = Math.random() * 100 + '%';
+                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
+                spark.style.animationDelay = (Math.random() * 12) + 's';
+                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
+                container.appendChild(spark);
+            }
+        }
+        createSparks();
+    </script>
+</body>
+</html>
