@@ -92,12 +92,6 @@
             margin: 0;
         }
         
-        .form-group-calc .value-hint {
-            font-size: 0.75rem;
-            opacity: 0.4;
-            margin-top: 4px;
-        }
-        
         .formula-hint {
             font-size: 0.7rem;
             opacity: 0.4;
@@ -126,6 +120,21 @@
         
         .info-box-calc .icon {
             margin-right: 8px;
+        }
+        
+        .section-divider {
+            grid-column: 1 / -1;
+            border-top: 2px solid rgba(255, 126, 0, 0.2);
+            padding: 10px 0 5px 0;
+            margin: 5px 0;
+        }
+        
+        .section-divider span {
+            font-size: 0.9rem;
+            color: #ffaa44;
+            opacity: 0.7;
+            font-weight: 600;
+            letter-spacing: 1px;
         }
         
         .button-group {
@@ -312,6 +321,7 @@
                 min-width: 50px;
             }
             .calculator-header h2 { font-size: 1.6rem; }
+            .section-divider span { font-size: 0.8rem; }
         }
     </style>
 </head>
@@ -452,6 +462,36 @@
                             <input type="number" id="collection_frag" placeholder="0" step="1" min="0">
                             <span class="formula-hint">× 3,000 = ценность</span>
                         </div>
+
+                        <!-- НОВЫЕ ПОЛЯ -->
+                        <!-- Разделитель -->
+                        <div class="section-divider">
+                            <span>⚡ ДОПОЛНИТЕЛЬНЫЕ РЕСУРСЫ</span>
+                        </div>
+
+                        <!-- Строка 7 -->
+                        <div class="form-group-calc" style="border-color: rgba(255, 126, 0, 0.3);">
+                            <label>🔨 Молот перековки</label>
+                            <input type="number" id="hammer_forge" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 8,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc" style="border-color: rgba(255, 126, 0, 0.3);">
+                            <label>📏 Изолента для перековки</label>
+                            <input type="number" id="tape_forge" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 600,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc" style="border-color: rgba(255, 126, 0, 0.3);">
+                            <label>⭐ Повышение звездного рейтинга снаряжения</label>
+                            <input type="number" id="star_rating" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 2,200,000 = ценность</span>
+                        </div>
+
+                        <!-- Строка 8 -->
+                        <div class="form-group-calc" style="border-color: rgba(255, 126, 0, 0.3);">
+                            <label>💎 Покупайте алмазы, покупая наборы</label>
+                            <input type="number" id="diamonds_packs" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 400 = ценность</span>
+                        </div>
                     </div>
 
                     <div class="button-group">
@@ -519,6 +559,7 @@
 
         // Данные для расчета
         const items = [
+            // Основные ресурсы
             { id: 'accel_general', name: 'Ускорения общие', multiplier: 700 },
             { id: 'accel_build', name: 'Ускорения строительства', multiplier: 700 },
             { id: 'accel_research', name: 'Ускорения исследований', multiplier: 700 },
@@ -535,7 +576,12 @@
             { id: 'titan_cells', name: 'Клетки титана', multiplier: 20000 },
             { id: 'titan_serum', name: 'Сыворотки титана', multiplier: 10 },
             { id: 'collection_blueprint', name: 'Чертежи коллекции', multiplier: 150000 },
-            { id: 'collection_frag', name: 'Фрагменты коллекции', multiplier: 3000 }
+            { id: 'collection_frag', name: 'Фрагменты коллекции', multiplier: 3000 },
+            // Дополнительные ресурсы
+            { id: 'hammer_forge', name: '🔨 Молот перековки', multiplier: 8000 },
+            { id: 'tape_forge', name: '📏 Изолента для перековки', multiplier: 600000 },
+            { id: 'star_rating', name: '⭐ Повышение звездного рейтинга', multiplier: 2200000 },
+            { id: 'diamonds_packs', name: '💎 Алмазы из наборов', multiplier: 400 }
         ];
 
         function calculateTurtle() {
