@@ -10,7 +10,6 @@
     <div id="sparks-container"></div>
     <div id="water-container" style="display: none;"></div>
     <div id="oil-container" style="display: none;"></div>
-    <div id="sport-container" style="display: none;"></div>
 
     <header>
         <div class="header-content">
@@ -22,11 +21,15 @@
             <div class="header-controls">
                 {% if session['logged_in'] %}
                     <span class="user-greeting">👋 Привет, {{ session['username'] }}</span>
-                    <button id="theme-toggle" class="theme-btn">🌙</button>
-                    <a href="/logout" class="logout-btn">Выйти</a>
+                    <a href="/guides" class="nav-btn">📖 Гайды</a>
+                    <a href="/turtle-calculator" class="nav-btn">🐢 Калькулятор</a>
+                    <button id="theme-toggle" class="nav-btn">🌙</button>
+                    <a href="/logout" class="nav-btn">Выйти</a>
                 {% else %}
-                    <a href="/login" class="logout-btn" style="background: #ff7e00; color: white; border: none;">🔑 Войти</a>
-                    <button id="theme-toggle" class="theme-btn">🌙</button>
+                    <a href="/guides" class="nav-btn">📖 Гайды</a>
+                    <a href="/turtle-calculator" class="nav-btn">🐢 Калькулятор</a>
+                    <a href="/login" class="nav-btn primary">🔑 Войти</a>
+                    <button id="theme-toggle" class="nav-btn">🌙</button>
                 {% endif %}
             </div>
         </div>
@@ -41,6 +44,10 @@
                     <span class="tab-name">{{ rt.name }}</span>
                 </a>
             {% endfor %}
+            <a href="/guides" class="tab-btn" style="--tab-color: #9C27B0;">
+                <span class="tab-icon">📖</span>
+                <span class="tab-name">Гайды</span>
+            </a>
         </div>
 
         <section class="rating-section">
@@ -126,12 +133,16 @@
             <div class="admin-actions">
                 <h3>🔧 Админ-панель</h3>
                 <div class="admin-buttons">
-                    <a href="/underperforming/{{ rating_type }}" class="btn-admin btn-warning">
-                        ⚠️ Показать отстающих
-                    </a>
-                    <a href="/consistently-underperforming/{{ rating_type }}" class="btn-admin btn-danger">
-                        🔥 Показать стабильно отстающих
-                    </a>
+                    <a href="/underperforming/{{ rating_type }}" class="btn-admin">⚠️ Показать отстающих</a>
+                    <a href="/consistently-underperforming/{{ rating_type }}" class="btn-admin">🔥 Показать стабильно отстающих</a>
+                    <a href="/manage-nicknames/{{ rating_type }}" class="btn-admin">🔄 Управление никнеймами</a>
+                    <a href="/rating-stats/{{ rating_type }}" class="btn-admin">📊 Статистика рейтинга</a>
+                    <a href="/turtle-calculator" class="btn-admin">🐢 Калькулятор</a>
+                    <a href="/admin/guides" class="btn-admin">📖 Управление гайдами</a>
+                    <form action="/reset-rating/{{ rating_type }}" method="POST" style="display: inline;" 
+                          onsubmit="return confirm('⚠️ ВНИМАНИЕ! Это действие удалит ВСЕ данные рейтинга {{ display_name }}. Продолжить?');">
+                        <button type="submit" class="btn-admin btn-danger">🗑️ Сбросить рейтинг</button>
+                    </form>
                 </div>
             </div>
             {% endif %}
@@ -144,6 +155,9 @@
                             <th>Никнейм</th>
                             <th>Очки</th>
                             <th>Прогресс</th>
+                            {% if session['username'] == 'admin' %}
+                            <th>Действия</th>
+                            {% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -158,13 +172,21 @@
                                 </td>
                                 <td><span class="points">{{ player[1] }}</span></td>
                                 <td>
-                                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="chart-link">📈 График</a>
+                                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="chart-link">График</a>
                                 </td>
+                                {% if session['username'] == 'admin' %}
+                                <td>
+                                    <form action="/delete-player/{{ rating_type }}/{{ player[0] }}" method="POST" style="display: inline;"
+                                          onsubmit="return confirm('⚠️ Вы уверены, что хотите удалить игрока {{ player[0] }} и ВСЮ его историю? Это действие НЕЛЬЗЯ отменить!');">
+                                        <button type="submit" class="btn-delete-player">Удалить</button>
+                                    </form>
+                                </td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="4" class="empty-msg">Нет данных. Загрузите рейтинг!</td>
+                                <td colspan="{% if session['username'] == 'admin' %}5{% else %}4{% endif %}" class="empty-msg">Нет данных. Загрузите рейтинг!</td>
                             </tr>
                         {% endif %}
                     </tbody>
@@ -172,6 +194,230 @@
             </div>
         </section>
     </main>
+
+    <style>
+        /* Стили для кнопок навигации в шапке - прозрачный фон с оранжевой обводкой */
+        .header-controls .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            padding: 8px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.3s;
+            color: inherit;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .header-controls .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
+        .header-controls .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .header-controls .nav-btn.primary {
+            background: #ff7e00;
+            border-color: #ff7e00;
+            color: white;
+        }
+        
+        .header-controls .nav-btn.primary:hover {
+            background: #ff5500;
+            border-color: #ff5500;
+            color: white;
+        }
+        
+        /* Стили для кнопок в админ-панели - единый размер, прозрачный фон, оранжевая обводка */
+        .admin-actions .admin-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+        }
+        
+        .admin-actions .btn-admin {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            padding: 10px 20px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            cursor: pointer;
+            display: inline-block;
+            color: inherit;
+            min-width: 200px;
+            text-align: center;
+            flex: 0 1 auto;
+            white-space: nowrap;
+        }
+        
+        .admin-actions .btn-admin:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
+        .admin-actions .btn-admin:active {
+            transform: scale(0.95);
+        }
+        
+        .admin-actions .btn-admin.btn-danger {
+            border-color: #dc3545;
+            color: #dc3545;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .admin-actions .btn-admin.btn-danger:hover {
+            background: rgba(220, 53, 69, 0.1);
+            box-shadow: 0 0 20px #dc354580;
+            border-color: #dc3545;
+        }
+        
+        /* Стили для кнопки "График" в таблице */
+        .chart-link {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            padding: 4px 14px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: 0.3s;
+            color: #ffaa44;
+            display: inline-block;
+            white-space: nowrap;
+            text-align: center;
+            min-width: 60px;
+        }
+        
+        .chart-link:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
+        .chart-link:active {
+            transform: scale(0.95);
+        }
+        
+        /* Кнопка удаления игрока */
+        .btn-delete-player {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #dc3545;
+            color: #dc3545;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        
+        .btn-delete-player:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #dc354580;
+            background: rgba(220, 53, 69, 0.1);
+        }
+        
+        .btn-delete-player:active {
+            transform: scale(0.95);
+        }
+        
+        /* Адаптивность для мобильных устройств */
+        @media (max-width: 768px) {
+            .admin-actions .admin-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .admin-actions .btn-admin {
+                min-width: unset;
+                width: 100%;
+                white-space: normal;
+                padding: 12px 20px;
+            }
+            
+            /* Уменьшаем размер кнопки "График" на мобильных */
+            .chart-link {
+                font-size: 0.7rem;
+                padding: 3px 10px;
+                min-width: 45px;
+                border-width: 1.5px;
+            }
+            
+            /* Уменьшаем кнопку удаления */
+            .btn-delete-player {
+                font-size: 0.65rem;
+                padding: 3px 8px;
+            }
+            
+            /* Уменьшаем размер текста в таблице */
+            th, td {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .points {
+                font-size: 0.95rem;
+            }
+            
+            .nickname {
+                font-size: 0.85rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-controls .nav-btn {
+                padding: 5px 10px;
+                font-size: 0.85rem;
+                min-width: 50px;
+            }
+            
+            .admin-actions .btn-admin {
+                font-size: 0.8rem;
+                padding: 10px 14px;
+            }
+            
+            /* Еще больше уменьшаем кнопку "График" на очень маленьких экранах */
+            .chart-link {
+                font-size: 0.6rem;
+                padding: 2px 8px;
+                min-width: 35px;
+                border-width: 1.5px;
+                border-radius: 15px;
+            }
+            
+            .btn-delete-player {
+                font-size: 0.55rem;
+                padding: 2px 6px;
+                border-width: 1.5px;
+                border-radius: 15px;
+            }
+            
+            th, td {
+                padding: 5px 6px;
+                font-size: 0.7rem;
+            }
+            
+            .points {
+                font-size: 0.85rem;
+            }
+            
+            .nickname {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
 
     <script>
         const toggleBtn = document.getElementById('theme-toggle');
@@ -257,27 +503,6 @@
             }
         }
 
-        function createSportSparks() {
-            const container = document.getElementById('sport-container');
-            if (!container) return;
-            container.style.display = 'block';
-            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#FF9FF3', '#54A0FF'];
-            for (let i = 0; i < 50; i++) {
-                const star = document.createElement('div');
-                star.classList.add('sport-spark');
-                const size = Math.random() * 16 + 8;
-                star.style.width = size + 'px';
-                star.style.height = size + 'px';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDuration = (Math.random() * 4 + 2) + 's';
-                star.style.animationDelay = (Math.random() * 6) + 's';
-                star.style.background = colors[Math.floor(Math.random() * colors.length)];
-                star.style.boxShadow = '0 0 20px ' + star.style.background;
-                container.appendChild(star);
-            }
-        }
-
         const ratingType = '{{ rating_type }}';
         
         if (ratingType === 'duel') {
@@ -286,8 +511,6 @@
             createWaterBubbles();
         } else if (ratingType === 'oil') {
             createOilDrops();
-        } else if (ratingType === 'power') {
-            createSportSparks();
         }
     </script>
 </body>
