@@ -1,24 +1,40 @@
-import sqlite3
+import os
+import psycopg2
+import psycopg2.extras
 import hashlib
 from datetime import datetime
 
+# Получаем параметры из переменных окружения
+DB_HOST = os.environ.get('DB_HOST')
+DB_PORT = os.environ.get('DB_PORT', '5432')
+DB_NAME = os.environ.get('DB_NAME')
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWORD = os.environ.get('DB_PASSWORD')
+
+def get_connection():
+    return psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD
+    )
+
 def init_db():
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
     
-    # Таблица пользователей (для входа)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, 
-            username TEXT UNIQUE NOT NULL, 
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
         )
     """)
     
-    # Таблица для хранения связей старых и новых никнеймов
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS nickname_aliases (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             rating_type TEXT NOT NULL,
             current_nickname TEXT NOT NULL,
             old_nickname TEXT NOT NULL,
@@ -27,10 +43,29 @@ def init_db():
         )
     """)
     
-    # Таблица для гайдов
+    rating_types = ['duel', 'reservoir', 'oil']
+    for rt in rating_types:
+        cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS players_{rt} (
+                id SERIAL PRIMARY KEY,
+                nickname TEXT NOT NULL,
+                points INTEGER NOT NULL,
+                last_updated TEXT NOT NULL,
+                UNIQUE(nickname)
+            )
+        """)
+        cursor.execute(f"""
+            CREATE TABLE IF NOT EXISTS history_{rt} (
+                id SERIAL PRIMARY KEY,
+                nickname TEXT NOT NULL,
+                points INTEGER NOT NULL,
+                date TEXT NOT NULL
+            )
+        """)
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS guides (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id SERIAL PRIMARY KEY,
             title TEXT NOT NULL,
             content TEXT NOT NULL,
             created_at TEXT NOT NULL,
@@ -38,35 +73,12 @@ def init_db():
         )
     """)
     
-    # Таблицы для разных рейтингов
-    rating_types = ['duel', 'reservoir', 'oil']
-    
-    for rt in rating_types:
-        # Таблица игроков (текущие данные)
-        cursor.execute(f"""
-            CREATE TABLE IF NOT EXISTS players_{rt} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nickname TEXT NOT NULL,
-                points INTEGER NOT NULL,
-                last_updated TEXT NOT NULL,
-                UNIQUE(nickname)
-            )
-        """)
-        
-        # Таблица истории
-        cursor.execute(f"""
-            CREATE TABLE IF NOT EXISTS history_{rt} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nickname TEXT NOT NULL,
-                points INTEGER NOT NULL,
-                date TEXT NOT NULL
-            )
-        """)
-    
-    # Создаем админа
     hashed = hashlib.sha256('admin123'.encode()).hexdigest()
     try:
-        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", ('admin', hashed))
+        cursor.execute(
+            "INSERT INTO users (username, password) VALUES (%s, %s) ON CONFLICT (username) DO NOTHING",
+            ('admin', hashed)
+        )
     except:
         pass
     
@@ -74,69 +86,44 @@ def init_db():
     conn.close()
 
 def check_user(username, password):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", 
-                   (username, hashlib.sha256(password.encode()).hexdigest()))
+    cursor.execute(
+        "SELECT * FROM users WHERE username = %s AND password = %s",
+        (username, hashlib.sha256(password.encode()).hexdigest())
+    )
     user = cursor.fetchone()
     conn.close()
     return user is not None
 
-# ===== ФУНКЦИИ ДЛЯ УПРАВЛЕНИЯ НИКНЕЙМАМИ =====
-
 def add_nickname_alias(rating_type, current_nickname, old_nickname):
-    """Добавляет связь между старым и новым никнеймом"""
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
     try:
         cursor.execute("""
-            SELECT id FROM nickname_aliases 
-            WHERE rating_type = ? AND old_nickname = ?
-        """, (rating_type, old_nickname))
-        
-        if cursor.fetchone():
-            cursor.execute("""
-                UPDATE nickname_aliases 
-                SET current_nickname = ?, created_at = ?
-                WHERE rating_type = ? AND old_nickname = ?
-            """, (current_nickname, created_at, rating_type, old_nickname))
-        else:
-            cursor.execute("""
-                INSERT INTO nickname_aliases (rating_type, current_nickname, old_nickname, created_at)
-                VALUES (?, ?, ?, ?)
-            """, (rating_type, current_nickname, old_nickname, created_at))
-        
-        cursor.execute(f"""
-            UPDATE history_{rating_type}
-            SET nickname = ?
-            WHERE nickname = ?
-        """, (current_nickname, old_nickname))
-        
-        cursor.execute(f"""
-            UPDATE players_{rating_type}
-            SET nickname = ?
-            WHERE nickname = ?
-        """, (current_nickname, old_nickname))
-        
+            INSERT INTO nickname_aliases (rating_type, current_nickname, old_nickname, created_at)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (rating_type, old_nickname) DO UPDATE SET current_nickname = %s, created_at = %s
+        """, (rating_type, current_nickname, old_nickname, created_at, current_nickname, created_at))
+        cursor.execute(f"UPDATE history_{rating_type} SET nickname = %s WHERE nickname = %s", (current_nickname, old_nickname))
+        cursor.execute(f"UPDATE players_{rating_type} SET nickname = %s WHERE nickname = %s", (current_nickname, old_nickname))
         conn.commit()
         return True
     except Exception as e:
-        print(f"Error adding alias: {e}")
+        print(e)
         conn.rollback()
         return False
     finally:
         conn.close()
 
 def get_nickname_aliases(rating_type):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT current_nickname, old_nickname, created_at
         FROM nickname_aliases
-        WHERE rating_type = ?
+        WHERE rating_type = %s
         ORDER BY created_at DESC
     """, (rating_type,))
     data = cursor.fetchall()
@@ -144,22 +131,19 @@ def get_nickname_aliases(rating_type):
     return data
 
 def delete_nickname_alias(rating_type, old_nickname):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-        DELETE FROM nickname_aliases
-        WHERE rating_type = ? AND old_nickname = ?
-    """, (rating_type, old_nickname))
+    cursor.execute("DELETE FROM nickname_aliases WHERE rating_type = %s AND old_nickname = %s", (rating_type, old_nickname))
     conn.commit()
     conn.close()
 
 def resolve_nickname(rating_type, nickname):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
         SELECT current_nickname
         FROM nickname_aliases
-        WHERE rating_type = ? AND old_nickname = ?
+        WHERE rating_type = %s AND old_nickname = %s
         ORDER BY created_at DESC
         LIMIT 1
     """, (rating_type, nickname))
@@ -167,140 +151,78 @@ def resolve_nickname(rating_type, nickname):
     conn.close()
     return result[0] if result else nickname
 
-# ===== ФУНКЦИИ ДЛЯ РАБОТЫ С РЕЙТИНГОМ (С СУММИРОВАНИЕМ) =====
-
 def save_rating(rating_type, data_list):
-    """Сохраняет рейтинг с СУММИРОВАНИЕМ очков"""
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
     for nickname, points in data_list:
-        # Пытаемся разрешить никнейм через алиасы
         resolved_nickname = resolve_nickname(rating_type, nickname)
-        
-        # Проверяем, существует ли игрок
-        cursor.execute(f"SELECT id, points FROM players_{rating_type} WHERE nickname = ?", (resolved_nickname,))
+        cursor.execute(f"SELECT id, points FROM players_{rating_type} WHERE nickname = %s", (resolved_nickname,))
         existing = cursor.fetchone()
-        
         if existing:
-            # СУММИРУЕМ очки: старые + новые
             new_total = existing[1] + points
-            cursor.execute(f"""
-                UPDATE players_{rating_type} 
-                SET points = ?, last_updated = ? 
-                WHERE nickname = ?
-            """, (new_total, today, resolved_nickname))
+            cursor.execute(f"UPDATE players_{rating_type} SET points = %s, last_updated = %s WHERE nickname = %s", (new_total, today, resolved_nickname))
         else:
-            # Новый игрок - просто сохраняем очки
-            cursor.execute(f"""
-                INSERT INTO players_{rating_type} (nickname, points, last_updated) 
-                VALUES (?, ?, ?)
-            """, (resolved_nickname, points, today))
-        
-        # В историю записываем новую порцию очков (НЕ суммируем!)
-        cursor.execute(f"""
-            INSERT INTO history_{rating_type} (nickname, points, date) 
-            VALUES (?, ?, ?)
-        """, (resolved_nickname, points, today))
-    
+            cursor.execute(f"INSERT INTO players_{rating_type} (nickname, points, last_updated) VALUES (%s, %s, %s)", (resolved_nickname, points, today))
+        cursor.execute(f"INSERT INTO history_{rating_type} (nickname, points, date) VALUES (%s, %s, %s)", (resolved_nickname, points, today))
     conn.commit()
     conn.close()
 
 def get_latest_rating(rating_type):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
-    cursor.execute(f"""
-        SELECT nickname, points 
-        FROM players_{rating_type} 
-        ORDER BY points DESC
-    """)
-    
+    cursor.execute(f"SELECT nickname, points FROM players_{rating_type} ORDER BY points DESC")
     data = cursor.fetchall()
     conn.close()
     return data
 
 def get_player_history(rating_type, nickname):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
-    cursor.execute(f"""
-        SELECT date, points 
-        FROM history_{rating_type} 
-        WHERE nickname = ? 
-        ORDER BY date ASC
-    """, (nickname,))
-    
+    cursor.execute(f"SELECT date, points FROM history_{rating_type} WHERE nickname = %s ORDER BY date ASC", (nickname,))
     data = cursor.fetchall()
     conn.close()
     return data
 
 def get_all_players(rating_type):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     cursor.execute(f"SELECT nickname FROM players_{rating_type} ORDER BY nickname")
     data = cursor.fetchall()
     conn.close()
     return [row[0] for row in data]
 
 def get_average_history(rating_type):
-    """Получает историю средних значений по всем игрокам за каждую неделю"""
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
-    cursor.execute(f"""
-        SELECT date, AVG(points) as avg_points
-        FROM history_{rating_type}
-        GROUP BY date
-        ORDER BY date ASC
-    """)
-    
+    cursor.execute(f"SELECT date, AVG(points) as avg_points FROM history_{rating_type} GROUP BY date ORDER BY date ASC")
     data = cursor.fetchall()
     conn.close()
     return data
 
 def get_underperforming(rating_type):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     cursor.execute(f"SELECT MAX(date) FROM history_{rating_type}")
-    last_date = cursor.fetchone()[0]
-    
+    last_date = cursor.fetchone()
+    last_date = last_date[0] if last_date else None
     if not last_date:
         conn.close()
         return [], None
-    
-    cursor.execute(f"""
-        SELECT AVG(points) 
-        FROM history_{rating_type} 
-        WHERE date = ?
-    """, (last_date,))
-    
-    avg_points = cursor.fetchone()[0]
-    
+    cursor.execute(f"SELECT AVG(points) FROM history_{rating_type} WHERE date = %s", (last_date,))
+    avg_points = cursor.fetchone()
+    avg_points = avg_points[0] if avg_points else None
     if avg_points is None:
         conn.close()
         return [], None
-    
-    cursor.execute(f"""
-        SELECT nickname, points 
-        FROM history_{rating_type} 
-        WHERE date = ? AND points < ?
-        ORDER BY points ASC
-    """, (last_date, avg_points))
-    
+    cursor.execute(f"SELECT nickname, points FROM history_{rating_type} WHERE date = %s AND points < %s ORDER BY points ASC", (last_date, avg_points))
     underperformers = cursor.fetchall()
     conn.close()
-    
     return underperformers, round(avg_points, 1)
 
 def get_consistently_underperforming(rating_type, limit=10):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     cursor.execute(f"""
         WITH daily_avg AS (
             SELECT date, AVG(points) as avg_points
@@ -317,27 +239,24 @@ def get_consistently_underperforming(rating_type, limit=10):
         FROM underperformers
         GROUP BY nickname
         ORDER BY count DESC
-        LIMIT ?
+        LIMIT %s
     """, (limit,))
-    
     data = cursor.fetchall()
     conn.close()
     return data
 
 def get_total_weeks(rating_type):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     cursor.execute(f"SELECT COUNT(DISTINCT date) FROM history_{rating_type}")
-    total = cursor.fetchone()[0]
-    
+    total = cursor.fetchone()
+    total = total[0] if total else 0
     conn.close()
     return total or 0
 
 def get_all_time_leaders(rating_type):
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     cursor.execute(f"""
         SELECT nickname, SUM(points) as total_points
         FROM history_{rating_type}
@@ -345,171 +264,34 @@ def get_all_time_leaders(rating_type):
         ORDER BY total_points DESC
         LIMIT 3
     """)
-    
     data = cursor.fetchall()
     conn.close()
     return data
 
-def get_total_weeks_for_player(rating_type, nickname):
-    """Получает количество недель, в которых участвовал игрок"""
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    cursor.execute(f"""
-        SELECT COUNT(DISTINCT date) 
-        FROM history_{rating_type} 
-        WHERE nickname = ?
-    """, (nickname,))
-    
-    count = cursor.fetchone()[0]
-    conn.close()
-    return count or 0
-
-def get_player_average_points(rating_type, nickname):
-    """Получает среднее значение очков игрока за все недели"""
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    cursor.execute(f"""
-        SELECT AVG(points) 
-        FROM history_{rating_type} 
-        WHERE nickname = ?
-    """, (nickname,))
-    
-    avg = cursor.fetchone()[0]
-    conn.close()
-    return round(avg, 1) if avg else 0
-
 def reset_rating(rating_type):
-    """Сброс рейтинга (очищает все данные для конкретного типа)"""
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     try:
         cursor.execute(f"DELETE FROM players_{rating_type}")
         cursor.execute(f"DELETE FROM history_{rating_type}")
         conn.commit()
         return True
-    except Exception as e:
-        print(f"Error resetting rating: {e}")
+    except:
         conn.rollback()
         return False
     finally:
         conn.close()
 
 def delete_player(rating_type, nickname):
-    """Полностью удаляет игрока и всю его историю из рейтинга"""
-    conn = sqlite3.connect('users.db')
+    conn = get_connection()
     cursor = conn.cursor()
-    
     try:
-        # Удаляем из таблицы игроков
-        cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = ?", (nickname,))
-        
-        # Удаляем всю историю игрока
-        cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = ?", (nickname,))
-        
-        # Удаляем все связи псевдонимов, связанные с этим игроком
-        cursor.execute("""
-            DELETE FROM nickname_aliases 
-            WHERE rating_type = ? AND (current_nickname = ? OR old_nickname = ?)
-        """, (rating_type, nickname, nickname))
-        
+        cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nickname,))
+        cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
+        cursor.execute("DELETE FROM nickname_aliases WHERE rating_type = %s AND (current_nickname = %s OR old_nickname = %s)", (rating_type, nickname, nickname))
         conn.commit()
         return True
-    except Exception as e:
-        print(f"Error deleting player: {e}")
-        conn.rollback()
-        return False
-    finally:
-        conn.close()
-
-# ===== ФУНКЦИИ ДЛЯ РАБОТЫ С ГАЙДАМИ =====
-
-def create_guide(title, content):
-    """Создает новый гайд"""
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    try:
-        cursor.execute("""
-            INSERT INTO guides (title, content, created_at, updated_at)
-            VALUES (?, ?, ?, ?)
-        """, (title, content, now, now))
-        conn.commit()
-        return cursor.lastrowid
-    except Exception as e:
-        print(f"Error creating guide: {e}")
-        conn.rollback()
-        return None
-    finally:
-        conn.close()
-
-def get_all_guides():
-    """Получает все гайды"""
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT id, title, content, created_at, updated_at
-        FROM guides
-        ORDER BY created_at DESC
-    """)
-    
-    data = cursor.fetchall()
-    conn.close()
-    return data
-
-def get_guide_by_id(guide_id):
-    """Получает гайд по ID"""
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    cursor.execute("""
-        SELECT id, title, content, created_at, updated_at
-        FROM guides
-        WHERE id = ?
-    """, (guide_id,))
-    
-    data = cursor.fetchone()
-    conn.close()
-    return data
-
-def update_guide(guide_id, title, content):
-    """Обновляет гайд"""
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    
-    try:
-        cursor.execute("""
-            UPDATE guides
-            SET title = ?, content = ?, updated_at = ?
-            WHERE id = ?
-        """, (title, content, now, guide_id))
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Error updating guide: {e}")
-        conn.rollback()
-        return False
-    finally:
-        conn.close()
-
-def delete_guide(guide_id):
-    """Удаляет гайд"""
-    conn = sqlite3.connect('users.db')
-    cursor = conn.cursor()
-    
-    try:
-        cursor.execute("DELETE FROM guides WHERE id = ?", (guide_id,))
-        conn.commit()
-        return True
-    except Exception as e:
-        print(f"Error deleting guide: {e}")
+    except:
         conn.rollback()
         return False
     finally:
@@ -523,9 +305,63 @@ def get_all_rating_types():
     ]
 
 def get_rating_display_name(rating_type):
-    names = {
-        'duel': 'Дуэль',
-        'reservoir': 'Резервуар',
-        'oil': 'Нефть'
-    }
+    names = {'duel': 'Дуэль', 'reservoir': 'Резервуар', 'oil': 'Нефть'}
     return names.get(rating_type, rating_type)
+
+def create_guide(title, content):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("INSERT INTO guides (title, content, created_at, updated_at) VALUES (%s, %s, %s, %s) RETURNING id", (title, content, now, now))
+        guide_id = cursor.fetchone()[0]
+        conn.commit()
+        return guide_id
+    except:
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+def get_all_guides():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, content, created_at, updated_at FROM guides ORDER BY created_at DESC")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def get_guide_by_id(guide_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, content, created_at, updated_at FROM guides WHERE id = %s", (guide_id,))
+    data = cursor.fetchone()
+    conn.close()
+    return data
+
+def update_guide(guide_id, title, content):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("UPDATE guides SET title = %s, content = %s, updated_at = %s WHERE id = %s", (title, content, now, guide_id))
+        conn.commit()
+        return True
+    except:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def delete_guide(guide_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM guides WHERE id = %s", (guide_id,))
+        conn.commit()
+        return True
+    except:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
