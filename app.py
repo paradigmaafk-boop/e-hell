@@ -421,7 +421,9 @@ def admin_guides():
     guides = get_all_guides()
     return render_template('admin_guides.html', guides=guides)
 
+# В конце файла app.py
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True, host='0.0.0.0', port=8000)
 else:
+    # Это нужно для gunicorn
     application = app
