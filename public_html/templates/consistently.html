@@ -157,5 +157,85 @@
         }
         createSparks();
     </script>
+
+    <style>
+        .info-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            border: 1px solid #ff7e0040;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.6;
+            margin-bottom: 4px;
+        }
+        
+        .info-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .legend-info {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 600px) {
+            .info-box {
+                flex-direction: column;
+                text-align: center;
+            }
+            .info-value {
+                font-size: 1.2rem;
+            }
+            .legend-info {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            .legend-item {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
 </body>
 </html>
