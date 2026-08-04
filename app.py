@@ -1,6 +1,6 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import pandas as pd
-import os
 import sqlite3
 from database import (
     init_db, check_user, save_rating, get_latest_rating, 
@@ -8,8 +8,7 @@ from database import (
     get_underperforming, get_consistently_underperforming, 
     get_total_weeks, get_all_time_leaders, get_all_rating_types, 
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
-    delete_nickname_alias, reset_rating, get_total_weeks_for_player,
-    get_player_average_points, delete_player,
+    delete_nickname_alias, reset_rating, delete_player,
     create_guide, get_all_guides, get_guide_by_id, update_guide, delete_guide
 )
 from werkzeug.utils import secure_filename
@@ -122,10 +121,10 @@ def upload_file(rating_type):
                 
             save_rating(rating_type, rating_list)
             all_players = get_all_players(rating_type)
-            flash(f'✅ Рейтинг обновлен! Добавлено {len(rating_list)} записей. Всего в рейтинге: {len(all_players)} игроков. Очки СУММИРУЮТСЯ!')
+            flash(f'Рейтинг обновлен! Добавлено {len(rating_list)} записей. Всего в рейтинге: {len(all_players)} игроков. Очки СУММИРУЮТСЯ!')
             
         except Exception as e:
-            flash(f'❌ Ошибка: {e}')
+            flash(f'Ошибка: {e}')
         finally:
             if os.path.exists(filepath):
                 os.remove(filepath)
@@ -137,7 +136,6 @@ def upload_file(rating_type):
 
 @app.route('/manage-nicknames/<rating_type>', methods=['GET', 'POST'])
 def manage_nicknames(rating_type):
-    """Страница управления псевдонимами никнеймов"""
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -156,17 +154,17 @@ def manage_nicknames(rating_type):
             
             if current_nickname and old_nickname:
                 if add_nickname_alias(rating_type, current_nickname, old_nickname):
-                    flash(f'✅ Связь добавлена: "{old_nickname}" → "{current_nickname}"')
+                    flash(f'Связь добавлена: "{old_nickname}" → "{current_nickname}"')
                 else:
-                    flash('❌ Ошибка при добавлении связи')
+                    flash('Ошибка при добавлении связи')
             else:
-                flash('❌ Заполните оба поля!')
+                flash('Заполните оба поля!')
         
         elif action == 'delete':
             old_nickname = request.form.get('old_nickname')
             if old_nickname:
                 delete_nickname_alias(rating_type, old_nickname)
-                flash(f'✅ Связь для "{old_nickname}" удалена')
+                flash(f'Связь для "{old_nickname}" удалена')
         
         return redirect(url_for('manage_nicknames', rating_type=rating_type))
     
@@ -183,7 +181,6 @@ def manage_nicknames(rating_type):
 
 @app.route('/reset-rating/<rating_type>', methods=['POST'])
 def reset_rating_route(rating_type):
-    """Сброс рейтинга (только для админа)"""
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -195,15 +192,14 @@ def reset_rating_route(rating_type):
         return redirect(url_for('rating_view', rating_type=rating_type))
     
     if reset_rating(rating_type):
-        flash('✅ Рейтинг полностью сброшен!')
+        flash('Рейтинг полностью сброшен!')
     else:
-        flash('❌ Ошибка при сбросе рейтинга')
+        flash('Ошибка при сбросе рейтинга')
     
     return redirect(url_for('rating_view', rating_type=rating_type))
 
 @app.route('/delete-player/<rating_type>/<nickname>', methods=['POST'])
 def delete_player_route(rating_type, nickname):
-    """Удаляет игрока и всю его историю (только для админа)"""
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -215,15 +211,14 @@ def delete_player_route(rating_type, nickname):
         return redirect(url_for('rating_view', rating_type=rating_type))
     
     if delete_player(rating_type, nickname):
-        flash(f'✅ Игрок "{nickname}" и вся его история удалены!')
+        flash(f'Игрок "{nickname}" и вся его история удалены!')
     else:
-        flash(f'❌ Ошибка при удалении игрока "{nickname}"')
+        flash(f'Ошибка при удалении игрока "{nickname}"')
     
     return redirect(url_for('rating_view', rating_type=rating_type))
 
 @app.route('/rating-stats/<rating_type>')
 def rating_stats(rating_type):
-    """Страница со статистикой рейтинга"""
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -232,7 +227,6 @@ def rating_stats(rating_type):
     conn = sqlite3.connect('users.db')
     cursor = conn.cursor()
     
-    # Получаем всех игроков с их очками
     cursor.execute(f"""
         SELECT nickname, points 
         FROM players_{rating_type} 
@@ -240,16 +234,13 @@ def rating_stats(rating_type):
     """)
     players = cursor.fetchall()
     
-    # Считаем общую статистику
     total_players = len(players)
     total_points = sum([p[1] for p in players]) if players else 0
     avg_points = round(total_points / total_players, 1) if total_players > 0 else 0
     
-    # Получаем количество недель
     cursor.execute(f"SELECT COUNT(DISTINCT date) FROM history_{rating_type}")
     total_weeks = cursor.fetchone()[0] or 0
     
-    # Собираем статистику по каждому игроку
     players_stats = []
     for nickname, points in players:
         cursor.execute(f"""
@@ -361,20 +352,15 @@ def api_player_data(rating_type, nickname):
 
 @app.route('/turtle-calculator')
 def turtle_calculator():
-    """Калькулятор Турбочерепашки"""
     return render_template('turtle_calculator.html')
-
-# ===== МАРШРУТЫ ДЛЯ ГАЙДОВ =====
 
 @app.route('/guides')
 def guides_list():
-    """Страница со списком гайдов"""
     guides = get_all_guides()
     return render_template('guides.html', guides=guides)
 
 @app.route('/admin/guides', methods=['GET', 'POST'])
 def admin_guides():
-    """Админ-панель для управления гайдами"""
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
         return redirect(url_for('index'))
@@ -388,11 +374,11 @@ def admin_guides():
             
             if title and content:
                 if create_guide(title, content):
-                    flash(f'✅ Гайд "{title}" создан!')
+                    flash(f'Гайд "{title}" создан!')
                 else:
-                    flash('❌ Ошибка при создании гайда')
+                    flash('Ошибка при создании гайда')
             else:
-                flash('❌ Заполните все поля!')
+                flash('Заполните все поля!')
         
         elif action == 'update':
             guide_id = request.form.get('guide_id')
@@ -401,29 +387,27 @@ def admin_guides():
             
             if guide_id and title and content:
                 if update_guide(int(guide_id), title, content):
-                    flash(f'✅ Гайд "{title}" обновлен!')
+                    flash(f'Гайд "{title}" обновлен!')
                 else:
-                    flash('❌ Ошибка при обновлении гайда')
+                    flash('Ошибка при обновлении гайда')
             else:
-                flash('❌ Заполните все поля!')
+                flash('Заполните все поля!')
         
         elif action == 'delete':
             guide_id = request.form.get('guide_id')
             if guide_id:
                 guide = get_guide_by_id(int(guide_id))
                 if delete_guide(int(guide_id)):
-                    flash(f'✅ Гайд "{guide[1]}" удален!')
+                    flash(f'Гайд "{guide[1]}" удален!')
                 else:
-                    flash('❌ Ошибка при удалении гайда')
+                    flash('Ошибка при удалении гайда')
         
         return redirect(url_for('admin_guides'))
     
     guides = get_all_guides()
     return render_template('admin_guides.html', guides=guides)
 
-# В конце файла app.py
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    app.run()
 else:
-    # Это нужно для gunicorn
     application = app
