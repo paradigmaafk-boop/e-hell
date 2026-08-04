@@ -100,6 +100,7 @@
 
         const dates = {{ dates|tojson }};
         const points = {{ points|tojson }};
+        const avgDates = {{ avg_dates|tojson }};
         const avgPoints = {{ avg_points|tojson }};
 
         const formattedDates = dates.map(d => {
@@ -182,5 +183,82 @@
             }
         });
     </script>
+
+    <style>
+        .chart-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid #ff7e0040;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #ff7e0040;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffaa44;
+        }
+        
+        .legend-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 30px;
+            height: 4px;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 600px) {
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .stat-value {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
 </body>
 </html>
+
