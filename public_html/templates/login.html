@@ -1,67 +1,42 @@
+cd ~/mysite/templates
+cat > login.html << 'EOF'
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход | HEL Аццкое Пламя</title>
+    <title>Вход | HEL</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="dark-theme">
-    <div id="sparks-container"></div>
-
-    <div class="login-container">
-        <div class="login-card">
-            <div class="logo">
-                <span class="flame">🔥</span> [HEL] Аццкое Пламя <span class="flame">🔥</span>
+<body style="background:#0b0e14;color:#f0e6d3;font-family:'Segoe UI',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:20px;">
+    <div style="max-width:400px;width:100%;padding:40px;background:rgba(20,25,35,0.85);border-radius:30px;border:1px solid #ff7e0040;text-align:center;">
+        <h1 style="font-size:1.6rem;font-weight:800;background:linear-gradient(45deg,#ff7e00,#ffcc00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 10px 0;">🔥 HEL Аццкое Пламя 🔥</h1>
+        <h2 style="font-weight:300;margin:20px 0;color:#f0e6d3;">Вход в Доску Почета</h2>
+        <p style="opacity:0.6;margin-bottom:20px;font-size:0.9rem;">Только для администратора</p>
+        
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div style="background:#ff330030;border-left:4px solid #ff3300;padding:12px;border-radius:12px;margin-bottom:20px;color:#ff6644;text-align:left;">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" action="/login">
+            <div style="text-align:left;margin-bottom:20px;">
+                <label style="display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem;opacity:0.8;color:#f0e6d3;">Логин</label>
+                <input type="text" name="login" placeholder="Введите логин" required style="width:100%;padding:14px 18px;border-radius:16px;border:2px solid #3a2a1a;background:rgba(255,255,255,0.05);color:white;font-size:1rem;outline:none;box-sizing:border-box;">
             </div>
-            <h2>Вход в Доску Почета</h2>
-            <p style="opacity: 0.6; margin-bottom: 20px; font-size: 0.9rem;">
-                Только для администратора
-            </p>
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <div class="flash-error">{{ messages[0] }}</div>
-                {% endif %}
-            {% endwith %}
-            <form method="POST">
-                <div class="input-group">
-                    <label>Логин</label>
-                    <input type="text" name="login" placeholder="Введите логин" required>
-                </div>
-                <div class="input-group">
-                    <label>Пароль</label>
-                    <input type="password" name="password" placeholder="Введите пароль" required>
-                </div>
-                <button type="submit" class="btn-primary">Войти в Пламя</button>
-            </form>
-            <div style="margin-top: 20px;">
-                <a href="/" style="color: #ffaa44; text-decoration: none; opacity: 0.7;">← На главную</a>
+            <div style="text-align:left;margin-bottom:20px;">
+                <label style="display:block;margin-bottom:6px;font-weight:600;font-size:0.9rem;opacity:0.8;color:#f0e6d3;">Пароль</label>
+                <input type="password" name="password" placeholder="Введите пароль" required style="width:100%;padding:14px 18px;border-radius:16px;border:2px solid #3a2a1a;background:rgba(255,255,255,0.05);color:white;font-size:1rem;outline:none;box-sizing:border-box;">
             </div>
-            <div class="footer-text">Только для членов союза</div>
+            <button type="submit" style="width:100%;padding:16px;border:none;border-radius:50px;font-size:1.1rem;font-weight:700;cursor:pointer;transition:0.3s;letter-spacing:2px;background:linear-gradient(145deg,#ff5500,#cc4400);color:white;">Войти в Пламя</button>
+        </form>
+        
+        <div style="margin-top:20px;">
+            <a href="/" style="color:#ffaa44;text-decoration:none;opacity:0.7;">← На главную</a>
         </div>
+        <div style="margin-top:25px;font-size:0.8rem;opacity:0.6;">Только для членов союза</div>
     </div>
-
-    <script>
-        function createSparks() {
-            const container = document.getElementById('sparks-container');
-            if (!container) return;
-            const colors = ['#ff7e00', '#ff4500', '#ffcc00', '#ffaa00', '#ff5500'];
-            for (let i = 0; i < 50; i++) {
-                const spark = document.createElement('div');
-                spark.classList.add('spark');
-                const size = Math.random() * 14 + 8;
-                spark.style.width = size + 'px';
-                spark.style.height = size + 'px';
-                spark.style.left = Math.random() * 100 + '%';
-                spark.style.top = Math.random() * 100 + '%';
-                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
-                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
-                spark.style.animationDelay = (Math.random() * 12) + 's';
-                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
-                container.appendChild(spark);
-            }
-        }
-        createSparks();
-    </script>
 </body>
 </html>
+EOF
