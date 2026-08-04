@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор Турбочерепашки | HEL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .calculator-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .calculator-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .calculator-header h2 {
+            font-size: 2.2rem;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .calculator-form {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #4CAF5060;
+            margin-bottom: 30px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group-calc {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .form-group-calc label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            opacity: 0.9;
+            color: #ffaa44;
+        }
+        
+        .form-group-calc .sub-label {
+            font-size: 0.7rem;
+            opacity: 0.5;
+            margin-top: 2px;
+        }
+        
+        .form-group-calc input {
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 2px solid #3a2a1a;
+            background: rgba(255, 255, 255, 0.05);
+            color: inherit;
+            font-size: 1rem;
+            transition: 0.3s;
+            width: 100%;
+        }
+        
+        .form-group-calc input:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 20px #4CAF5040;
+        }
+        
+        .form-group-calc input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        .form-group-calc input[type="number"]::-webkit-outer-spin-button,
+        .form-group-calc input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        .form-group-calc .value-hint {
+            font-size: 0.75rem;
+            opacity: 0.4;
+            margin-top: 4px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .btn-calculate {
+            padding: 14px 50px;
+            background: linear-gradient(145deg, #4CAF50, #388E3C);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .btn-calculate:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #4CAF5080;
+        }
+        
+        .btn-reset {
+            padding: 14px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #666;
+            border-radius: 50px;
+            color: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .btn-reset:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+        
+        .result-container {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #4CAF5060;
+            display: none;
+        }
+        
+        .result-container.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-total {
+            text-align: center;
+            padding: 20px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 2px solid #4CAF5060;
+        }
+        
+        .result-total .label {
+            display: block;
+            font-size: 1rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+        }
+        
+        .result-total .value {
+            display: block;
+            font-size: 3rem;
+            font-weight: 800;
+            color: #4CAF50;
+            text-shadow: 0 0 40px #4CAF5040;
+        }
+        
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+        
+        .result-item .item-name {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .result-item .item-value {
+            font-weight: 700;
+            color: #ffaa44;
+            font-size: 0.95rem;
+        }
+        
+        .result-item.highlight {
+            background: rgba(76, 175, 80, 0.08);
+            border-color: #4CAF5060;
+        }
+        
+        .result-item.highlight .item-value {
+            color: #4CAF50;
+            font-size: 1.1rem;
+        }
+        
+        .formula-hint {
+            font-size: 0.7rem;
+            opacity: 0.4;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .calculator-form { padding: 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .result-total .value { font-size: 2.2rem; }
+            .result-details { grid-template-columns: 1fr; }
+            .btn-calculate, .btn-reset { width: 100%; }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div id="sparks-container"></div>
+
+    <header>
+        <div class="header-content">
+            <div class="title-group">
+                <span class="flame-icon">🐢</span>
+                <h1>Калькулятор Турбочерепашки</h1>
+                <span class="flame-icon">🐢</span>
+            </div>
+            <div class="header-controls">
+                <a href="/" class="logout-btn">← На главную</a>
+                <button id="theme-toggle" class="theme-btn">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="calculator-container">
+            <div class="calculator-header">
+                <p style="opacity: 0.7; font-size: 1rem;">
+                    📊 Введите количество ресурсов и получите их суммарную ценность
+                </p>
+            </div>
+
+            <div class="calculator-form">
+                <form id="calculatorForm" onsubmit="return false;">
+                    <div class="form-grid">
+                        <!-- Строка 1 -->
+                        <div class="form-group-calc">
+                            <label>Ускорения общие</label>
+                            <input type="number" id="accel_general" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 700 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Ускорения строительства</label>
+                            <input type="number" id="accel_build" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 700 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Ускорения исследований</label>
+                            <input type="number" id="accel_research" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 700 = ценность</span>
+                        </div>
+                        
+                        <!-- Строка 2 -->
+                        <div class="form-group-calc">
+                            <label>Ускорения тренировки</label>
+                            <input type="number" id="accel_training" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 6.5 × 540 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Фрагменты легендарных героев</label>
+                            <input type="number" id="frag_legend" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 35,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Фрагменты эпических героев</label>
+                            <input type="number" id="frag_epic" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 9,000 = ценность</span>
+                        </div>
+                        
+                        <!-- Строка 3 -->
+                        <div class="form-group-calc">
+                            <label>Простые болты</label>
+                            <input type="number" id="bolt_simple" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 4,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Эпические болты</label>
+                            <input type="number" id="bolt_epic" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 16,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Легендарные болты</label>
+                            <input type="number" id="bolt_legend" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 80,000 = ценность</span>
+                        </div>
+                        
+                        <!-- Строка 4 -->
+                        <div class="form-group-calc">
+                            <label>Книги для навыков</label>
+                            <input type="number" id="skill_books" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 2,500 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Легендарный призыв</label>
+                            <input type="number" id="recruit_legend" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 20,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Продвинутый призыв</label>
+                            <input type="number" id="recruit_adv" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 8,000 = ценность</span>
+                        </div>
+                        
+                        <!-- Строка 5 -->
+                        <div class="form-group-calc">
+                            <label>Простой призыв</label>
+                            <input type="number" id="recruit_simple" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 2,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Клетки титана</label>
+                            <input type="number" id="titan_cells" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 20,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Сыворотки титана</label>
+                            <input type="number" id="titan_serum" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 10 = ценность</span>
+                        </div>
+                        
+                        <!-- Строка 6 -->
+                        <div class="form-group-calc">
+                            <label>Чертежи коллекции</label>
+                            <input type="number" id="collection_blueprint" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 150,000 = ценность</span>
+                        </div>
+                        <div class="form-group-calc">
+                            <label>Фрагменты коллекции</label>
+                            <input type="number" id="collection_frag" placeholder="0" step="1" min="0">
+                            <span class="formula-hint">× 3,000 = ценность</span>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" class="btn-calculate" onclick="calculateTurtle()">
+                            🧮 Рассчитать ценность
+                        </button>
+                        <button type="reset" class="btn-reset" onclick="resetForm()">
+                            🔄 Очистить все
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Результат -->
+            <div id="resultContainer" class="result-container">
+                <div class="result-total">
+                    <span class="label">🐢 Суммарная ценность ресурсов</span>
+                    <span class="value" id="resultTotal">0</span>
+                </div>
+
+                <div class="result-details" id="resultDetails">
+                    <!-- Заполняется JavaScript -->
+                </div>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn-reset" onclick="resetResult()">🔄 Новый расчет</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('dark-theme') ? '🌙' : '☀️';
+        });
+
+        body.classList.add('dark-theme');
+        toggleBtn.textContent = '🌙';
+
+        function createSparks() {
+            const container = document.getElementById('sparks-container');
+            if (!container) return;
+            const colors = ['#4CAF50', '#66BB6A', '#81C784', '#A5D6A7', '#C8E6C9'];
+            for (let i = 0; i < 30; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('spark');
+                const size = Math.random() * 12 + 6;
+                spark.style.width = size + 'px';
+                spark.style.height = size + 'px';
+                spark.style.left = Math.random() * 100 + '%';
+                spark.style.top = Math.random() * 100 + '%';
+                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
+                spark.style.animationDelay = (Math.random() * 12) + 's';
+                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
+                container.appendChild(spark);
+            }
+        }
+        createSparks();
+
+        // Данные для расчета
+        const items = [
+            { id: 'accel_general', name: 'Ускорения общие', multiplier: 700 },
+            { id: 'accel_build', name: 'Ускорения строительства', multiplier: 700 },
+            { id: 'accel_research', name: 'Ускорения исследований', multiplier: 700 },
+            { id: 'accel_training', name: 'Ускорения тренировки', multiplier: 6.5 * 540 },
+            { id: 'frag_legend', name: 'Фрагменты легендарных героев', multiplier: 35000 },
+            { id: 'frag_epic', name: 'Фрагменты эпических героев', multiplier: 9000 },
+            { id: 'bolt_simple', name: 'Простые болты', multiplier: 4000 },
+            { id: 'bolt_epic', name: 'Эпические болты', multiplier: 16000 },
+            { id: 'bolt_legend', name: 'Легендарные болты', multiplier: 80000 },
+            { id: 'skill_books', name: 'Книги для навыков', multiplier: 2500 },
+            { id: 'recruit_legend', name: 'Легендарный призыв', multiplier: 20000 },
+            { id: 'recruit_adv', name: 'Продвинутый призыв', multiplier: 8000 },
+            { id: 'recruit_simple', name: 'Простой призыв', multiplier: 2000 },
+            { id: 'titan_cells', name: 'Клетки титана', multiplier: 20000 },
+            { id: 'titan_serum', name: 'Сыворотки титана', multiplier: 10 },
+            { id: 'collection_blueprint', name: 'Чертежи коллекции', multiplier: 150000 },
+            { id: 'collection_frag', name: 'Фрагменты коллекции', multiplier: 3000 }
+        ];
+
+        function calculateTurtle() {
+            let total = 0;
+            const results = [];
+            
+            // Рассчитываем каждый элемент
+            items.forEach(item => {
+                const input = document.getElementById(item.id);
+                const value = parseFloat(input.value) || 0;
+                const result = value * item.multiplier;
+                total += result;
+                results.push({
+                    name: item.name,
+                    value: value,
+                    multiplier: item.multiplier,
+                    result: result
+                });
+            });
+
+            // Показываем результат
+            document.getElementById('resultTotal').textContent = Math.round(total).toLocaleString();
+
+            // Генерируем детальную таблицу
+            const detailsContainer = document.getElementById('resultDetails');
+            let html = '';
+            
+            // Сортируем по убыванию ценности
+            results.sort((a, b) => b.result - a.result);
+            
+            // Показываем только те, у которых есть значение
+            const filteredResults = results.filter(r => r.value > 0);
+            
+            if (filteredResults.length === 0) {
+                html = `<div style="text-align: center; padding: 30px; opacity: 0.6;">
+                    📭 Нет данных для расчета. Введите значения в поля выше.
+                </div>`;
+            } else {
+                filteredResults.forEach((r, index) => {
+                    const isHighlight = index < 3;
+                    html += `
+                        <div class="result-item ${isHighlight ? 'highlight' : ''}">
+                            <span class="item-name">${r.name}</span>
+                            <span class="item-value">
+                                ${r.value.toLocaleString()} × ${r.multiplier.toLocaleString()} = ${Math.round(r.result).toLocaleString()}
+                            </span>
+                        </div>
+                    `;
+                });
+            }
+            
+            detailsContainer.innerHTML = html;
+
+            // Показываем результат
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.classList.add('show');
+            
+            // Прокручиваем к результату
+            setTimeout(() => {
+                resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // Сброс формы
+        function resetForm() {
+            document.getElementById('calculatorForm').reset();
+            resetResult();
+        }
+
+        // Сброс результата
+        function resetResult() {
+            const resultContainer = document.getElementById('resultContainer');
+            resultContainer.classList.remove('show');
+            document.querySelector('.calculator-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Автоматический расчет при нажатии Enter
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const activeElement = document.activeElement;
+                if (activeElement && activeElement.tagName === 'INPUT') {
+                    e.preventDefault();
+                    calculateTurtle();
+                }
+            }
+        });
+
+        // Валидация ввода - только числа
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', function() {
+                if (this.value < 0) this.value = 0;
+            });
+        });
+    </script>
+</body>
+</html>

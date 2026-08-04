@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гайды | HEL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .guides-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 16px;
+            border: 2px solid #3a2a1a;
+            background: rgba(20, 25, 35, 0.95);
+            color: #f0e6d3;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            transition: 0.3s;
+        }
+        
+        .search-box:focus {
+            border-color: #ff7e00;
+            outline: none;
+            box-shadow: 0 0 20px #ff7e0040;
+        }
+        
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .guide-accordion {
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 12px;
+            background: rgba(20, 25, 35, 0.85);
+            backdrop-filter: blur(10px);
+        }
+        
+        .guide-header {
+            padding: 18px 24px;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+            user-select: none;
+        }
+        
+        .guide-header:hover {
+            background: rgba(255, 126, 0, 0.08);
+        }
+        
+        .guide-header h3 {
+            font-size: 1.1rem;
+            color: #ffaa44;
+            margin: 0;
+            flex: 1;
+        }
+        
+        .guide-header .date {
+            font-size: 0.75rem;
+            opacity: 0.4;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+        
+        .guide-header .arrow {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+            margin-left: 15px;
+        }
+        
+        .guide-header .arrow.open {
+            transform: rotate(180deg);
+        }
+        
+        .guide-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease;
+            padding: 0 24px;
+            background: rgba(20, 25, 35, 0.95);
+        }
+        
+        .guide-content.open {
+            max-height: 2000px;
+            padding: 20px 24px;
+        }
+        
+        .guide-content-inner {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.8;
+            opacity: 0.95;
+            color: #f0e6d3;
+        }
+        
+        .guide-content-inner p {
+            margin-bottom: 12px;
+        }
+        
+        .guide-content-inner ul, 
+        .guide-content-inner ol {
+            padding-left: 25px;
+            margin-bottom: 12px;
+        }
+        
+        .guide-content-inner h1, 
+        .guide-content-inner h2, 
+        .guide-content-inner h3 {
+            color: #ffaa44;
+            margin: 15px 0 10px 0;
+        }
+        
+        .guide-content-inner code {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+        
+        .guide-content-inner pre {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        
+        .guide-content-inner blockquote {
+            border-left: 3px solid #ff7e00;
+            padding-left: 15px;
+            margin: 10px 0;
+            opacity: 0.8;
+        }
+        
+        .no-guides {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(20, 25, 35, 0.85);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .no-guides .icon {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 20px;
+        }
+        
+        .guide-count {
+            text-align: center;
+            opacity: 0.5;
+            margin-bottom: 25px;
+            font-size: 0.9rem;
+        }
+        
+        .highlight {
+            background: rgba(255, 126, 0, 0.3);
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+        
+        /* Единый стиль для всех кнопок навигации - прозрачный фон с оранжевой обводкой */
+        .header-controls .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            padding: 8px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.3s;
+            color: inherit;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .header-controls .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
+        .header-controls .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .header-controls .nav-btn.primary {
+            background: #ff7e00;
+            border-color: #ff7e00;
+            color: white;
+        }
+        
+        .header-controls .nav-btn.primary:hover {
+            background: #ff5500;
+            border-color: #ff5500;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .guide-header {
+                padding: 14px 18px;
+                flex-wrap: wrap;
+            }
+            .guide-header h3 {
+                font-size: 0.95rem;
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .guide-header .date {
+                font-size: 0.65rem;
+                margin-left: 0;
+            }
+            .guide-content.open {
+                padding: 15px 18px;
+            }
+            .guide-content-inner {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-controls .nav-btn {
+                padding: 5px 12px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div id="sparks-container"></div>
+
+    <header>
+        <div class="header-content">
+            <div class="title-group">
+                <span class="flame-icon">📖</span>
+                <h1>Гайды союза</h1>
+                <span class="flame-icon">📖</span>
+            </div>
+            <div class="header-controls">
+                <a href="/" class="nav-btn">← На главную</a>
+                {% if session['username'] == 'admin' %}
+                    <a href="/admin/guides" class="nav-btn">✏️ Управление</a>
+                {% endif %}
+                <a href="/turtle-calculator" class="nav-btn">🐢 Калькулятор</a>
+                <button id="theme-toggle" class="nav-btn">🌙</button>
+                {% if session['logged_in'] %}
+                    <a href="/logout" class="nav-btn">Выйти</a>
+                {% else %}
+                    <a href="/login" class="nav-btn primary">🔑 Войти</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="guides-container">
+            <h2 style="text-align: center; margin-bottom: 5px;">📚 База знаний</h2>
+            <p style="text-align: center; opacity: 0.6; margin-bottom: 25px;">
+                Полезные гайды и руководства для игроков союза
+            </p>
+            
+            <input type="text" id="searchInput" class="search-box" placeholder="🔍 Поиск по заголовкам..." onkeyup="filterGuides()">
+            
+            <div class="guide-count" id="guideCount">
+                Всего гайдов: {{ guides|length }}
+            </div>
+
+            <div id="guidesList">
+                {% if guides %}
+                    {% for guide in guides %}
+                    <div class="guide-accordion" data-title="{{ guide[1]|lower }}">
+                        <div class="guide-header" onclick="toggleGuide(this)">
+                            <h3>{{ guide[1] }}</h3>
+                            <span class="date">📅 {{ guide[3][:10] }}</span>
+                            <span class="arrow">▼</span>
+                        </div>
+                        <div class="guide-content">
+                            <div class="guide-content-inner">{{ guide[2]|safe }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-guides">
+                        <span class="icon">📭</span>
+                        <h3>Пока нет гайдов</h3>
+                        <p>Администратор скоро добавит полезные материалы</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('dark-theme') ? '🌙' : '☀️';
+        });
+
+        body.classList.add('dark-theme');
+        toggleBtn.textContent = '🌙';
+
+        function createSparks() {
+            const container = document.getElementById('sparks-container');
+            if (!container) return;
+            const colors = ['#ff7e00', '#ff4500', '#ffcc00', '#ffaa00', '#ff5500'];
+            for (let i = 0; i < 50; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('spark');
+                const size = Math.random() * 14 + 8;
+                spark.style.width = size + 'px';
+                spark.style.height = size + 'px';
+                spark.style.left = Math.random() * 100 + '%';
+                spark.style.top = Math.random() * 100 + '%';
+                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
+                spark.style.animationDelay = (Math.random() * 12) + 's';
+                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
+                container.appendChild(spark);
+            }
+        }
+        createSparks();
+
+        function toggleGuide(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.arrow');
+            
+            // Закрываем все остальные
+            document.querySelectorAll('.guide-content.open').forEach(el => {
+                if (el !== content) {
+                    el.classList.remove('open');
+                    el.previousElementSibling.querySelector('.arrow').classList.remove('open');
+                }
+            });
+            
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+
+        function filterGuides() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const guides = document.querySelectorAll('.guide-accordion');
+            let visibleCount = 0;
+            
+            guides.forEach(guide => {
+                const title = guide.dataset.title;
+                if (title.includes(search)) {
+                    guide.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    guide.style.display = 'none';
+                    // Закрываем если открыт
+                    const content = guide.querySelector('.guide-content');
+                    if (content.classList.contains('open')) {
+                        content.classList.remove('open');
+                        guide.querySelector('.arrow').classList.remove('open');
+                    }
+                }
+            });
+            
+            document.getElementById('guideCount').textContent = `Найдено гайдов: ${visibleCount}`;
+        }
+
+        // Открываем первый гайд по умолчанию, если есть
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstGuide = document.querySelector('.guide-accordion');
+            if (firstGuide) {
+                const header = firstGuide.querySelector('.guide-header');
+                setTimeout(() => {
+                    toggleGuide(header);
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>

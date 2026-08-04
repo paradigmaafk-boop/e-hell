@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Прогресс игрока | HEL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-theme rating-{{ rating_type }}">
+    <div id="sparks-container"></div>
+
+    <header>
+        <div class="header-content">
+            <div class="title-group">
+                <span class="flame-icon">🔥</span>
+                <h1>Прогресс: <span style="color:#ffaa44;">{{ nickname }}</span></h1>
+                <span class="flame-icon">🔥</span>
+            </div>
+            <div class="header-controls">
+                <a href="/rating/{{ rating_type }}" class="logout-btn">← Назад к {{ display_name }}</a>
+                <button id="theme-toggle" class="theme-btn">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="rating-section">
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+            
+            <div class="stats-container">
+                <div class="stat-card">
+                    <span class="stat-label">📊 Всего замеров</span>
+                    <span class="stat-value">{{ dates|length }}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">🏆 Максимум</span>
+                    <span class="stat-value">{{ points|max }}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">📈 Текущий результат</span>
+                    <span class="stat-value">{{ points|last }}</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">⬆️ Рост (за всё время)</span>
+                    <span class="stat-value" style="color: {% if points|last - points|first > 0 %}#4caf50{% else %}#ff4444{% endif %};">
+                        {{ points|last - points|first }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="legend-info">
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #ff7e00;"></span>
+                    <span>— {{ nickname }} (прогресс)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background: #4caf50; border: 2px dashed #4caf50;"></span>
+                    <span>— Среднее по союзу</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('dark-theme') ? '🌙' : '☀️';
+        });
+
+        body.classList.add('dark-theme');
+        toggleBtn.textContent = '🌙';
+
+        function createSparks() {
+            const container = document.getElementById('sparks-container');
+            if (!container) return;
+            const colors = ['#ff7e00', '#ff4500', '#ffcc00', '#ffaa00', '#ff5500'];
+            for (let i = 0; i < 50; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('spark');
+                const size = Math.random() * 14 + 8;
+                spark.style.width = size + 'px';
+                spark.style.height = size + 'px';
+                spark.style.left = Math.random() * 100 + '%';
+                spark.style.top = Math.random() * 100 + '%';
+                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
+                spark.style.animationDelay = (Math.random() * 12) + 's';
+                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
+                container.appendChild(spark);
+            }
+        }
+        createSparks();
+
+        const dates = {{ dates|tojson }};
+        const points = {{ points|tojson }};
+        const avgDates = {{ avg_dates|tojson }};
+        const avgPoints = {{ avg_points|tojson }};
+
+        const formattedDates = dates.map(d => {
+            const dt = new Date(d);
+            return dt.getDate() + '.' + (dt.getMonth() + 1) + ' ' + 
+                   String(dt.getHours()).padStart(2, '0') + ':' + 
+                   String(dt.getMinutes()).padStart(2, '0');
+        });
+
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        const isDark = document.body.classList.contains('dark-theme');
+        const textColor = isDark ? '#f0e6d3' : '#2a1a0a';
+        const gridColor = isDark ? '#3a2a1a' : '#dccfc0';
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: formattedDates,
+                datasets: [
+                    {
+                        label: '{{ nickname }}',
+                        data: points,
+                        borderColor: '#ff7e00',
+                        backgroundColor: 'rgba(255, 126, 0, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ff5500',
+                        pointBorderColor: '#ffcc00',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 10,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Среднее по союзу',
+                        data: avgPoints,
+                        borderColor: '#4caf50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.05)',
+                        borderWidth: 2,
+                        borderDash: [8, 6],
+                        pointBackgroundColor: '#4caf50',
+                        pointBorderColor: '#4caf50',
+                        pointBorderWidth: 1,
+                        pointRadius: 4,
+                        pointHoverRadius: 8,
+                        fill: false,
+                        tension: 0.4,
+                        spanGaps: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: textColor,
+                            font: { size: 14 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDark ? 'rgba(20,25,35,0.9)' : 'rgba(255,248,240,0.9)',
+                        titleColor: textColor,
+                        bodyColor: textColor,
+                        borderColor: '#ff7e00',
+                        borderWidth: 2
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    },
+                    x: {
+                        grid: { color: gridColor },
+                        ticks: { color: textColor }
+                    }
+                }
+            }
+        });
+    </script>
+
+    <style>
+        .chart-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid #ff7e0040;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid #ff7e0040;
+        }
+        
+        .stat-label {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-bottom: 6px;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffaa44;
+        }
+        
+        .legend-info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 30px;
+            height: 4px;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 600px) {
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .stat-value {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</body>
+</html>
+
