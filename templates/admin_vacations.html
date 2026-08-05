@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Журнал отпусков | HEL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .vacation-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .vacation-form {
+            background: rgba(20, 25, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #FF6B3560;
+            margin-bottom: 30px;
+        }
+        
+        .vacation-form h3 {
+            color: #ffaa44;
+            margin-bottom: 20px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 2px solid #3a2a1a;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f0e6d3;
+            font-size: 1rem;
+            transition: 0.3s;
+            width: 100%;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #FF6B35;
+            outline: none;
+            box-shadow: 0 0 20px #FF6B3540;
+        }
+        
+        .form-group textarea {
+            min-height: 60px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        
+        .btn-submit {
+            padding: 12px 40px;
+            background: linear-gradient(145deg, #FF6B35, #E8552A);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            grid-column: 1 / -1;
+            justify-self: center;
+            min-width: 200px;
+        }
+        
+        .btn-submit:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #FF6B3580;
+        }
+        
+        .btn-submit:active {
+            transform: scale(0.95);
+        }
+        
+        .records-wall {
+            background: rgba(20, 25, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #FF6B3560;
+        }
+        
+        .records-wall h3 {
+            color: #ffaa44;
+            margin-bottom: 20px;
+        }
+        
+        .record-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border-left: 4px solid #FF6B35;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .record-content {
+            flex: 1;
+        }
+        
+        .record-player {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #FF6B35;
+        }
+        
+        .record-dates {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+        
+        .record-comment {
+            margin-top: 6px;
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+        
+        .record-meta {
+            font-size: 0.75rem;
+            opacity: 0.4;
+            margin-top: 6px;
+        }
+        
+        .record-actions {
+            flex-shrink: 0;
+        }
+        
+        .btn-delete {
+            background: #dc3545;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+        
+        .btn-delete:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #dc354580;
+        }
+        
+        .empty-records {
+            text-align: center;
+            padding: 40px;
+            opacity: 0.6;
+        }
+        
+        .empty-records .icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .flash-message {
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .flash-success {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4CAF50;
+            color: #4CAF50;
+        }
+        
+        .flash-error {
+            background: rgba(255, 51, 0, 0.2);
+            border-left: 4px solid #ff3300;
+            color: #ff6644;
+        }
+        
+        /* Стили для кнопок навигации */
+        .header-controls .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            padding: 8px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.3s;
+            color: inherit;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .header-controls .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
+        .header-controls .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        @media (max-width: 768px) {
+            .vacation-form { padding: 20px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .record-item { flex-direction: column; }
+            .record-actions { align-self: flex-end; }
+            .btn-submit { width: 100%; }
+        }
+        
+        @media (max-width: 480px) {
+            .header-controls .nav-btn {
+                padding: 5px 12px;
+                font-size: 0.9rem;
+                min-width: 50px;
+            }
+            .record-player { font-size: 0.95rem; }
+            .record-comment { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div id="sparks-container"></div>
+
+    <header>
+        <div class="header-content">
+            <div class="title-group">
+                <span class="flame-icon">🏖️</span>
+                <h1>Журнал отпусков</h1>
+                <span class="flame-icon">🏖️</span>
+            </div>
+            <div class="header-controls">
+                <a href="/" class="nav-btn">← На главную</a>
+                <a href="/guides" class="nav-btn">📖 Гайды</a>
+                <button id="theme-toggle" class="nav-btn">🌙</button>
+                <a href="/logout" class="nav-btn">Выйти</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="vacation-container">
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="flash-message {% if '✅' in message %}flash-success{% else %}flash-error{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="vacation-form">
+                <h3>➕ Добавить запись об отпуске</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="add">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="player_name">👤 Игрок *</label>
+                            <input type="text" id="player_name" name="player_name" placeholder="Никнейм игрока" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="start_date">📅 Дата начала *</label>
+                            <input type="date" id="start_date" name="start_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="end_date">📅 Дата окончания *</label>
+                            <input type="date" id="end_date" name="end_date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="comment">💬 Комментарий</label>
+                            <textarea id="comment" name="comment" placeholder="Дополнительная информация (необязательно)"></textarea>
+                        </div>
+                        <button type="submit" class="btn-submit">➕ Добавить запись</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="records-wall">
+                <h3>📋 Все записи</h3>
+                
+                {% if records %}
+                    {% for record in records %}
+                    <div class="record-item">
+                        <div class="record-content">
+                            <div class="record-player">{{ record[1] }}</div>
+                            <div class="record-dates">📅 {{ record[3] }} → {{ record[4] }}</div>
+                            {% if record[2] %}
+                                <div class="record-comment">💬 {{ record[2] }}</div>
+                            {% endif %}
+                            <div class="record-meta">
+                                ✍️ {{ record[6] }} · 📅 {{ record[5] }}
+                            </div>
+                        </div>
+                        <div class="record-actions">
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="record_id" value="{{ record[0] }}">
+                                <button type="submit" class="btn-delete" 
+                                        onclick="return confirm('Удалить запись для {{ record[1] }}?')">
+                                    🗑️ Удалить
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-records">
+                        <span class="icon">📭</span>
+                        <p>Нет записей об отпусках</p>
+                        <p style="font-size: 0.9rem;">Добавьте первую запись с помощью формы выше</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('dark-theme') ? '🌙' : '☀️';
+        });
+
+        body.classList.add('dark-theme');
+        toggleBtn.textContent = '🌙';
+
+        function createSparks() {
+            const container = document.getElementById('sparks-container');
+            if (!container) return;
+            const colors = ['#FF6B35', '#FF8A65', '#FFAB91', '#FFCCBC', '#FBE9E7'];
+            for (let i = 0; i < 30; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('spark');
+                const size = Math.random() * 12 + 6;
+                spark.style.width = size + 'px';
+                spark.style.height = size + 'px';
+                spark.style.left = Math.random() * 100 + '%';
+                spark.style.top = Math.random() * 100 + '%';
+                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
+                spark.style.animationDelay = (Math.random() * 12) + 's';
+                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
+                container.appendChild(spark);
+            }
+        }
+        createSparks();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            const startDate = document.getElementById('start_date');
+            const endDate = document.getElementById('end_date');
+            if (startDate && !startDate.value) startDate.value = today;
+            if (endDate && !endDate.value) {
+                const future = new Date();
+                future.setDate(future.getDate() + 7);
+                endDate.value = future.toISOString().split('T')[0];
+            }
+        });
+    </script>
+</body>
+</html>
