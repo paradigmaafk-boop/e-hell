@@ -73,6 +73,19 @@ def init_db():
         )
     """)
     
+    # Новая таблица для журнала отпусков
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS vacation_log (
+            id SERIAL PRIMARY KEY,
+            player_name TEXT NOT NULL,
+            comment TEXT,
+            start_date TEXT NOT NULL,
+            end_date TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            created_by TEXT NOT NULL
+        )
+    """)
+    
     hashed = hashlib.sha256('admin123'.encode()).hexdigest()
     try:
         cursor.execute(
@@ -101,7 +114,6 @@ def add_nickname_alias(rating_type, current_nickname, old_nickname):
     cursor = conn.cursor()
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
-        # Проверяем, существует ли уже такая связь
         cursor.execute("""
             SELECT id FROM nickname_aliases 
             WHERE rating_type = %s AND old_nickname = %s
@@ -109,27 +121,23 @@ def add_nickname_alias(rating_type, current_nickname, old_nickname):
         existing = cursor.fetchone()
         
         if existing:
-            # Обновляем существующую связь
             cursor.execute("""
                 UPDATE nickname_aliases 
                 SET current_nickname = %s, created_at = %s
                 WHERE rating_type = %s AND old_nickname = %s
             """, (current_nickname, created_at, rating_type, old_nickname))
         else:
-            # Создаем новую связь
             cursor.execute("""
                 INSERT INTO nickname_aliases (rating_type, current_nickname, old_nickname, created_at)
                 VALUES (%s, %s, %s, %s)
             """, (rating_type, current_nickname, old_nickname, created_at))
         
-        # Обновляем историю
         cursor.execute(f"""
             UPDATE history_{rating_type}
             SET nickname = %s
             WHERE nickname = %s
         """, (current_nickname, old_nickname))
         
-        # Обновляем таблицу игроков
         cursor.execute(f"""
             UPDATE players_{rating_type}
             SET nickname = %s
@@ -389,6 +397,55 @@ def delete_guide(guide_id):
         conn.commit()
         return True
     except:
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+# ===== ФУНКЦИИ ДЛЯ ЖУРНАЛА ОТПУСКОВ =====
+
+def add_vacation_record(player_name, comment, start_date, end_date, created_by):
+    """Добавляет запись об отпуске"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            INSERT INTO vacation_log (player_name, comment, start_date, end_date, created_at, created_by)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (player_name, comment, start_date, end_date, created_at, created_by))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error adding vacation record: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def get_all_vacation_records():
+    """Получает все записи об отпусках, отсортированные по дате создания (новые сверху)"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, player_name, comment, start_date, end_date, created_at, created_by
+        FROM vacation_log
+        ORDER BY created_at DESC
+    """)
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def delete_vacation_record(record_id):
+    """Удаляет запись об отпуске"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM vacation_log WHERE id = %s", (record_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error deleting vacation record: {e}")
         conn.rollback()
         return False
     finally:
