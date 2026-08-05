@@ -132,7 +132,7 @@
 
             <div class="admin-actions">
                 <h3>🔧 Админ-панель</h3>
-                <div class="admin-buttons">
+                <div class="admin-grid">
                     <a href="/underperforming/{{ rating_type }}" class="btn-admin">⚠️ Показать отстающих</a>
                     <a href="/consistently-underperforming/{{ rating_type }}" class="btn-admin">🔥 Показать стабильно отстающих</a>
                     <a href="/manage-nicknames/{{ rating_type }}" class="btn-admin">🔄 Управление никнеймами</a>
@@ -140,7 +140,7 @@
                     <a href="/turtle-calculator" class="btn-admin">🐢 Калькулятор</a>
                     <a href="/admin/guides" class="btn-admin">📖 Управление гайдами</a>
                     <a href="/admin/vacations" class="btn-admin" style="border-color: #FF6B35; color: #FF6B35;">🏖️ Журнал отпусков</a>
-                    <form action="/reset-rating/{{ rating_type }}" method="POST" style="display: inline;" 
+                    <form action="/reset-rating/{{ rating_type }}" method="POST" style="display: contents;" 
                           onsubmit="return confirm('⚠️ ВНИМАНИЕ! Это действие удалит ВСЕ данные рейтинга {{ display_name }}. Продолжить?');">
                         <button type="submit" class="btn-admin btn-danger">🗑️ Сбросить рейтинг</button>
                     </form>
@@ -236,40 +236,41 @@
             color: white;
         }
         
-        /* Стили для кнопок в админ-панели - единый размер, прозрачный фон, оранжевая обводка */
-        .admin-actions .admin-buttons {
-            display: flex;
+        /* Стили для кнопок в админ-панели - ГРИД */
+        .admin-actions .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
-            flex-wrap: wrap;
-            justify-content: flex-start;
         }
         
         .admin-actions .btn-admin {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #ff7e0060;
-            padding: 10px 20px;
+            padding: 12px 16px;
             border-radius: 50px;
             text-decoration: none;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: 0.3s;
             cursor: pointer;
-            display: inline-block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: inherit;
-            min-width: 200px;
+            min-height: 50px;
             text-align: center;
-            flex: 0 1 auto;
+            width: 100%;
             white-space: nowrap;
         }
         
         .admin-actions .btn-admin:hover {
-            transform: scale(1.05);
+            transform: scale(1.03);
             box-shadow: 0 0 20px #ff7e0060;
             background: rgba(255, 126, 0, 0.1);
         }
         
         .admin-actions .btn-admin:active {
-            transform: scale(0.95);
+            transform: scale(0.97);
         }
         
         .admin-actions .btn-admin.btn-danger {
@@ -335,17 +336,22 @@
             transform: scale(0.95);
         }
         
-        /* Адаптивность для мобильных устройств */
+        /* Адаптивность для грида */
+        @media (max-width: 992px) {
+            .admin-actions .admin-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
         @media (max-width: 768px) {
-            .admin-actions .admin-buttons {
-                flex-direction: column;
-                align-items: stretch;
+            .admin-actions .admin-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             .admin-actions .btn-admin {
-                min-width: unset;
-                width: 100%;
+                font-size: 0.8rem;
+                padding: 10px 12px;
+                min-height: 44px;
                 white-space: normal;
-                padding: 12px 20px;
             }
             
             .chart-link {
@@ -381,9 +387,13 @@
                 min-width: 50px;
             }
             
+            .admin-actions .admin-grid {
+                grid-template-columns: 1fr;
+            }
             .admin-actions .btn-admin {
-                font-size: 0.8rem;
-                padding: 10px 14px;
+                font-size: 0.85rem;
+                padding: 12px 16px;
+                min-height: 48px;
             }
             
             .chart-link {
