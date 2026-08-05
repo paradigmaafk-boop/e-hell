@@ -9,7 +9,8 @@ from database import (
     get_total_weeks, get_all_time_leaders, get_all_rating_types, 
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
     delete_nickname_alias, reset_rating, delete_player,
-    create_guide, get_all_guides, get_guide_by_id, update_guide, delete_guide
+    create_guide, get_all_guides, get_guide_by_id, update_guide, delete_guide,
+    add_vacation_record, get_all_vacation_records, delete_vacation_record
 )
 from werkzeug.utils import secure_filename
 
@@ -406,6 +407,45 @@ def admin_guides():
     
     guides = get_all_guides()
     return render_template('admin_guides.html', guides=guides)
+
+# ===== ЖУРНАЛ ОТПУСКОВ =====
+
+@app.route('/admin/vacations', methods=['GET', 'POST'])
+def admin_vacations():
+    """Админ-панель для журнала отпусков"""
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ только для администратора!')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        action = request.form.get('action')
+        
+        if action == 'add':
+            player_name = request.form.get('player_name', '').strip()
+            comment = request.form.get('comment', '').strip()
+            start_date = request.form.get('start_date', '').strip()
+            end_date = request.form.get('end_date', '').strip()
+            
+            if player_name and start_date and end_date:
+                if add_vacation_record(player_name, comment, start_date, end_date, session['username']):
+                    flash(f'✅ Запись для "{player_name}" добавлена!')
+                else:
+                    flash('❌ Ошибка при добавлении записи')
+            else:
+                flash('❌ Заполните обязательные поля (Игрок, Дата начала, Дата окончания)!')
+        
+        elif action == 'delete':
+            record_id = request.form.get('record_id')
+            if record_id:
+                if delete_vacation_record(int(record_id)):
+                    flash('✅ Запись удалена!')
+                else:
+                    flash('❌ Ошибка при удалении записи')
+        
+        return redirect(url_for('admin_vacations'))
+    
+    records = get_all_vacation_records()
+    return render_template('admin_vacations.html', records=records)
 
 if __name__ == '__main__':
     app.run()
