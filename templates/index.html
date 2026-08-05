@@ -139,6 +139,7 @@
                     <a href="/rating-stats/{{ rating_type }}" class="btn-admin">📊 Статистика рейтинга</a>
                     <a href="/turtle-calculator" class="btn-admin">🐢 Калькулятор</a>
                     <a href="/admin/guides" class="btn-admin">📖 Управление гайдами</a>
+                    <a href="/admin/vacations" class="btn-admin" style="border-color: #FF6B35; color: #FF6B35;">🏖️ Журнал отпусков</a>
                     <form action="/reset-rating/{{ rating_type }}" method="POST" style="display: inline;" 
                           onsubmit="return confirm('⚠️ ВНИМАНИЕ! Это действие удалит ВСЕ данные рейтинга {{ display_name }}. Продолжить?');">
                         <button type="submit" class="btn-admin btn-danger">🗑️ Сбросить рейтинг</button>
@@ -347,7 +348,6 @@
                 padding: 12px 20px;
             }
             
-            /* Уменьшаем размер кнопки "График" на мобильных */
             .chart-link {
                 font-size: 0.7rem;
                 padding: 3px 10px;
@@ -355,13 +355,11 @@
                 border-width: 1.5px;
             }
             
-            /* Уменьшаем кнопку удаления */
             .btn-delete-player {
                 font-size: 0.65rem;
                 padding: 3px 8px;
             }
             
-            /* Уменьшаем размер текста в таблице */
             th, td {
                 padding: 8px 10px;
                 font-size: 0.8rem;
@@ -388,7 +386,6 @@
                 padding: 10px 14px;
             }
             
-            /* Еще больше уменьшаем кнопку "График" на очень маленьких экранах */
             .chart-link {
                 font-size: 0.6rem;
                 padding: 2px 8px;
