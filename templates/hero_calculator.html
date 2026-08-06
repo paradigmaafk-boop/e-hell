@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор прокачки | HEL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .hero-calculator-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-calculator-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .hero-calculator-header h2 {
+            font-size: 2.2rem;
+            background: linear-gradient(45deg, #9C27B0, #E040FB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .calc-section {
+            background: rgba(20, 25, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid #9C27B060;
+            margin-bottom: 30px;
+        }
+        
+        .calc-section h3 {
+            color: #ffaa44;
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+        }
+        
+        .calc-section .subtitle {
+            opacity: 0.6;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .skill-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .skill-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .skill-item label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #ffaa44;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .skill-item .skill-inputs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .skill-item .skill-inputs input {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 2px solid #3a2a1a;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f0e6d3;
+            font-size: 1rem;
+            transition: 0.3s;
+            width: 80px;
+        }
+        
+        .skill-item .skill-inputs input:focus {
+            border-color: #9C27B0;
+            outline: none;
+            box-shadow: 0 0 20px #9C27B040;
+        }
+        
+        .skill-item .skill-inputs span {
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+        
+        .skill-item .skill-result {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #E040FB;
+        }
+        
+        .btn-calc-hero {
+            padding: 14px 50px;
+            background: linear-gradient(145deg, #9C27B0, #7B1FA2);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn-calc-hero:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #9C27B080;
+        }
+        
+        .btn-calc-hero:active {
+            transform: scale(0.95);
+        }
+        
+        .btn-reset-hero {
+            padding: 14px 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            border-radius: 50px;
+            color: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .btn-reset-hero:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
+        .btn-reset-hero:active {
+            transform: scale(0.95);
+        }
+        
+        .button-group-hero {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .result-box {
+            background: rgba(156, 39, 176, 0.08);
+            border: 2px solid #9C27B060;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .result-box.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        
+        .result-box .total {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #E040FB;
+            text-align: center;
+        }
+        
+        .result-box .total span {
+            font-size: 1rem;
+            opacity: 0.6;
+            display: block;
+            font-weight: 400;
+        }
+        
+        .result-detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .result-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .result-detail-item .label {
+            opacity: 0.7;
+        }
+        
+        .result-detail-item .value {
+            font-weight: 700;
+            color: #E040FB;
+        }
+        
+        .info-box-hero {
+            background: rgba(156, 39, 176, 0.08);
+            border: 1px solid #9C27B060;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box-hero p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* Стили для титана */
+        .titan-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        
+        .titan-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .titan-item label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #ffaa44;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .titan-item .titan-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .titan-item .titan-inputs input {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 2px solid #3a2a1a;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f0e6d3;
+            font-size: 1rem;
+            transition: 0.3s;
+            width: 80px;
+        }
+        
+        .titan-item .titan-inputs input:focus {
+            border-color: #E040FB;
+            outline: none;
+            box-shadow: 0 0 20px #E040FB40;
+        }
+        
+        .titan-item .titan-inputs span {
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+        
+        .titan-item .titan-result {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #E040FB;
+        }
+        
+        .titan-total-box {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #E040FB;
+            padding: 15px;
+            background: rgba(156, 39, 176, 0.05);
+            border-radius: 12px;
+            border: 1px solid #9C27B060;
+            margin-top: 15px;
+        }
+        
+        .titan-total-box span {
+            font-size: 1rem;
+            opacity: 0.6;
+            display: block;
+            font-weight: 400;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Стили для кнопок навигации */
+        .header-controls .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            padding: 8px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.3s;
+            color: inherit;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .header-controls .nav-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
+        .header-controls .nav-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .header-controls .nav-btn.primary {
+            background: #ff7e00;
+            border-color: #ff7e00;
+            color: white;
+        }
+        
+        .header-controls .nav-btn.primary:hover {
+            background: #ff5500;
+            border-color: #ff5500;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-calculator-container { padding: 10px; }
+            .calc-section { padding: 20px; }
+            .skill-grid { grid-template-columns: 1fr; }
+            .titan-grid { grid-template-columns: 1fr; }
+            .btn-calc-hero, .btn-reset-hero { width: 100%; }
+            .button-group-hero { flex-direction: column; }
+            .hero-calculator-header h2 { font-size: 1.6rem; }
+        }
+        
+        @media (max-width: 480px) {
+            .header-controls .nav-btn {
+                padding: 5px 12px;
+                font-size: 0.9rem;
+                min-width: 50px;
+            }
+            .result-box .total { font-size: 1.8rem; }
+            .titan-total-box { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div id="sparks-container"></div>
+
+    <header>
+        <div class="header-content">
+            <div class="title-group">
+                <span class="flame-icon">⚔️</span>
+                <h1>Калькулятор прокачки</h1>
+                <span class="flame-icon">⚔️</span>
+            </div>
+            <div class="header-controls">
+                <a href="/" class="nav-btn">← На главную</a>
+                <a href="/guides" class="nav-btn">📖 Гайды</a>
+                <a href="/turtle-calculator" class="nav-btn">🐢 Черепашка</a>
+                <button id="theme-toggle" class="nav-btn">🌙</button>
+                {% if session['logged_in'] %}
+                    <a href="/logout" class="nav-btn">Выйти</a>
+                {% else %}
+                    <a href="/login" class="nav-btn primary">🔑 Войти</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="hero-calculator-container">
+            <div class="hero-calculator-header">
+                <p style="opacity: 0.7; font-size: 1rem;">
+                    📊 Рассчитайте количество ресурсов для прокачки героев и титанов
+                </p>
+            </div>
+
+            <!-- ===== СЕКЦИЯ НАВЫКОВ ===== -->
+            <div class="calc-section">
+                <h3>📚 Калькулятор навыков</h3>
+                <p class="subtitle">Введите текущий и желаемый уровень каждого навыка (1-40)</p>
+                
+                <div class="info-box-hero">
+                    <p>📖 Каждый навык прокачивается отдельно. Всего 4 навыка.</p>
+                    <p>💰 Стоимость повышения зависит от уровня.</p>
+                </div>
+
+                <form id="skillForm" onsubmit="return false;">
+                    <div class="skill-grid">
+                        <div class="skill-item">
+                            <label>⚔️ Навык 1</label>
+                            <div class="skill-inputs">
+                                <input type="number" id="skill1_current" placeholder="Текущий" min="1" max="40" value="1">
+                                <span>→</span>
+                                <input type="number" id="skill1_target" placeholder="Целевой" min="1" max="40" value="40">
+                            </div>
+                            <div class="skill-result" id="skill1_result">Нужно: 0 книг</div>
+                        </div>
+                        
+                        <div class="skill-item">
+                            <label>🛡️ Навык 2</label>
+                            <div class="skill-inputs">
+                                <input type="number" id="skill2_current" placeholder="Текущий" min="1" max="40" value="1">
+                                <span>→</span>
+                                <input type="number" id="skill2_target" placeholder="Целевой" min="1" max="40" value="40">
+                            </div>
+                            <div class="skill-result" id="skill2_result">Нужно: 0 книг</div>
+                        </div>
+                        
+                        <div class="skill-item">
+                            <label>🌀 Навык 3</label>
+                            <div class="skill-inputs">
+                                <input type="number" id="skill3_current" placeholder="Текущий" min="1" max="40" value="1">
+                                <span>→</span>
+                                <input type="number" id="skill3_target" placeholder="Целевой" min="1" max="40" value="40">
+                            </div>
+                            <div class="skill-result" id="skill3_result">Нужно: 0 книг</div>
+                        </div>
+                        
+                        <div class="skill-item">
+                            <label>💫 Навык 4</label>
+                            <div class="skill-inputs">
+                                <input type="number" id="skill4_current" placeholder="Текущий" min="1" max="40" value="1">
+                                <span>→</span>
+                                <input type="number" id="skill4_target" placeholder="Целевой" min="1" max="40" value="40">
+                            </div>
+                            <div class="skill-result" id="skill4_result">Нужно: 0 книг</div>
+                        </div>
+                    </div>
+
+                    <div class="button-group-hero">
+                        <button type="button" class="btn-calc-hero" onclick="calculateSkills()">📚 Рассчитать навыки</button>
+                        <button type="reset" class="btn-reset-hero" onclick="resetSkills()">🔄 Сбросить</button>
+                    </div>
+                </form>
+
+                <div id="skillResultBox" class="result-box">
+                    <div class="total">
+                        <span>Всего нужно книг для навыков</span>
+                        <span id="skillTotal">0</span>
+                    </div>
+                    <div class="result-detail-grid" id="skillDetails">
+                        <!-- Заполняется JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== СЕКЦИЯ ТИТАНА (ЗВЕЗДЫ) ===== -->
+            <div class="calc-section">
+                <h3>⭐ Калькулятор титана (звезды)</h3>
+                <p class="subtitle">Введите текущее количество звезд и лепестков, а также желаемое количество звезд</p>
+                
+                <div class="info-box-hero">
+                    <p>⭐ Каждая звезда имеет 6 этапов (лепестков).</p>
+                    <p>🔬 Для прокачки каждого этапа требуются клетки титана.</p>
+                    <p>📊 Всего звезд: от 1★ до 61★ (максимум).</p>
+                </div>
+
+                <form id="titanForm" onsubmit="return false;">
+                    <div class="titan-grid">
+                        <div class="titan-item">
+                            <label>⭐ Текущая звезда</label>
+                            <div class="titan-inputs">
+                                <input type="number" id="titan_current_star" placeholder="Звезда" min="1" max="61" value="1">
+                            </div>
+                        </div>
+                        <div class="titan-item">
+                            <label>🔵 Текущий лепесток (1-6)</label>
+                            <div class="titan-inputs">
+                                <input type="number" id="titan_current_petal" placeholder="Лепесток" min="1" max="6" value="1">
+                            </div>
+                        </div>
+                        <div class="titan-item">
+                            <label>⭐ Желаемая звезда</label>
+                            <div class="titan-inputs">
+                                <input type="number" id="titan_target_star" placeholder="Звезда" min="1" max="61" value="61">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="button-group-hero">
+                        <button type="button" class="btn-calc-hero" onclick="calculateTitan()">⭐ Рассчитать титана</button>
+                        <button type="reset" class="btn-reset-hero" onclick="resetTitan()">🔄 Сбросить</button>
+                    </div>
+                </form>
+
+                <div id="titanResultBox" class="result-box">
+                    <div class="titan-total-box">
+                        <span>Всего нужно клеток титана</span>
+                        <span id="titanTotal">0</span>
+                    </div>
+                    <div class="result-detail-grid" id="titanDetails">
+                        <!-- Заполняется JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== СЕКЦИЯ СНАРЯЖЕНИЯ (ПУСТО) ===== -->
+            <div class="calc-section" style="opacity: 0.5; pointer-events: none;">
+                <h3>⚔️ Калькулятор усиления снаряжения</h3>
+                <p class="subtitle">В разработке</p>
+                <div class="info-box-hero">
+                    <p>🔧 Функция будет добавлена в следующем обновлении.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const toggleBtn = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('dark-theme') ? '🌙' : '☀️';
+        });
+
+        body.classList.add('dark-theme');
+        toggleBtn.textContent = '🌙';
+
+        function createSparks() {
+            const container = document.getElementById('sparks-container');
+            if (!container) return;
+            const colors = ['#9C27B0', '#E040FB', '#CE93D8', '#AB47BC', '#7B1FA2'];
+            for (let i = 0; i < 40; i++) {
+                const spark = document.createElement('div');
+                spark.classList.add('spark');
+                const size = Math.random() * 12 + 6;
+                spark.style.width = size + 'px';
+                spark.style.height = size + 'px';
+                spark.style.left = Math.random() * 100 + '%';
+                spark.style.top = Math.random() * 100 + '%';
+                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
+                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
+                spark.style.animationDelay = (Math.random() * 12) + 's';
+                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
+                container.appendChild(spark);
+            }
+        }
+        createSparks();
+
+        // ===== НАВЫКИ =====
+        const skillCost = {
+            1: 1, 2: 3, 3: 6, 4: 10, 5: 20, 6: 30, 7: 40, 8: 50, 9: 70, 10: 90,
+            11: 110, 12: 130, 13: 150, 14: 180, 15: 210, 16: 240, 17: 270, 18: 300, 19: 335, 20: 370,
+            21: 405, 22: 440, 23: 475, 24: 510, 25: 545, 26: 580, 27: 615, 28: 650, 29: 685, 30: 850,
+            31: 990, 32: 1140, 33: 1300, 34: 1470, 35: 1650, 36: 1840, 37: 2040, 38: 2245, 39: 2460
+        };
+
+        function getSkillCost(current, target) {
+            if (current >= target) return 0;
+            let total = 0;
+            for (let level = current; level < target; level++) {
+                total += skillCost[level] || 0;
+            }
+            return total;
+        }
+
+        function calculateSkills() {
+            const skills = [
+                { id: 1, current: document.getElementById('skill1_current'), target: document.getElementById('skill1_target'), result: document.getElementById('skill1_result') },
+                { id: 2, current: document.getElementById('skill2_current'), target: document.getElementById('skill2_target'), result: document.getElementById('skill2_result') },
+                { id: 3, current: document.getElementById('skill3_current'), target: document.getElementById('skill3_target'), result: document.getElementById('skill3_result') },
+                { id: 4, current: document.getElementById('skill4_current'), target: document.getElementById('skill4_target'), result: document.getElementById('skill4_result') }
+            ];
+
+            let totalBooks = 0;
+            const details = [];
+            const skillNames = ['⚔️ Навык 1', '🛡️ Навык 2', '🌀 Навык 3', '💫 Навык 4'];
+
+            skills.forEach((skill, index) => {
+                const current = parseInt(skill.current.value) || 1;
+                const target = parseInt(skill.target.value) || 1;
+                
+                if (current < 1) skill.current.value = 1;
+                if (target < 1) skill.target.value = 1;
+                if (current > 40) skill.current.value = 40;
+                if (target > 40) skill.target.value = 40;
+                
+                const cost = getSkillCost(current, target);
+                totalBooks += cost;
+                skill.result.textContent = `Нужно: ${cost} книг`;
+                details.push({
+                    name: skillNames[index],
+                    current: current,
+                    target: target,
+                    cost: cost
+                });
+            });
+
+            document.getElementById('skillTotal').textContent = totalBooks;
+
+            const detailsContainer = document.getElementById('skillDetails');
+            let html = '';
+            details.forEach(d => {
+                html += `
+                    <div class="result-detail-item">
+                        <span class="label">${d.name}</span>
+                        <span class="value">${d.current} → ${d.target} = ${d.cost} книг</span>
+                    </div>
+                `;
+            });
+            detailsContainer.innerHTML = html;
+
+            document.getElementById('skillResultBox').classList.add('show');
+        }
+
+        function resetSkills() {
+            document.getElementById('skillForm').reset();
+            document.getElementById('skillResultBox').classList.remove('show');
+            document.querySelectorAll('.skill-result').forEach(el => {
+                el.textContent = 'Нужно: 0 книг';
+            });
+        }
+
+        // ===== ТИТАН (ЗВЕЗДЫ) =====
+        const titanData = {
+            1: [4, 4, 4, 4, 4, 6, 26, 26],
+            2: [6, 6, 6, 6, 6, 8, 38, 64],
+            3: [8, 8, 8, 8, 8, 10, 50, 114],
+            4: [10, 10, 10, 10, 10, 12, 62, 176],
+            5: [12, 12, 12, 12, 12, 14, 74, 250],
+            6: [14, 14, 14, 14, 14, 16, 86, 336],
+            7: [16, 16, 16, 16, 16, 18, 98, 434],
+            8: [18, 18, 18, 18, 18, 20, 110, 544],
+            9: [20, 20, 20, 20, 20, 22, 122, 666],
+            10: [22, 22, 22, 22, 22, 24, 134, 800],
+            11: [24, 24, 24, 24, 24, 26, 146, 946],
+            12: [26, 26, 26, 26, 26, 28, 158, 1104],
+            13: [28, 28, 28, 28, 28, 30, 170, 1274],
+            14: [30, 30, 30, 30, 30, 32, 182, 1456],
+            15: [32, 32, 32, 32, 32, 34, 194, 1650],
+            16: [36, 36, 36, 36, 36, 38, 218, 1868],
+            17: [38, 38, 38, 38, 38, 40, 230, 2098],
+            18: [40, 40, 40, 40, 40, 42, 242, 2340],
+            19: [42, 42, 42, 42, 42, 44, 254, 2594],
+            20: [44, 44, 44, 44, 44, 46, 266, 2860],
+            21: [46, 46, 46, 46, 46, 48, 278, 3138],
+            22: [48, 48, 48, 48, 48, 50, 290, 3428],
+            23: [50, 50, 50, 50, 50, 52, 302, 3730],
+            24: [52, 52, 52, 52, 52, 56, 316, 4046],
+            25: [60, 60, 60, 60, 60, 64, 364, 4410],
+            26: [64, 64, 64, 64, 64, 68, 388, 4798],
+            27: [68, 68, 68, 68, 68, 72, 412, 5210],
+            28: [72, 72, 72, 72, 72, 76, 436, 5646],
+            29: [76, 76, 76, 76, 76, 80, 460, 6106],
+            30: [76, 76, 76, 76, 76, 80, 460, 6566],
+            31: [80, 80, 80, 80, 80, 84, 484, 7050],
+            32: [84, 84, 84, 84, 84, 88, 508, 7558],
+            33: [88, 88, 88, 88, 88, 92, 532, 8090],
+            34: [92, 92, 92, 92, 92, 96, 556, 8646],
+            35: [96, 96, 96, 96, 96, 100, 580, 9226],
+            36: [100, 100, 100, 100, 100, 104, 604, 9830],
+            37: [104, 104, 104, 104, 104, 108, 628, 10458],
+            38: [108, 108, 108, 108, 108, 112, 652, 11110],
+            39: [112, 112, 112, 112, 112, 116, 676, 11786],
+            40: [116, 116, 116, 116, 116, 120, 700, 12486],
+            41: [120, 120, 120, 120, 120, 124, 724, 13210],
+            42: [124, 124, 124, 124, 124, 128, 748, 13958],
+            43: [128, 128, 128, 128, 128, 132, 772, 14730],
+            44: [132, 132, 132, 132, 132, 136, 796, 15526],
+            45: [136, 136, 136, 136, 136, 140, 820, 16346],
+            46: [140, 140, 140, 140, 140, 144, 844, 17190],
+            47: [144, 144, 144, 144, 144, 148, 868, 18058],
+            48: [148, 148, 148, 148, 148, 152, 892, 18950],
+            49: [152, 152, 152, 152, 152, 156, 916, 19866],
+            50: [156, 156, 156, 156, 156, 160, 940, 20806],
+            51: [160, 160, 160, 160, 160, 164, 964, 21770],
+            52: [164, 164, 164, 164, 164, 168, 988, 22758],
+            53: [168, 168, 168, 168, 168, 172, 1012, 23770],
+            54: [172, 172, 172, 172, 172, 176, 1036, 24806],
+            55: [176, 176, 176, 176, 176, 180, 1060, 25866],
+            56: [180, 180, 180, 180, 180, 184, 1084, 26950],
+            57: [184, 184, 184, 184, 184, 188, 1108, 28058],
+            58: [188, 188, 188, 188, 188, 192, 1132, 29190],
+            59: [192, 192, 192, 192, 192, 196, 1156, 30346],
+            60: [196, 196, 196, 196, 196, 200, 1180, 31526],
+            61: [200, 200, 200, 200, 200, 204, 1204, 32730]
+        };
+
+        function getTitanCost(currentStar, currentPetal, targetStar) {
+            if (currentStar > targetStar) return 0;
+            if (currentStar === targetStar && currentPetal === 1) return 0;
+            
+            let total = 0;
+            let star = currentStar;
+            let petal = currentPetal;
+            
+            while (star < targetStar) {
+                const data = titanData[star];
+                if (!data) break;
+                for (let p = petal - 1; p < 6; p++) {
+                    total += data[p];
+                }
+                star++;
+                petal = 1;
+            }
+            
+            if (star === targetStar) {
+                for (let p = petal - 1; p < 6; p++) {
+                    const data = titanData[star];
+                    if (data) total += data[p];
+                }
+            }
+            
+            return total;
+        }
+
+        function calculateTitan() {
+            const currentStar = parseInt(document.getElementById('titan_current_star').value) || 1;
+            const currentPetal = parseInt(document.getElementById('titan_current_petal').value) || 1;
+            const targetStar = parseInt(document.getElementById('titan_target_star').value) || 1;
+            
+            if (currentStar < 1) document.getElementById('titan_current_star').value = 1;
+            if (currentPetal < 1) document.getElementById('titan_current_petal').value = 1;
+            if (currentPetal > 6) document.getElementById('titan_current_petal').value = 6;
+            if (targetStar < 1) document.getElementById('titan_target_star').value = 1;
+            if (targetStar > 61) document.getElementById('titan_target_star').value = 61;
+            
+            const finalStar = parseInt(document.getElementById('titan_current_star').value);
+            const finalPetal = parseInt(document.getElementById('titan_current_petal').value);
+            const finalTarget = parseInt(document.getElementById('titan_target_star').value);
+            
+            const cost = getTitanCost(finalStar, finalPetal, finalTarget);
+            
+            document.getElementById('titanTotal').textContent = cost;
+            
+            const detailsContainer = document.getElementById('titanDetails');
+            let html = '';
+            
+            if (finalStar > finalTarget) {
+                html = `
+                    <div class="result-detail-item">
+                        <span class="label">⚠️ Текущая звезда выше желаемой</span>
+                        <span class="value">Нет необходимости в прокачке</span>
+                    </div>
+                `;
+            } else if (finalStar === finalTarget && finalPetal === 1) {
+                html = `
+                    <div class="result-detail-item">
+                        <span class="label">✅ Уже на целевом уровне</span>
+                        <span class="value">0 клеток</span>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="result-detail-item">
+                        <span class="label">⭐ ${finalStar}★ (лепесток ${finalPetal}) → ${finalTarget}★</span>
+                        <span class="value">${cost} клеток</span>
+                    </div>
+                `;
+                
+                if (finalStar < finalTarget) {
+                    let star = finalStar;
+                    let petal = finalPetal;
+                    
+                    while (star < finalTarget) {
+                        const data = titanData[star];
+                        if (!data) break;
+                        let starCost = 0;
+                        for (let p = petal - 1; p < 6; p++) {
+                            starCost += data[p];
+                        }
+                        const starDisplay = star === finalStar ? `${star}★ (с ${petal} лепестка)` : `${star}★`;
+                        html += `
+                            <div class="result-detail-item">
+                                <span class="label">📊 ${starDisplay}</span>
+                                <span class="value">${starCost} клеток</span>
+                            </div>
+                        `;
+                        star++;
+                        petal = 1;
+                    }
+                    
+                    if (star === finalTarget) {
+                        const data = titanData[star];
+                        if (data) {
+                            let starCost = 0;
+                            for (let p = 0; p < 6; p++) {
+                                starCost += data[p];
+                            }
+                            html += `
+                                <div class="result-detail-item">
+                                    <span class="label">📊 ${star}★</span>
+                                    <span class="value">${starCost} клеток</span>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            }
+            
+            detailsContainer.innerHTML = html;
+            document.getElementById('titanResultBox').classList.add('show');
+        }
+
+        function resetTitan() {
+            document.getElementById('titanForm').reset();
+            document.getElementById('titanResultBox').classList.remove('show');
+        }
+
+        document.querySelectorAll('#skillForm input').forEach(input => {
+            input.addEventListener('input', calculateSkills);
+        });
+
+        document.querySelectorAll('#titanForm input').forEach(input => {
+            input.addEventListener('input', calculateTitan);
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            calculateSkills();
+            calculateTitan();
+        });
+    </script>
+</body>
+</html>
