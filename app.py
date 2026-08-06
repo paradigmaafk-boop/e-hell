@@ -355,6 +355,11 @@ def api_player_data(rating_type, nickname):
 def turtle_calculator():
     return render_template('turtle_calculator.html')
 
+@app.route('/hero-calculator')
+def hero_calculator():
+    """Калькулятор прокачки"""
+    return render_template('hero_calculator.html')
+
 @app.route('/guides')
 def guides_list():
     guides = get_all_guides()
@@ -407,8 +412,6 @@ def admin_guides():
     
     guides = get_all_guides()
     return render_template('admin_guides.html', guides=guides)
-
-# ===== ЖУРНАЛ ОТПУСКОВ =====
 
 @app.route('/admin/vacations', methods=['GET', 'POST'])
 def admin_vacations():
