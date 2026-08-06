@@ -273,13 +273,6 @@
             font-size: 0.9rem;
         }
         
-        .titan-item .titan-result {
-            margin-top: 10px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #E040FB;
-        }
-        
         .titan-total-box {
             text-align: center;
             font-size: 2rem;
@@ -297,6 +290,60 @@
             opacity: 0.6;
             display: block;
             font-weight: 400;
+        }
+        
+        /* Таблица звезд */
+        .titan-table-wrapper {
+            margin-top: 20px;
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .titan-table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 600px;
+        }
+        
+        .titan-table-wrapper th {
+            background: rgba(156, 39, 176, 0.2);
+            color: #E040FB;
+            padding: 8px 10px;
+            text-align: center;
+            border-bottom: 2px solid #9C27B060;
+            white-space: nowrap;
+        }
+        
+        .titan-table-wrapper td {
+            padding: 6px 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            white-space: nowrap;
+        }
+        
+        .titan-table-wrapper tr:hover td {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .titan-table-wrapper .star-col {
+            font-weight: 700;
+            color: #ffaa44;
+        }
+        
+        .titan-table-wrapper .stage-col {
+            color: #f0e6d3;
+        }
+        
+        .titan-table-wrapper .total-col {
+            font-weight: 700;
+            color: #E040FB;
+        }
+        
+        .titan-table-wrapper .cumulative-col {
+            font-weight: 700;
+            color: #4CAF50;
         }
         
         @keyframes fadeIn {
@@ -351,6 +398,8 @@
             .btn-calc-hero, .btn-reset-hero { width: 100%; }
             .button-group-hero { flex-direction: column; }
             .hero-calculator-header h2 { font-size: 1.6rem; }
+            .titan-table-wrapper table { font-size: 0.7rem; min-width: 400px; }
+            .titan-table-wrapper th, .titan-table-wrapper td { padding: 4px 6px; }
         }
         
         @media (max-width: 480px) {
@@ -361,6 +410,8 @@
             }
             .result-box .total { font-size: 1.8rem; }
             .titan-total-box { font-size: 1.5rem; }
+            .titan-table-wrapper table { font-size: 0.6rem; min-width: 320px; }
+            .titan-table-wrapper th, .titan-table-wrapper td { padding: 3px 4px; }
         }
     </style>
 </head>
@@ -514,6 +565,31 @@
                         <!-- Заполняется JavaScript -->
                     </div>
                 </div>
+
+                <!-- ===== ТАБЛИЦА ЗВЕЗД ===== -->
+                <div style="margin-top: 30px;">
+                    <h4 style="color: #ffaa44; margin-bottom: 15px;">📊 Таблица стоимости звезд</h4>
+                    <div class="titan-table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Звезда</th>
+                                    <th>Этап 1</th>
+                                    <th>Этап 2</th>
+                                    <th>Этап 3</th>
+                                    <th>Этап 4</th>
+                                    <th>Этап 5</th>
+                                    <th>Этап 6</th>
+                                    <th>Итого</th>
+                                    <th>Суммарно</th>
+                                </tr>
+                            </thead>
+                            <tbody id="titanTableBody">
+                                <!-- Заполняется JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- ===== СЕКЦИЯ СНАРЯЖЕНИЯ (ПУСТО) ===== -->
@@ -635,8 +711,7 @@
             });
         }
 
-        // ===== ТИТАН (ЗВЕЗДЫ) - ТОЛЬКО 60 ЗВЕЗД =====
-        // Данные из таблицы: [звезда] = [этап1, этап2, этап3, этап4, этап5, этап6]
+        // ===== ТИТАН (ЗВЕЗДЫ) =====
         const titanData = {
             1: [4, 4, 4, 4, 4, 6],
             2: [6, 6, 6, 6, 6, 8],
@@ -699,6 +774,23 @@
             59: [192, 192, 192, 192, 192, 196],
             60: [196, 196, 196, 196, 196, 200]
         };
+
+        // Функция для расчета суммарных значений
+        function getCumulativeData() {
+            const cumulative = {};
+            let total = 0;
+            for (let star = 1; star <= 60; star++) {
+                const data = titanData[star];
+                if (data) {
+                    const starTotal = data.reduce((a, b) => a + b, 0);
+                    total += starTotal;
+                    cumulative[star] = total;
+                }
+            }
+            return cumulative;
+        }
+
+        const cumulativeData = getCumulativeData();
 
         function getTitanCost(currentStar, currentPetal, targetStar) {
             if (currentStar > targetStar) return 0;
@@ -823,6 +915,35 @@
             document.getElementById('titanResultBox').classList.remove('show');
         }
 
+        // ===== ГЕНЕРАЦИЯ ТАБЛИЦЫ =====
+        function generateTitanTable() {
+            const tbody = document.getElementById('titanTableBody');
+            let html = '';
+            
+            for (let star = 1; star <= 60; star++) {
+                const data = titanData[star];
+                if (!data) continue;
+                const starTotal = data.reduce((a, b) => a + b, 0);
+                const cumulative = cumulativeData[star] || 0;
+                
+                html += `
+                    <tr>
+                        <td class="star-col">${star}★</td>
+                        <td class="stage-col">${data[0]}</td>
+                        <td class="stage-col">${data[1]}</td>
+                        <td class="stage-col">${data[2]}</td>
+                        <td class="stage-col">${data[3]}</td>
+                        <td class="stage-col">${data[4]}</td>
+                        <td class="stage-col">${data[5]}</td>
+                        <td class="total-col">${starTotal}</td>
+                        <td class="cumulative-col">${cumulative}</td>
+                    </tr>
+                `;
+            }
+            
+            tbody.innerHTML = html;
+        }
+
         document.querySelectorAll('#skillForm input').forEach(input => {
             input.addEventListener('input', calculateSkills);
         });
@@ -834,6 +955,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             calculateSkills();
             calculateTitan();
+            generateTitanTable();
         });
     </script>
 </body>
