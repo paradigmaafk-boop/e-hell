@@ -59,12 +59,6 @@
             color: #ffaa44;
         }
         
-        .form-group-calc .sub-label {
-            font-size: 0.7rem;
-            opacity: 0.5;
-            margin-top: 2px;
-        }
-        
         .form-group-calc input {
             padding: 10px 14px;
             border-radius: 10px;
@@ -116,10 +110,6 @@
             margin: 5px 0;
             font-size: 0.9rem;
             opacity: 0.8;
-        }
-        
-        .info-box-calc .icon {
-            margin-right: 8px;
         }
         
         .button-group {
@@ -252,21 +242,33 @@
             font-size: 1.1rem;
         }
         
-        /* Стили для кнопок навигации */
+        /* Стили для кнопок навигации в шапке - ГРИД */
+        .header-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            align-items: center;
+            width: auto;
+        }
+        
         .header-controls .nav-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #ff7e0060;
-            padding: 8px 18px;
+            padding: 8px 14px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.0rem;
             transition: 0.3s;
             color: inherit;
             font-weight: 600;
             text-decoration: none;
-            display: inline-block;
-            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            min-height: 42px;
             text-align: center;
+            white-space: nowrap;
         }
         
         .header-controls .nav-btn:hover {
@@ -297,15 +299,23 @@
             .result-total .value { font-size: 2.2rem; }
             .result-details { grid-template-columns: 1fr; }
             .btn-calculate, .btn-reset { width: 100%; }
+            .button-group { flex-direction: column; }
         }
         
         @media (max-width: 480px) {
+            .header-controls {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 4px;
+            }
             .header-controls .nav-btn {
-                padding: 5px 12px;
-                font-size: 0.9rem;
-                min-width: 50px;
+                font-size: 0.6rem;
+                padding: 3px 6px;
+                min-width: 40px;
+                min-height: 26px;
+                border-width: 1.5px;
             }
             .calculator-header h2 { font-size: 1.6rem; }
+            .result-total .value { font-size: 1.8rem; }
         }
     </style>
 </head>
@@ -322,6 +332,7 @@
             <div class="header-controls">
                 <a href="/" class="nav-btn">← На главную</a>
                 <a href="/guides" class="nav-btn">📖 Гайды</a>
+                <a href="/hero-calculator" class="nav-btn">⚔️ Прокачка</a>
                 <button id="theme-toggle" class="nav-btn">🌙</button>
                 {% if session['logged_in'] %}
                     <a href="/logout" class="nav-btn">Выйти</a>
@@ -341,7 +352,6 @@
             </div>
 
             <div class="calculator-form">
-                <!-- Информационные блоки с пояснениями -->
                 <div class="info-box-calc">
                     <p>⏱️ <strong>Ускорения</strong> — данные вносятся в <strong>минутах</strong></p>
                     <p>⚡ <strong>Ускорения тренировки</strong> — учтен бафф <strong>VIP 10</strong> (6 солдатиков в минуту)</p>
@@ -350,7 +360,6 @@
 
                 <form id="calculatorForm" onsubmit="return false;">
                     <div class="form-grid">
-                        <!-- Строка 1 -->
                         <div class="form-group-calc">
                             <label>Ускорения общие</label>
                             <input type="number" id="accel_general" placeholder="0" step="1" min="0">
@@ -367,7 +376,6 @@
                             <span class="formula-hint">В минутах × 700 = ценность</span>
                         </div>
                         
-                        <!-- Строка 2 -->
                         <div class="form-group-calc">
                             <label>Ускорения тренировки</label>
                             <input type="number" id="accel_training" placeholder="0" step="1" min="0">
@@ -384,7 +392,6 @@
                             <span class="formula-hint">× 9,000 = ценность</span>
                         </div>
                         
-                        <!-- Строка 3 -->
                         <div class="form-group-calc">
                             <label>Простые болты</label>
                             <input type="number" id="bolt_simple" placeholder="0" step="1" min="0">
@@ -401,7 +408,6 @@
                             <span class="formula-hint">× 80,000 = ценность</span>
                         </div>
                         
-                        <!-- Строка 4 -->
                         <div class="form-group-calc">
                             <label>Книги для навыков</label>
                             <input type="number" id="skill_books" placeholder="0" step="1" min="0">
@@ -418,7 +424,6 @@
                             <span class="formula-hint">× 8,000 = ценность</span>
                         </div>
                         
-                        <!-- Строка 5 -->
                         <div class="form-group-calc">
                             <label>Простой призыв</label>
                             <input type="number" id="recruit_simple" placeholder="0" step="1" min="0">
@@ -435,7 +440,6 @@
                             <span class="formula-hint">× 10 = ценность</span>
                         </div>
                         
-                        <!-- Строка 6 -->
                         <div class="form-group-calc">
                             <label>Чертежи коллекции</label>
                             <input type="number" id="collection_blueprint" placeholder="0" step="1" min="0">
@@ -447,7 +451,6 @@
                             <span class="formula-hint">× 3,000 = ценность</span>
                         </div>
 
-                        <!-- Дополнительные поля -->
                         <div class="form-group-calc" style="border-color: rgba(255, 126, 0, 0.3);">
                             <label>Молот перековки</label>
                             <input type="number" id="hammer_forge" placeholder="0" step="1" min="0">
@@ -486,7 +489,6 @@
                 </form>
             </div>
 
-            <!-- Результат -->
             <div id="resultContainer" class="result-container">
                 <div class="result-total">
                     <span class="label">🐢 Суммарная ценность ресурсов</span>
@@ -494,7 +496,6 @@
                 </div>
 
                 <div class="result-details" id="resultDetails">
-                    <!-- Заполняется JavaScript -->
                 </div>
 
                 <div style="margin-top: 20px; text-align: center;">
@@ -538,9 +539,7 @@
         }
         createSparks();
 
-        // Данные для расчета
         const items = [
-            // Основные ресурсы
             { id: 'accel_general', name: 'Ускорения общие', multiplier: 700 },
             { id: 'accel_build', name: 'Ускорения строительства', multiplier: 700 },
             { id: 'accel_research', name: 'Ускорения исследований', multiplier: 700 },
@@ -558,7 +557,6 @@
             { id: 'titan_serum', name: 'Сыворотки титана', multiplier: 10 },
             { id: 'collection_blueprint', name: 'Чертежи коллекции', multiplier: 150000 },
             { id: 'collection_frag', name: 'Фрагменты коллекции', multiplier: 3000 },
-            // Дополнительные ресурсы
             { id: 'hammer_forge', name: 'Молот перековки', multiplier: 8000 },
             { id: 'tape_forge', name: 'Изолента для перековки', multiplier: 600000 },
             { id: 'star_rating', name: 'Повышение звездного рейтинга снаряжения', multiplier: 2200000 },
