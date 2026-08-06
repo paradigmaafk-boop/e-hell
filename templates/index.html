@@ -22,12 +22,14 @@
                 {% if session['logged_in'] %}
                     <span class="user-greeting">👋 Привет, {{ session['username'] }}</span>
                     <a href="/guides" class="nav-btn">📖 Гайды</a>
-                    <a href="/turtle-calculator" class="nav-btn">🐢 Калькулятор</a>
+                    <a href="/hero-calculator" class="nav-btn" style="border-color: #9C27B0; color: #9C27B0;">⚔️ Прокачка</a>
+                    <a href="/turtle-calculator" class="nav-btn">🐢 Черепашка</a>
                     <button id="theme-toggle" class="nav-btn">🌙</button>
                     <a href="/logout" class="nav-btn">Выйти</a>
                 {% else %}
                     <a href="/guides" class="nav-btn">📖 Гайды</a>
-                    <a href="/turtle-calculator" class="nav-btn">🐢 Калькулятор</a>
+                    <a href="/hero-calculator" class="nav-btn" style="border-color: #9C27B0; color: #9C27B0;">⚔️ Прокачка</a>
+                    <a href="/turtle-calculator" class="nav-btn">🐢 Черепашка</a>
                     <a href="/login" class="nav-btn primary">🔑 Войти</a>
                     <button id="theme-toggle" class="nav-btn">🌙</button>
                 {% endif %}
@@ -47,6 +49,10 @@
             <a href="/guides" class="tab-btn" style="--tab-color: #9C27B0;">
                 <span class="tab-icon">📖</span>
                 <span class="tab-name">Гайды</span>
+            </a>
+            <a href="/hero-calculator" class="tab-btn" style="--tab-color: #9C27B0;">
+                <span class="tab-icon">⚔️</span>
+                <span class="tab-name">Прокачка</span>
             </a>
         </div>
 
@@ -140,6 +146,7 @@
                     <a href="/turtle-calculator" class="btn-admin">🐢 Калькулятор</a>
                     <a href="/admin/guides" class="btn-admin">📖 Управление гайдами</a>
                     <a href="/admin/vacations" class="btn-admin" style="border-color: #FF6B35; color: #FF6B35;">🏖️ Журнал отпусков</a>
+                    <a href="/hero-calculator" class="btn-admin" style="border-color: #9C27B0; color: #9C27B0;">⚔️ Калькулятор прокачки</a>
                     <form action="/reset-rating/{{ rating_type }}" method="POST" style="display: contents;" 
                           onsubmit="return confirm('⚠️ ВНИМАНИЕ! Это действие удалит ВСЕ данные рейтинга {{ display_name }}. Продолжить?');">
                         <button type="submit" class="btn-admin btn-danger">🗑️ Сбросить рейтинг</button>
