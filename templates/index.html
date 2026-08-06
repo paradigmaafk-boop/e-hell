@@ -204,26 +204,24 @@
     </main>
 
     <style>
-        /* Стили для кнопок навигации в шапке - ГРИД */
+        /* Стили для кнопок навигации в шапке - ГОРИЗОНТАЛЬНЫЙ FLEX */
         .header-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 10px;
+            display: flex;
             align-items: center;
-            width: auto;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
         .header-controls .user-greeting {
             font-weight: 600;
             opacity: 0.9;
             white-space: nowrap;
-            padding: 0 5px;
         }
         
         .header-controls .nav-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #ff7e0060;
-            padding: 8px 14px;
+            padding: 8px 16px;
             border-radius: 50px;
             cursor: pointer;
             font-size: 1.0rem;
@@ -231,11 +229,11 @@
             color: inherit;
             font-weight: 600;
             text-decoration: none;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             min-width: 90px;
-            min-height: 42px;
+            min-height: 40px;
             text-align: center;
             white-space: nowrap;
         }
@@ -364,39 +362,28 @@
         
         /* Адаптивность для шапки */
         @media (max-width: 992px) {
-            .header-controls {
-                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            }
             .header-controls .nav-btn {
                 font-size: 0.85rem;
-                padding: 6px 10px;
+                padding: 6px 12px;
                 min-width: 70px;
-                min-height: 36px;
-            }
-        }
-        
-        /* Адаптивность для грида админ-панели */
-        @media (max-width: 992px) {
-            .admin-actions .admin-grid {
-                grid-template-columns: repeat(3, 1fr);
+                min-height: 34px;
             }
         }
         
         @media (max-width: 768px) {
             .header-controls {
-                grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
                 gap: 6px;
-                width: 100%;
+                justify-content: center;
             }
             .header-controls .nav-btn {
-                font-size: 0.7rem;
-                padding: 4px 8px;
-                min-width: 50px;
+                font-size: 0.75rem;
+                padding: 5px 10px;
+                min-width: 60px;
                 min-height: 30px;
             }
             .header-controls .user-greeting {
                 font-size: 0.8rem;
-                grid-column: 1 / -1;
+                width: 100%;
                 text-align: center;
             }
             
@@ -438,14 +425,13 @@
         
         @media (max-width: 480px) {
             .header-controls {
-                grid-template-columns: repeat(3, 1fr);
                 gap: 4px;
             }
             .header-controls .nav-btn {
                 font-size: 0.6rem;
                 padding: 3px 6px;
                 min-width: 40px;
-                min-height: 26px;
+                min-height: 24px;
                 border-width: 1.5px;
             }
             
