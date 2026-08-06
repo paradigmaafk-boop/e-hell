@@ -172,19 +172,33 @@
             border-radius: 3px;
         }
         
-        /* Единый стиль для всех кнопок навигации - прозрачный фон с оранжевой обводкой */
+        /* Стили для кнопок навигации в шапке - ГРИД */
+        .header-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            align-items: center;
+            width: auto;
+        }
+        
         .header-controls .nav-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #ff7e0060;
-            padding: 8px 18px;
+            padding: 8px 14px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.0rem;
             transition: 0.3s;
             color: inherit;
             font-weight: 600;
             text-decoration: none;
-            display: inline-block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            min-height: 42px;
+            text-align: center;
+            white-space: nowrap;
         }
         
         .header-controls .nav-btn:hover {
@@ -232,9 +246,16 @@
         }
         
         @media (max-width: 480px) {
+            .header-controls {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 4px;
+            }
             .header-controls .nav-btn {
-                padding: 5px 12px;
-                font-size: 0.9rem;
+                font-size: 0.6rem;
+                padding: 3px 6px;
+                min-width: 40px;
+                min-height: 26px;
+                border-width: 1.5px;
             }
         }
     </style>
@@ -254,7 +275,8 @@
                 {% if session['username'] == 'admin' %}
                     <a href="/admin/guides" class="nav-btn">✏️ Управление</a>
                 {% endif %}
-                <a href="/turtle-calculator" class="nav-btn">🐢 Калькулятор</a>
+                <a href="/hero-calculator" class="nav-btn">⚔️ Прокачка</a>
+                <a href="/turtle-calculator" class="nav-btn">🐢 Черепашка</a>
                 <button id="theme-toggle" class="nav-btn">🌙</button>
                 {% if session['logged_in'] %}
                     <a href="/logout" class="nav-btn">Выйти</a>
@@ -341,7 +363,6 @@
             const content = header.nextElementSibling;
             const arrow = header.querySelector('.arrow');
             
-            // Закрываем все остальные
             document.querySelectorAll('.guide-content.open').forEach(el => {
                 if (el !== content) {
                     el.classList.remove('open');
@@ -365,7 +386,6 @@
                     visibleCount++;
                 } else {
                     guide.style.display = 'none';
-                    // Закрываем если открыт
                     const content = guide.querySelector('.guide-content');
                     if (content.classList.contains('open')) {
                         content.classList.remove('open');
@@ -377,7 +397,6 @@
             document.getElementById('guideCount').textContent = `Найдено гайдов: ${visibleCount}`;
         }
 
-        // Открываем первый гайд по умолчанию, если есть
         document.addEventListener('DOMContentLoaded', function() {
             const firstGuide = document.querySelector('.guide-accordion');
             if (firstGuide) {
