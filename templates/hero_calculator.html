@@ -233,7 +233,6 @@
             opacity: 0.8;
         }
         
-        /* Стили для титана */
         .titan-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -303,7 +302,6 @@
             font-weight: 400;
         }
         
-        /* Стили для эксклюзивного снаряжения */
         .gear-exclusive-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -366,21 +364,33 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Стили для кнопок навигации */
+        /* Стили для кнопок навигации в шапке - ГРИД */
+        .header-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            align-items: center;
+            width: auto;
+        }
+        
         .header-controls .nav-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #ff7e0060;
-            padding: 8px 18px;
+            padding: 8px 14px;
             border-radius: 50px;
             cursor: pointer;
-            font-size: 1.2rem;
+            font-size: 1.0rem;
             transition: 0.3s;
             color: inherit;
             font-weight: 600;
             text-decoration: none;
-            display: inline-block;
-            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            min-height: 42px;
             text-align: center;
+            white-space: nowrap;
         }
         
         .header-controls .nav-btn:hover {
@@ -419,10 +429,16 @@
         }
         
         @media (max-width: 480px) {
+            .header-controls {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 4px;
+            }
             .header-controls .nav-btn {
-                padding: 5px 12px;
-                font-size: 0.9rem;
-                min-width: 50px;
+                font-size: 0.6rem;
+                padding: 3px 6px;
+                min-width: 40px;
+                min-height: 26px;
+                border-width: 1.5px;
             }
             .result-box .total { font-size: 1.8rem; }
             .titan-total-box { font-size: 1.5rem; }
@@ -665,7 +681,6 @@
         }
         createSparks();
 
-        // ===== АККОРДЕОН =====
         function toggleSection(header) {
             const content = header.nextElementSibling;
             const arrow = header.querySelector('.arrow');
@@ -726,7 +741,7 @@
             });
         }
 
-        // ===== ТИТАН (ЗВЕЗДЫ) =====
+        // ===== ТИТАН =====
         const titanData = {
             1: [4, 4, 4, 4, 4, 6],
             2: [6, 6, 6, 6, 6, 8],
@@ -884,7 +899,6 @@
             document.getElementById('gear_result').textContent = 'Нужно: 0 фрагментов';
         }
 
-        // ===== АВТОМАТИЧЕСКИЙ РАСЧЕТ =====
         document.querySelectorAll('#skillForm input').forEach(input => {
             input.addEventListener('input', calculateSkills);
         });
@@ -897,7 +911,6 @@
             input.addEventListener('input', calculateGearExclusive);
         });
 
-        // ===== ЗАГРУЗКА =====
         window.addEventListener('DOMContentLoaded', () => {
             calculateSkills();
             calculateTitan();
