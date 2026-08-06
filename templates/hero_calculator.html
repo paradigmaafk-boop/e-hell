@@ -30,15 +30,51 @@
             background: rgba(20, 25, 35, 0.9);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 30px;
             border: 2px solid #9C27B060;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
+            overflow: hidden;
         }
         
-        .calc-section h3 {
+        .section-header {
+            padding: 18px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+            user-select: none;
+        }
+        
+        .section-header:hover {
+            background: rgba(156, 39, 176, 0.08);
+        }
+        
+        .section-header h3 {
             color: #ffaa44;
-            margin-bottom: 20px;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+        
+        .section-header .arrow {
             font-size: 1.4rem;
+            transition: transform 0.3s ease;
+            color: #9C27B0;
+        }
+        
+        .section-header .arrow.open {
+            transform: rotate(180deg);
+        }
+        
+        .section-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease;
+            padding: 0 25px;
+        }
+        
+        .section-content.open {
+            max-height: 5000px;
+            padding: 0 25px 25px 25px;
         }
         
         .calc-section .subtitle {
@@ -346,6 +382,64 @@
             color: #4CAF50;
         }
         
+        /* Стили для эксклюзивного снаряжения */
+        .gear-exclusive-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .gear-exclusive-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            padding: 18px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .gear-exclusive-item label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #ffaa44;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .gear-exclusive-item .gear-inputs {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .gear-exclusive-item .gear-inputs input {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 2px solid #3a2a1a;
+            background: rgba(255, 255, 255, 0.05);
+            color: #f0e6d3;
+            font-size: 1rem;
+            transition: 0.3s;
+            width: 80px;
+        }
+        
+        .gear-exclusive-item .gear-inputs input:focus {
+            border-color: #FF6B35;
+            outline: none;
+            box-shadow: 0 0 20px #FF6B3540;
+        }
+        
+        .gear-exclusive-item .gear-inputs span {
+            opacity: 0.6;
+            font-size: 0.9rem;
+        }
+        
+        .gear-exclusive-item .gear-result {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #FF6B35;
+        }
+        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
@@ -392,9 +486,12 @@
         
         @media (max-width: 768px) {
             .hero-calculator-container { padding: 10px; }
-            .calc-section { padding: 20px; }
+            .section-header { padding: 14px 18px; }
+            .section-header h3 { font-size: 1.1rem; }
+            .section-content.open { padding: 0 18px 18px 18px; }
             .skill-grid { grid-template-columns: 1fr; }
             .titan-grid { grid-template-columns: 1fr; }
+            .gear-exclusive-grid { grid-template-columns: 1fr; }
             .btn-calc-hero, .btn-reset-hero { width: 100%; }
             .button-group-hero { flex-direction: column; }
             .hero-calculator-header h2 { font-size: 1.6rem; }
@@ -412,6 +509,8 @@
             .titan-total-box { font-size: 1.5rem; }
             .titan-table-wrapper table { font-size: 0.6rem; min-width: 320px; }
             .titan-table-wrapper th, .titan-table-wrapper td { padding: 3px 4px; }
+            .skill-item .skill-inputs input { width: 60px; }
+            .gear-exclusive-item .gear-inputs input { width: 60px; }
         }
     </style>
 </head>
@@ -443,161 +542,198 @@
         <div class="hero-calculator-container">
             <div class="hero-calculator-header">
                 <p style="opacity: 0.7; font-size: 1rem;">
-                    📊 Рассчитайте количество ресурсов для прокачки героев и титанов
+                    📊 Рассчитайте количество ресурсов для прокачки героев, титанов и снаряжения
                 </p>
             </div>
 
             <!-- ===== СЕКЦИЯ НАВЫКОВ ===== -->
             <div class="calc-section">
-                <h3>📚 Калькулятор навыков</h3>
-                <p class="subtitle">Введите текущий и желаемый уровень каждого навыка (1-40)</p>
-                
-                <div class="info-box-hero">
-                    <p>📖 Каждый навык прокачивается отдельно. Всего 4 навыка.</p>
-                    <p>💰 Стоимость повышения зависит от уровня.</p>
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h3>📚 Калькулятор навыков</h3>
+                    <span class="arrow">▼</span>
                 </div>
-
-                <form id="skillForm" onsubmit="return false;">
-                    <div class="skill-grid">
-                        <div class="skill-item">
-                            <label>⚔️ Навык 1</label>
-                            <div class="skill-inputs">
-                                <input type="number" id="skill1_current" placeholder="Текущий" min="1" max="40" value="1">
-                                <span>→</span>
-                                <input type="number" id="skill1_target" placeholder="Целевой" min="1" max="40" value="40">
-                            </div>
-                            <div class="skill-result" id="skill1_result">Нужно: 0 книг</div>
-                        </div>
-                        
-                        <div class="skill-item">
-                            <label>🛡️ Навык 2</label>
-                            <div class="skill-inputs">
-                                <input type="number" id="skill2_current" placeholder="Текущий" min="1" max="40" value="1">
-                                <span>→</span>
-                                <input type="number" id="skill2_target" placeholder="Целевой" min="1" max="40" value="40">
-                            </div>
-                            <div class="skill-result" id="skill2_result">Нужно: 0 книг</div>
-                        </div>
-                        
-                        <div class="skill-item">
-                            <label>🌀 Навык 3</label>
-                            <div class="skill-inputs">
-                                <input type="number" id="skill3_current" placeholder="Текущий" min="1" max="40" value="1">
-                                <span>→</span>
-                                <input type="number" id="skill3_target" placeholder="Целевой" min="1" max="40" value="40">
-                            </div>
-                            <div class="skill-result" id="skill3_result">Нужно: 0 книг</div>
-                        </div>
-                        
-                        <div class="skill-item">
-                            <label>💫 Навык 4</label>
-                            <div class="skill-inputs">
-                                <input type="number" id="skill4_current" placeholder="Текущий" min="1" max="40" value="1">
-                                <span>→</span>
-                                <input type="number" id="skill4_target" placeholder="Целевой" min="1" max="40" value="40">
-                            </div>
-                            <div class="skill-result" id="skill4_result">Нужно: 0 книг</div>
-                        </div>
+                <div class="section-content open">
+                    <p class="subtitle">Введите текущий и желаемый уровень каждого навыка (1-40)</p>
+                    
+                    <div class="info-box-hero">
+                        <p>📖 Каждый навык прокачивается отдельно. Всего 4 навыка.</p>
+                        <p>💰 Стоимость повышения зависит от уровня.</p>
                     </div>
 
-                    <div class="button-group-hero">
-                        <button type="button" class="btn-calc-hero" onclick="calculateSkills()">📚 Рассчитать навыки</button>
-                        <button type="reset" class="btn-reset-hero" onclick="resetSkills()">🔄 Сбросить</button>
-                    </div>
-                </form>
+                    <form id="skillForm" onsubmit="return false;">
+                        <div class="skill-grid">
+                            <div class="skill-item">
+                                <label>⚔️ Навык 1</label>
+                                <div class="skill-inputs">
+                                    <input type="number" id="skill1_current" placeholder="Текущий" min="1" max="40" value="1">
+                                    <span>→</span>
+                                    <input type="number" id="skill1_target" placeholder="Целевой" min="1" max="40" value="40">
+                                </div>
+                                <div class="skill-result" id="skill1_result">Нужно: 0 книг</div>
+                            </div>
+                            
+                            <div class="skill-item">
+                                <label>🛡️ Навык 2</label>
+                                <div class="skill-inputs">
+                                    <input type="number" id="skill2_current" placeholder="Текущий" min="1" max="40" value="1">
+                                    <span>→</span>
+                                    <input type="number" id="skill2_target" placeholder="Целевой" min="1" max="40" value="40">
+                                </div>
+                                <div class="skill-result" id="skill2_result">Нужно: 0 книг</div>
+                            </div>
+                            
+                            <div class="skill-item">
+                                <label>🌀 Навык 3</label>
+                                <div class="skill-inputs">
+                                    <input type="number" id="skill3_current" placeholder="Текущий" min="1" max="40" value="1">
+                                    <span>→</span>
+                                    <input type="number" id="skill3_target" placeholder="Целевой" min="1" max="40" value="40">
+                                </div>
+                                <div class="skill-result" id="skill3_result">Нужно: 0 книг</div>
+                            </div>
+                            
+                            <div class="skill-item">
+                                <label>💫 Навык 4</label>
+                                <div class="skill-inputs">
+                                    <input type="number" id="skill4_current" placeholder="Текущий" min="1" max="40" value="1">
+                                    <span>→</span>
+                                    <input type="number" id="skill4_target" placeholder="Целевой" min="1" max="40" value="40">
+                                </div>
+                                <div class="skill-result" id="skill4_result">Нужно: 0 книг</div>
+                            </div>
+                        </div>
 
-                <div id="skillResultBox" class="result-box">
-                    <div class="total">
-                        <span>Всего нужно книг для навыков</span>
-                        <span id="skillTotal">0</span>
-                    </div>
-                    <div class="result-detail-grid" id="skillDetails">
-                        <!-- Заполняется JavaScript -->
+                        <div class="button-group-hero">
+                            <button type="button" class="btn-calc-hero" onclick="calculateSkills()">📚 Рассчитать навыки</button>
+                            <button type="reset" class="btn-reset-hero" onclick="resetSkills()">🔄 Сбросить</button>
+                        </div>
+                    </form>
+
+                    <div id="skillResultBox" class="result-box">
+                        <div class="total">
+                            <span>Всего нужно книг для навыков</span>
+                            <span id="skillTotal">0</span>
+                        </div>
+                        <div class="result-detail-grid" id="skillDetails"></div>
                     </div>
                 </div>
             </div>
 
             <!-- ===== СЕКЦИЯ ТИТАНА (ЗВЕЗДЫ) ===== -->
             <div class="calc-section">
-                <h3>⭐ Калькулятор титана (звезды)</h3>
-                <p class="subtitle">Введите текущее количество звезд и лепестков, а также желаемое количество звезд</p>
-                
-                <div class="info-box-hero">
-                    <p>⭐ Каждая звезда имеет 6 этапов (лепестков).</p>
-                    <p>🔬 Для прокачки каждого этапа требуются клетки титана.</p>
-                    <p>📊 Всего звезд: от 1★ до 60★ (максимум).</p>
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h3>⭐ Калькулятор титана (звезды)</h3>
+                    <span class="arrow">▼</span>
                 </div>
+                <div class="section-content open">
+                    <p class="subtitle">Введите текущее количество звезд и лепестков, а также желаемое количество звезд</p>
+                    
+                    <div class="info-box-hero">
+                        <p>⭐ Каждая звезда имеет 6 этапов (лепестков).</p>
+                        <p>🔬 Для прокачки каждого этапа требуются клетки титана.</p>
+                        <p>📊 Всего звезд: от 1★ до 60★ (максимум).</p>
+                    </div>
 
-                <form id="titanForm" onsubmit="return false;">
-                    <div class="titan-grid">
-                        <div class="titan-item">
-                            <label>⭐ Текущая звезда</label>
-                            <div class="titan-inputs">
-                                <input type="number" id="titan_current_star" placeholder="Звезда" min="1" max="60" value="1">
+                    <form id="titanForm" onsubmit="return false;">
+                        <div class="titan-grid">
+                            <div class="titan-item">
+                                <label>⭐ Текущая звезда</label>
+                                <div class="titan-inputs">
+                                    <input type="number" id="titan_current_star" placeholder="Звезда" min="1" max="60" value="1">
+                                </div>
+                            </div>
+                            <div class="titan-item">
+                                <label>🔵 Текущий лепесток (1-6)</label>
+                                <div class="titan-inputs">
+                                    <input type="number" id="titan_current_petal" placeholder="Лепесток" min="1" max="6" value="1">
+                                </div>
+                            </div>
+                            <div class="titan-item">
+                                <label>⭐ Желаемая звезда</label>
+                                <div class="titan-inputs">
+                                    <input type="number" id="titan_target_star" placeholder="Звезда" min="1" max="60" value="60">
+                                </div>
                             </div>
                         </div>
-                        <div class="titan-item">
-                            <label>🔵 Текущий лепесток (1-6)</label>
-                            <div class="titan-inputs">
-                                <input type="number" id="titan_current_petal" placeholder="Лепесток" min="1" max="6" value="1">
-                            </div>
+
+                        <div class="button-group-hero">
+                            <button type="button" class="btn-calc-hero" onclick="calculateTitan()">⭐ Рассчитать титана</button>
+                            <button type="reset" class="btn-reset-hero" onclick="resetTitan()">🔄 Сбросить</button>
                         </div>
-                        <div class="titan-item">
-                            <label>⭐ Желаемая звезда</label>
-                            <div class="titan-inputs">
-                                <input type="number" id="titan_target_star" placeholder="Звезда" min="1" max="60" value="60">
-                            </div>
+                    </form>
+
+                    <div id="titanResultBox" class="result-box">
+                        <div class="titan-total-box">
+                            <span>Всего нужно клеток титана</span>
+                            <span id="titanTotal">0</span>
                         </div>
+                        <div class="result-detail-grid" id="titanDetails"></div>
                     </div>
 
-                    <div class="button-group-hero">
-                        <button type="button" class="btn-calc-hero" onclick="calculateTitan()">⭐ Рассчитать титана</button>
-                        <button type="reset" class="btn-reset-hero" onclick="resetTitan()">🔄 Сбросить</button>
-                    </div>
-                </form>
-
-                <div id="titanResultBox" class="result-box">
-                    <div class="titan-total-box">
-                        <span>Всего нужно клеток титана</span>
-                        <span id="titanTotal">0</span>
-                    </div>
-                    <div class="result-detail-grid" id="titanDetails">
-                        <!-- Заполняется JavaScript -->
-                    </div>
-                </div>
-
-                <!-- ===== ТАБЛИЦА ЗВЕЗД ===== -->
-                <div style="margin-top: 30px;">
-                    <h4 style="color: #ffaa44; margin-bottom: 15px;">📊 Таблица стоимости звезд</h4>
-                    <div class="titan-table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Звезда</th>
-                                    <th>Этап 1</th>
-                                    <th>Этап 2</th>
-                                    <th>Этап 3</th>
-                                    <th>Этап 4</th>
-                                    <th>Этап 5</th>
-                                    <th>Этап 6</th>
-                                    <th>Итого</th>
-                                    <th>Суммарно</th>
-                                </tr>
-                            </thead>
-                            <tbody id="titanTableBody">
-                                <!-- Заполняется JavaScript -->
-                            </tbody>
-                        </table>
+                    <div style="margin-top: 30px;">
+                        <h4 style="color: #ffaa44; margin-bottom: 15px;">📊 Таблица стоимости звезд</h4>
+                        <div class="titan-table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Звезда</th>
+                                        <th>Этап 1</th>
+                                        <th>Этап 2</th>
+                                        <th>Этап 3</th>
+                                        <th>Этап 4</th>
+                                        <th>Этап 5</th>
+                                        <th>Этап 6</th>
+                                        <th>Итого</th>
+                                        <th>Суммарно</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="titanTableBody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ===== СЕКЦИЯ СНАРЯЖЕНИЯ (ПУСТО) ===== -->
-            <div class="calc-section" style="opacity: 0.5; pointer-events: none;">
-                <h3>⚔️ Калькулятор усиления снаряжения</h3>
-                <p class="subtitle">В разработке</p>
-                <div class="info-box-hero">
-                    <p>🔧 Функция будет добавлена в следующем обновлении.</p>
+            <!-- ===== СЕКЦИЯ ЭКСКЛЮЗИВНОГО СНАРЯЖЕНИЯ ===== -->
+            <div class="calc-section">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <h3>⚔️ Эксклюзивное снаряжение</h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="section-content open">
+                    <p class="subtitle">Введите текущий и желаемый уровень снаряжения (1-14)</p>
+                    
+                    <div class="info-box-hero">
+                        <p>🛡️ Эксклюзивное снаряжение прокачивается до 14 уровня.</p>
+                        <p>📦 Стоимость повышения зависит от уровня.</p>
+                    </div>
+
+                    <form id="gearExclusiveForm" onsubmit="return false;">
+                        <div class="gear-exclusive-grid">
+                            <div class="gear-exclusive-item">
+                                <label>⚔️ Снаряжение</label>
+                                <div class="gear-inputs">
+                                    <input type="number" id="gear_current" placeholder="Текущий" min="1" max="14" value="1">
+                                    <span>→</span>
+                                    <input type="number" id="gear_target" placeholder="Целевой" min="1" max="14" value="14">
+                                </div>
+                                <div class="gear-result" id="gear_result">Нужно: 0 фрагментов</div>
+                            </div>
+                        </div>
+
+                        <div class="button-group-hero">
+                            <button type="button" class="btn-calc-hero" onclick="calculateGearExclusive()">⚔️ Рассчитать снаряжение</button>
+                            <button type="reset" class="btn-reset-hero" onclick="resetGearExclusive()">🔄 Сбросить</button>
+                        </div>
+                    </form>
+
+                    <div id="gearExclusiveResultBox" class="result-box" style="border-color: #FF6B35;">
+                        <div class="total">
+                            <span>Всего нужно фрагментов снаряжения</span>
+                            <span id="gearExclusiveTotal" style="color: #FF6B35;">0</span>
+                        </div>
+                        <div class="result-detail-grid" id="gearExclusiveDetails"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -636,6 +772,14 @@
             }
         }
         createSparks();
+
+        // ===== АККОРДЕОН =====
+        function toggleSection(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.arrow');
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
 
         // ===== НАВЫКИ =====
         const skillCost = {
@@ -943,6 +1087,87 @@
             tbody.innerHTML = html;
         }
 
+        // ===== ЭКСКЛЮЗИВНОЕ СНАРЯЖЕНИЕ =====
+        const gearCost = {
+            1: 5, 2: 10, 3: 20, 4: 25, 5: 30, 6: 30, 7: 30,
+            8: 30, 9: 30, 10: 30, 11: 30, 12: 30, 13: 30, 14: 30
+        };
+
+        function getGearCost(current, target) {
+            if (current >= target) return 0;
+            let total = 0;
+            for (let level = current; level < target; level++) {
+                total += gearCost[level] || 0;
+            }
+            return total;
+        }
+
+        function calculateGearExclusive() {
+            const current = parseInt(document.getElementById('gear_current').value) || 1;
+            const target = parseInt(document.getElementById('gear_target').value) || 1;
+            
+            if (current < 1) document.getElementById('gear_current').value = 1;
+            if (target < 1) document.getElementById('gear_target').value = 1;
+            if (current > 14) document.getElementById('gear_current').value = 14;
+            if (target > 14) document.getElementById('gear_target').value = 14;
+            
+            const finalCurrent = parseInt(document.getElementById('gear_current').value);
+            const finalTarget = parseInt(document.getElementById('gear_target').value);
+            
+            const cost = getGearCost(finalCurrent, finalTarget);
+            
+            document.getElementById('gear_result').textContent = `Нужно: ${cost} фрагментов`;
+            document.getElementById('gearExclusiveTotal').textContent = cost;
+            
+            const detailsContainer = document.getElementById('gearExclusiveDetails');
+            let html = '';
+            
+            if (finalCurrent > finalTarget) {
+                html = `
+                    <div class="result-detail-item">
+                        <span class="label">⚠️ Текущий уровень выше желаемого</span>
+                        <span class="value">Нет необходимости в прокачке</span>
+                    </div>
+                `;
+            } else if (finalCurrent === finalTarget) {
+                html = `
+                    <div class="result-detail-item">
+                        <span class="label">✅ Уже на целевом уровне</span>
+                        <span class="value">0 фрагментов</span>
+                    </div>
+                `;
+            } else {
+                let total = 0;
+                html = `
+                    <div class="result-detail-item" style="background: rgba(255, 107, 53, 0.1); border-color: #FF6B35;">
+                        <span class="label">⚔️ ${finalCurrent} уровень → ${finalTarget} уровень</span>
+                        <span class="value" style="color: #FF6B35;">${cost} фрагментов</span>
+                    </div>
+                `;
+                
+                for (let level = finalCurrent; level < finalTarget; level++) {
+                    const levelCost = gearCost[level] || 0;
+                    total += levelCost;
+                    html += `
+                        <div class="result-detail-item">
+                            <span class="label">📊 ${level} → ${level + 1} уровень</span>
+                            <span class="value">${levelCost} фрагментов</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            detailsContainer.innerHTML = html;
+            document.getElementById('gearExclusiveResultBox').classList.add('show');
+        }
+
+        function resetGearExclusive() {
+            document.getElementById('gearExclusiveForm').reset();
+            document.getElementById('gearExclusiveResultBox').classList.remove('show');
+            document.getElementById('gear_result').textContent = 'Нужно: 0 фрагментов';
+        }
+
+        // ===== АВТОМАТИЧЕСКИЙ РАСЧЕТ =====
         document.querySelectorAll('#skillForm input').forEach(input => {
             input.addEventListener('input', calculateSkills);
         });
@@ -951,9 +1176,15 @@
             input.addEventListener('input', calculateTitan);
         });
 
+        document.querySelectorAll('#gearExclusiveForm input').forEach(input => {
+            input.addEventListener('input', calculateGearExclusive);
+        });
+
+        // ===== ЗАГРУЗКА =====
         window.addEventListener('DOMContentLoaded', () => {
             calculateSkills();
             calculateTitan();
+            calculateGearExclusive();
             generateTitanTable();
         });
     </script>
