@@ -328,60 +328,6 @@
             font-weight: 400;
         }
         
-        /* Таблица звезд */
-        .titan-table-wrapper {
-            margin-top: 20px;
-            overflow-x: auto;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .titan-table-wrapper table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            min-width: 600px;
-        }
-        
-        .titan-table-wrapper th {
-            background: rgba(156, 39, 176, 0.2);
-            color: #E040FB;
-            padding: 8px 10px;
-            text-align: center;
-            border-bottom: 2px solid #9C27B060;
-            white-space: nowrap;
-        }
-        
-        .titan-table-wrapper td {
-            padding: 6px 10px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            white-space: nowrap;
-        }
-        
-        .titan-table-wrapper tr:hover td {
-            background: rgba(255, 255, 255, 0.03);
-        }
-        
-        .titan-table-wrapper .star-col {
-            font-weight: 700;
-            color: #ffaa44;
-        }
-        
-        .titan-table-wrapper .stage-col {
-            color: #f0e6d3;
-        }
-        
-        .titan-table-wrapper .total-col {
-            font-weight: 700;
-            color: #E040FB;
-        }
-        
-        .titan-table-wrapper .cumulative-col {
-            font-weight: 700;
-            color: #4CAF50;
-        }
-        
         /* Стили для эксклюзивного снаряжения */
         .gear-exclusive-grid {
             display: grid;
@@ -495,8 +441,6 @@
             .btn-calc-hero, .btn-reset-hero { width: 100%; }
             .button-group-hero { flex-direction: column; }
             .hero-calculator-header h2 { font-size: 1.6rem; }
-            .titan-table-wrapper table { font-size: 0.7rem; min-width: 400px; }
-            .titan-table-wrapper th, .titan-table-wrapper td { padding: 4px 6px; }
         }
         
         @media (max-width: 480px) {
@@ -507,8 +451,6 @@
             }
             .result-box .total { font-size: 1.8rem; }
             .titan-total-box { font-size: 1.5rem; }
-            .titan-table-wrapper table { font-size: 0.6rem; min-width: 320px; }
-            .titan-table-wrapper th, .titan-table-wrapper td { padding: 3px 4px; }
             .skill-item .skill-inputs input { width: 60px; }
             .gear-exclusive-item .gear-inputs input { width: 60px; }
         }
@@ -669,28 +611,6 @@
                         </div>
                         <div class="result-detail-grid" id="titanDetails"></div>
                     </div>
-
-                    <div style="margin-top: 30px;">
-                        <h4 style="color: #ffaa44; margin-bottom: 15px;">📊 Таблица стоимости звезд</h4>
-                        <div class="titan-table-wrapper">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Звезда</th>
-                                        <th>Этап 1</th>
-                                        <th>Этап 2</th>
-                                        <th>Этап 3</th>
-                                        <th>Этап 4</th>
-                                        <th>Этап 5</th>
-                                        <th>Этап 6</th>
-                                        <th>Итого</th>
-                                        <th>Суммарно</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="titanTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -701,10 +621,10 @@
                     <span class="arrow">▼</span>
                 </div>
                 <div class="section-content open">
-                    <p class="subtitle">Введите текущий и желаемый уровень снаряжения (1-14)</p>
+                    <p class="subtitle">Введите текущий и желаемый уровень снаряжения (1-15)</p>
                     
                     <div class="info-box-hero">
-                        <p>🛡️ Эксклюзивное снаряжение прокачивается до 14 уровня.</p>
+                        <p>🛡️ Эксклюзивное снаряжение прокачивается до 15 уровня.</p>
                         <p>📦 Стоимость повышения зависит от уровня.</p>
                     </div>
 
@@ -713,9 +633,9 @@
                             <div class="gear-exclusive-item">
                                 <label>⚔️ Снаряжение</label>
                                 <div class="gear-inputs">
-                                    <input type="number" id="gear_current" placeholder="Текущий" min="1" max="14" value="1">
+                                    <input type="number" id="gear_current" placeholder="Текущий" min="1" max="15" value="1">
                                     <span>→</span>
-                                    <input type="number" id="gear_target" placeholder="Целевой" min="1" max="14" value="14">
+                                    <input type="number" id="gear_target" placeholder="Целевой" min="1" max="15" value="15">
                                 </div>
                                 <div class="gear-result" id="gear_result">Нужно: 0 фрагментов</div>
                             </div>
@@ -919,22 +839,6 @@
             60: [196, 196, 196, 196, 196, 200]
         };
 
-        function getCumulativeData() {
-            const cumulative = {};
-            let total = 0;
-            for (let star = 1; star <= 60; star++) {
-                const data = titanData[star];
-                if (data) {
-                    const starTotal = data.reduce((a, b) => a + b, 0);
-                    total += starTotal;
-                    cumulative[star] = total;
-                }
-            }
-            return cumulative;
-        }
-
-        const cumulativeData = getCumulativeData();
-
         function getTitanCost(currentStar, currentPetal, targetStar) {
             if (currentStar > targetStar) return 0;
             if (currentStar === targetStar && currentPetal === 1) return 0;
@@ -1058,39 +962,10 @@
             document.getElementById('titanResultBox').classList.remove('show');
         }
 
-        // ===== ГЕНЕРАЦИЯ ТАБЛИЦЫ =====
-        function generateTitanTable() {
-            const tbody = document.getElementById('titanTableBody');
-            let html = '';
-            
-            for (let star = 1; star <= 60; star++) {
-                const data = titanData[star];
-                if (!data) continue;
-                const starTotal = data.reduce((a, b) => a + b, 0);
-                const cumulative = cumulativeData[star] || 0;
-                
-                html += `
-                    <tr>
-                        <td class="star-col">${star}★</td>
-                        <td class="stage-col">${data[0]}</td>
-                        <td class="stage-col">${data[1]}</td>
-                        <td class="stage-col">${data[2]}</td>
-                        <td class="stage-col">${data[3]}</td>
-                        <td class="stage-col">${data[4]}</td>
-                        <td class="stage-col">${data[5]}</td>
-                        <td class="total-col">${starTotal}</td>
-                        <td class="cumulative-col">${cumulative}</td>
-                    </tr>
-                `;
-            }
-            
-            tbody.innerHTML = html;
-        }
-
         // ===== ЭКСКЛЮЗИВНОЕ СНАРЯЖЕНИЕ =====
         const gearCost = {
             1: 5, 2: 10, 3: 20, 4: 25, 5: 30, 6: 30, 7: 30,
-            8: 30, 9: 30, 10: 30, 11: 30, 12: 30, 13: 30, 14: 30
+            8: 30, 9: 30, 10: 30, 11: 30, 12: 40, 13: 40, 14: 40
         };
 
         function getGearCost(current, target) {
@@ -1108,8 +983,8 @@
             
             if (current < 1) document.getElementById('gear_current').value = 1;
             if (target < 1) document.getElementById('gear_target').value = 1;
-            if (current > 14) document.getElementById('gear_current').value = 14;
-            if (target > 14) document.getElementById('gear_target').value = 14;
+            if (current > 15) document.getElementById('gear_current').value = 15;
+            if (target > 15) document.getElementById('gear_target').value = 15;
             
             const finalCurrent = parseInt(document.getElementById('gear_current').value);
             const finalTarget = parseInt(document.getElementById('gear_target').value);
@@ -1185,7 +1060,6 @@
             calculateSkills();
             calculateTitan();
             calculateGearExclusive();
-            generateTitanTable();
         });
     </script>
 </body>
