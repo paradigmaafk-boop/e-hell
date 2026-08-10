@@ -268,6 +268,32 @@
             font-size: 0.95rem;
         }
         
+        /* Стили для админ-кнопки в гайдах */
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .admin-link .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #ff7e0060;
+            padding: 10px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            cursor: pointer;
+            display: inline-block;
+            color: inherit;
+        }
+        
+        .admin-link .nav-btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 20px #ff7e0060;
+            background: rgba(255, 126, 0, 0.1);
+        }
+        
         @media (max-width: 768px) {
             .guide-header {
                 padding: 14px 18px;
@@ -362,11 +388,15 @@
 
     <main>
         <div class="tabs-container">
-            {% for rt in rating_types %}
-                <a href="/rating/{{ rt.id }}" class="tab-btn" style="--tab-color: {{ rt.color }};">
-                    <span class="tab-name">{{ rt.name }}</span>
-                </a>
-            {% endfor %}
+            <a href="/rating/duel" class="tab-btn" style="--tab-color: #ff5500;">
+                <span class="tab-name">Дуэль</span>
+            </a>
+            <a href="/rating/reservoir" class="tab-btn" style="--tab-color: #2196F3;">
+                <span class="tab-name">Резервуар</span>
+            </a>
+            <a href="/rating/oil" class="tab-btn" style="--tab-color: #2c1810;">
+                <span class="tab-name">Нефть</span>
+            </a>
             <a href="/guides" class="tab-btn active" style="--tab-color: #ff7e00;">
                 <span class="tab-name">Гайды</span>
             </a>
@@ -412,6 +442,12 @@
                     </div>
                 {% endif %}
             </div>
+
+            {% if session['username'] == 'admin' %}
+            <div class="admin-link">
+                <a href="/admin/guides" class="nav-btn">Управление гайдами</a>
+            </div>
+            {% endif %}
         </div>
     </main>
 
