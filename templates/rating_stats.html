@@ -26,6 +26,10 @@
             -webkit-text-fill-color: transparent;
         }
         
+        .stats-header p {
+            opacity: 0.6;
+        }
+        
         /* Карточки статистики */
         .stats-grid {
             display: grid;
@@ -92,6 +96,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         
         .accordion-header .badge {
@@ -106,6 +111,7 @@
             font-size: 1.2rem;
             transition: transform 0.3s ease;
             color: #9C27B0;
+            flex-shrink: 0;
         }
         
         .accordion-header .arrow.open {
@@ -120,7 +126,7 @@
         }
         
         .accordion-content.open {
-            max-height: 2000px;
+            max-height: 5000px;
             padding: 0 24px 20px 24px;
         }
         
@@ -128,6 +134,12 @@
             opacity: 0.5;
             text-align: center;
             padding: 20px;
+        }
+        
+        .accordion-content .subtitle {
+            opacity: 0.5;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
         }
         
         /* Списки игроков */
@@ -410,6 +422,15 @@
             .stats-container {
                 padding: 10px;
             }
+            .accordion-header {
+                padding: 12px 14px;
+            }
+            .accordion-header h3 {
+                font-size: 0.85rem;
+            }
+            .accordion-content.open {
+                padding: 0 14px 12px 14px;
+            }
         }
     </style>
 </head>
@@ -459,7 +480,7 @@
         <div class="stats-container">
             <div class="stats-header">
                 <h2>{{ display_name }}</h2>
-                <p style="opacity: 0.6;">Общая статистика рейтинга</p>
+                <p>Общая статистика рейтинга</p>
             </div>
 
             <!-- Карточки с общей статистикой -->
@@ -514,7 +535,7 @@
                     <span class="arrow">▼</span>
                 </div>
                 <div class="accordion-content">
-                    <p style="opacity: 0.5; font-size: 0.85rem; margin-bottom: 12px;">Игроки, которые чаще других оказываются ниже среднего</p>
+                    <div class="subtitle">Игроки, которые чаще других оказываются ниже среднего</div>
                     {% if consistently_under %}
                         <div class="player-list">
                             {% for player in consistently_under %}
@@ -537,7 +558,7 @@
                     <span class="arrow">▼</span>
                 </div>
                 <div class="accordion-content">
-                    <p style="opacity: 0.5; font-size: 0.85rem; margin-bottom: 12px;">Игроки, которые чаще других оказываются выше среднего</p>
+                    <div class="subtitle">Игроки, которые чаще других оказываются выше среднего</div>
                     {% if consistently_over %}
                         <div class="player-list">
                             {% for player in consistently_over %}
@@ -602,7 +623,7 @@
                 </div>
             </div>
 
-            <div style="text-align: center;">
+            <div style="text-align: center; margin-top: 20px;">
                 <a href="/rating/{{ rating_type }}" class="back-link">← Вернуться к рейтингу</a>
             </div>
         </div>
