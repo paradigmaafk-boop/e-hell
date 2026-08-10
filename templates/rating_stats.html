@@ -46,56 +46,11 @@
             opacity: 0.6;
         }
         
-        /* Карточки статистики - ГРИД 4 КОЛОНКИ */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .stat-card {
-            background: rgba(20, 25, 35, 0.85);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 20px 15px;
-            text-align: center;
-            border: 1px solid rgba(255, 126, 0, 0.2);
-            transition: 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100px;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
-            border-color: #ff7e0060;
-            box-shadow: 0 0 30px rgba(255, 126, 0, 0.1);
-        }
-        
-        .stat-card .number {
-            font-size: 2.2rem;
-            font-weight: 800;
-            color: #ffaa44;
-            line-height: 1.2;
-        }
-        
-        .stat-card .label {
-            display: block;
-            font-size: 0.8rem;
-            opacity: 0.6;
-            margin-top: 5px;
-        }
-        
         /* Счетчики */
         .counters-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
-            gap: 12px;
+            gap: 15px;
             margin-bottom: 30px;
             position: relative;
             z-index: 2;
@@ -104,46 +59,8 @@
         .counter-card {
             background: rgba(20, 25, 35, 0.85);
             backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 14px 10px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: 0.3s;
-        }
-        
-        .counter-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 126, 0, 0.3);
-        }
-        
-        .counter-card .number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #E040FB;
-        }
-        
-        .counter-card .label {
-            display: block;
-            font-size: 0.7rem;
-            opacity: 0.5;
-            margin-top: 3px;
-        }
-        
-        /* Карточки-статистики (без аккордеонов) */
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 30px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .info-card {
-            background: rgba(20, 25, 35, 0.85);
-            backdrop-filter: blur(10px);
             border-radius: 16px;
-            padding: 18px 15px;
+            padding: 25px 15px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.05);
             transition: 0.3s;
@@ -151,43 +68,32 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 80px;
+            min-height: 120px;
         }
         
-        .info-card:hover {
+        .counter-card:hover {
             transform: translateY(-3px);
-            border-color: rgba(255, 126, 0, 0.2);
+            border-color: rgba(255, 126, 0, 0.3);
+            box-shadow: 0 0 30px rgba(255, 126, 0, 0.05);
         }
         
-        .info-card .number {
-            font-size: 1.8rem;
-            font-weight: 700;
+        .counter-card .number {
+            font-size: 2.5rem;
+            font-weight: 800;
             color: #ffaa44;
             line-height: 1.2;
         }
         
-        .info-card .label {
+        .counter-card .label {
             display: block;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             opacity: 0.6;
-            margin-top: 5px;
+            margin-top: 8px;
         }
         
-        .info-card .badge {
-            display: inline-block;
-            background: rgba(255, 126, 0, 0.1);
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 0.65rem;
-            color: #ffaa44;
-            margin-top: 5px;
-        }
-        
-        .info-card .sub-label {
-            display: block;
-            font-size: 0.7rem;
-            opacity: 0.4;
-            margin-top: 3px;
+        .counter-card .icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
         }
         
         /* Кнопка назад */
@@ -314,23 +220,12 @@
         /* ===== АДАПТИВНАЯ ВЕРСТКА ===== */
         
         @media (max-width: 992px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
             .counters-grid {
                 grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-            }
-            .info-grid {
-                grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
             }
-            .stat-card .number {
-                font-size: 1.8rem;
-            }
-            .info-card .number {
-                font-size: 1.5rem;
+            .counter-card .number {
+                font-size: 2rem;
             }
         }
         
@@ -338,43 +233,22 @@
             .stats-container {
                 padding: 12px;
             }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
-            }
             .counters-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-            .info-grid {
-                grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
             }
+            .counter-card {
+                padding: 18px 12px;
+                min-height: 100px;
+            }
             .counter-card .number {
-                font-size: 1.2rem;
+                font-size: 1.8rem;
             }
             .counter-card .label {
-                font-size: 0.6rem;
+                font-size: 0.75rem;
             }
-            .stat-card {
-                padding: 14px 12px;
-                min-height: 80px;
-            }
-            .stat-card .number {
-                font-size: 1.6rem;
-            }
-            .stat-card .label {
-                font-size: 0.7rem;
-            }
-            .info-card {
-                padding: 14px 12px;
-                min-height: 70px;
-            }
-            .info-card .number {
-                font-size: 1.3rem;
-            }
-            .info-card .label {
-                font-size: 0.65rem;
+            .counter-card .icon {
+                font-size: 1.5rem;
             }
             .header-controls {
                 gap: 6px;
@@ -430,53 +304,24 @@
             .tab-name {
                 font-size: 0.7rem;
             }
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-            }
             .counters-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-            }
-            .info-grid {
                 grid-template-columns: 1fr 1fr;
                 gap: 8px;
             }
             .counter-card {
-                padding: 10px 8px;
+                padding: 14px 10px;
+                min-height: 80px;
+                border-radius: 12px;
             }
             .counter-card .number {
-                font-size: 1rem;
+                font-size: 1.5rem;
             }
             .counter-card .label {
-                font-size: 0.55rem;
-            }
-            .stat-card {
-                padding: 10px 8px;
-                min-height: 70px;
-                border-radius: 12px;
-            }
-            .stat-card .number {
-                font-size: 1.3rem;
-            }
-            .stat-card .label {
                 font-size: 0.65rem;
-                margin-top: 3px;
+                margin-top: 5px;
             }
-            .info-card {
-                padding: 10px 8px;
-                min-height: 60px;
-                border-radius: 12px;
-            }
-            .info-card .number {
-                font-size: 1.1rem;
-            }
-            .info-card .label {
-                font-size: 0.6rem;
-            }
-            .info-card .badge {
-                font-size: 0.55rem;
-                padding: 1px 8px;
+            .counter-card .icon {
+                font-size: 1.2rem;
             }
             .stats-header h2 {
                 font-size: 1.3rem;
@@ -488,44 +333,24 @@
         }
         
         @media (max-width: 360px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 6px;
-            }
             .counters-grid {
                 grid-template-columns: 1fr 1fr;
-                gap: 4px;
-            }
-            .info-grid {
-                grid-template-columns: 1fr 1fr;
                 gap: 6px;
             }
-            .counter-card .number {
-                font-size: 0.9rem;
-            }
-            .counter-card .label {
-                font-size: 0.5rem;
-            }
-            .stat-card {
-                padding: 8px 6px;
-                min-height: 60px;
+            .counter-card {
+                padding: 10px 8px;
+                min-height: 70px;
                 border-radius: 10px;
             }
-            .stat-card .number {
-                font-size: 1.1rem;
+            .counter-card .number {
+                font-size: 1.2rem;
             }
-            .stat-card .label {
+            .counter-card .label {
                 font-size: 0.55rem;
+                margin-top: 3px;
             }
-            .info-card {
-                padding: 8px 6px;
-                min-height: 50px;
-            }
-            .info-card .number {
-                font-size: 0.95rem;
-            }
-            .info-card .label {
-                font-size: 0.5rem;
+            .counter-card .icon {
+                font-size: 1rem;
             }
             .tabs-container {
                 grid-template-columns: repeat(2, 1fr);
@@ -550,7 +375,7 @@
         <div class="header-content">
             <div class="title-group">
                 <span class="flame-icon">📊</span>
-                <h1>Статистика рейтинга</h1>
+                <h1>Статистика сайта</h1>
                 <span class="flame-icon">📊</span>
             </div>
             <div class="header-controls">
@@ -588,85 +413,36 @@
 
         <div class="stats-container">
             <div class="stats-header">
-                <h2>{{ display_name }}</h2>
-                <p>Общая статистика рейтинга</p>
-            </div>
-
-            <!-- Карточки с общей статистикой -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <span class="number">{{ total_players }}</span>
-                    <span class="label">Всего игроков</span>
-                </div>
-                <div class="stat-card">
-                    <span class="number">{{ total_weeks }}</span>
-                    <span class="label">Всего недель</span>
-                </div>
-                <div class="stat-card">
-                    <span class="number">{{ avg_points }}</span>
-                    <span class="label">Средний рейтинг</span>
-                </div>
-                <div class="stat-card">
-                    <span class="number">{{ total_points }}</span>
-                    <span class="label">Суммарный рейтинг</span>
-                </div>
+                <h2>Статистика посещений</h2>
+                <p>Активность пользователей на сайте</p>
             </div>
 
             <!-- Счетчики -->
             <div class="counters-grid">
                 <div class="counter-card">
+                    <span class="icon">👥</span>
                     <span class="number">{{ visit_count }}</span>
-                    <span class="label">Посещений</span>
+                    <span class="label">Всего посещений</span>
                 </div>
                 <div class="counter-card">
+                    <span class="icon">🐢</span>
                     <span class="number">{{ turtle_count }}</span>
-                    <span class="label">Черепашка</span>
+                    <span class="label">Калькулятор Черепашка</span>
                 </div>
                 <div class="counter-card">
+                    <span class="icon">⚔️</span>
                     <span class="number">{{ hero_count }}</span>
-                    <span class="label">Прокачка</span>
+                    <span class="label">Калькулятор Прокачка</span>
                 </div>
                 <div class="counter-card">
+                    <span class="icon">📈</span>
                     <span class="number">{{ chart_count }}</span>
-                    <span class="label">Графики</span>
+                    <span class="label">Просмотры графиков</span>
                 </div>
                 <div class="counter-card">
+                    <span class="icon">🔧</span>
                     <span class="number">{{ admin_count }}</span>
                     <span class="label">Действий админа</span>
-                </div>
-            </div>
-
-            <!-- Карточки статистики (без аккордеонов) -->
-            <div class="info-grid">
-                <div class="info-card">
-                    <span class="number">{{ underperformers|length }}</span>
-                    <span class="label">Игроки ниже среднего</span>
-                    <span class="badge">⚠️</span>
-                </div>
-                <div class="info-card">
-                    <span class="number">{{ consistently_under|length }}</span>
-                    <span class="label">Стабильно отстающие</span>
-                    <span class="badge">🔥</span>
-                </div>
-                <div class="info-card">
-                    <span class="number">{{ consistently_over|length }}</span>
-                    <span class="label">Стабильно лидирующие</span>
-                    <span class="badge">🏆</span>
-                </div>
-                <div class="info-card">
-                    <span class="number">{{ top_15|length }}</span>
-                    <span class="label">Топ-15 игроков</span>
-                    <span class="badge">⭐</span>
-                </div>
-                <div class="info-card" style="grid-column: span 2;">
-                    <span class="number">{{ reservoir_top_10|length }}</span>
-                    <span class="label">Топ-10 в Резервуаре</span>
-                    <span class="badge">💧</span>
-                </div>
-                <div class="info-card" style="grid-column: span 2;">
-                    <span class="number">{{ total_players }}</span>
-                    <span class="label">Всего в рейтинге</span>
-                    <span class="badge">👥</span>
                 </div>
             </div>
 
