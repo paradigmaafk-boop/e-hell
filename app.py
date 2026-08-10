@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import pandas as pd
 import sqlite3
+import psycopg2
 from database import (
     init_db, check_user, save_rating, get_latest_rating, 
     get_player_history, get_all_players, get_average_history, 
@@ -10,7 +11,8 @@ from database import (
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
     delete_nickname_alias, reset_rating, delete_player,
     create_guide, get_all_guides, get_guide_by_id, update_guide, delete_guide,
-    add_vacation_record, get_all_vacation_records, delete_vacation_record
+    add_vacation_record, get_all_vacation_records, delete_vacation_record,
+    get_connection
 )
 from werkzeug.utils import secure_filename
 
@@ -226,7 +228,8 @@ def rating_stats(rating_type):
     if rating_type not in rt_ids:
         return redirect(url_for('index'))
     
-    conn = sqlite3.connect('users.db')
+    # Используем PostgreSQL вместо SQLite
+    conn = get_connection()
     cursor = conn.cursor()
     
     # Получаем всех игроков с их очками
@@ -243,17 +246,20 @@ def rating_stats(rating_type):
     
     # Получаем количество недель
     cursor.execute(f"SELECT COUNT(DISTINCT date) FROM history_{rating_type}")
-    total_weeks = cursor.fetchone()[0] or 0
+    result = cursor.fetchone()
+    total_weeks = result[0] if result else 0
     
     # ===== ОТСТАЮЩИЕ ОТ СРЕДНЕГО (текущая неделя) =====
     cursor.execute(f"SELECT MAX(date) FROM history_{rating_type}")
-    last_date = cursor.fetchone()[0]
+    last_date_result = cursor.fetchone()
+    last_date = last_date_result[0] if last_date_result else None
+    
     underperformers = []
     if last_date:
         cursor.execute(f"""
             SELECT nickname, points 
             FROM history_{rating_type} 
-            WHERE date = ? AND points < ?
+            WHERE date = %s AND points < %s
             ORDER BY points ASC
         """, (last_date, avg_points))
         underperformers = cursor.fetchall()
@@ -301,7 +307,7 @@ def rating_stats(rating_type):
     consistently_over = cursor.fetchall()
     
     # ===== ТОП-15 ИГРОКОВ =====
-    top_15 = players[:15]
+    top_15 = players[:15] if players else []
     
     # ===== ТОП-10 РЕЗЕРВУАР =====
     cursor.execute("""
