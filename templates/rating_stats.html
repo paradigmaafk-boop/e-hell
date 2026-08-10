@@ -31,7 +31,7 @@
             opacity: 0.6;
         }
         
-        /* Карточки статистики - ГРИД 4 КОЛОНКИ */
+        /* Карточки статистики */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -71,6 +71,41 @@
             font-size: 0.8rem;
             opacity: 0.6;
             margin-top: 5px;
+        }
+        
+        /* Счетчики */
+        .counters-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .counter-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 14px 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
+        }
+        
+        .counter-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 126, 0, 0.3);
+        }
+        
+        .counter-card .number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #E040FB;
+        }
+        
+        .counter-card .label {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.5;
+            margin-top: 3px;
         }
         
         /* Аккордеоны */
@@ -349,18 +384,20 @@
         
         /* ===== АДАПТИВНАЯ ВЕРСТКА ===== */
         
-        /* Планшеты и маленькие ноутбуки */
         @media (max-width: 992px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
+            }
+            .counters-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
             }
             .stat-card .number {
                 font-size: 1.8rem;
             }
         }
         
-        /* Телефоны в ландшафте и маленькие планшеты */
         @media (max-width: 768px) {
             .stats-container {
                 padding: 12px;
@@ -368,6 +405,16 @@
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
+            }
+            .counters-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .counter-card .number {
+                font-size: 1.2rem;
+            }
+            .counter-card .label {
+                font-size: 0.6rem;
             }
             .stat-card {
                 padding: 14px 12px;
@@ -416,7 +463,6 @@
             }
         }
         
-        /* Маленькие телефоны */
         @media (max-width: 480px) {
             .stats-container {
                 padding: 8px;
@@ -449,6 +495,19 @@
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
                 gap: 8px;
+            }
+            .counters-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .counter-card {
+                padding: 10px 8px;
+            }
+            .counter-card .number {
+                font-size: 1rem;
+            }
+            .counter-card .label {
+                font-size: 0.55rem;
             }
             .stat-card {
                 padding: 10px 8px;
@@ -495,11 +554,20 @@
             }
         }
         
-        /* Очень маленькие телефоны (до 360px) */
         @media (max-width: 360px) {
             .stats-grid {
                 grid-template-columns: 1fr 1fr;
                 gap: 6px;
+            }
+            .counters-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 4px;
+            }
+            .counter-card .number {
+                font-size: 0.9rem;
+            }
+            .counter-card .label {
+                font-size: 0.5rem;
             }
             .stat-card {
                 padding: 8px 6px;
@@ -604,6 +672,30 @@
                 <div class="stat-card">
                     <span class="number">{{ total_points }}</span>
                     <span class="label">Суммарный рейтинг</span>
+                </div>
+            </div>
+
+            <!-- Счетчики -->
+            <div class="counters-grid">
+                <div class="counter-card">
+                    <span class="number">{{ visit_count }}</span>
+                    <span class="label">Посещений</span>
+                </div>
+                <div class="counter-card">
+                    <span class="number">{{ turtle_count }}</span>
+                    <span class="label">Черепашка</span>
+                </div>
+                <div class="counter-card">
+                    <span class="number">{{ hero_count }}</span>
+                    <span class="label">Прокачка</span>
+                </div>
+                <div class="counter-card">
+                    <span class="number">{{ chart_count }}</span>
+                    <span class="label">Графики</span>
+                </div>
+                <div class="counter-card">
+                    <span class="number">{{ admin_count }}</span>
+                    <span class="label">Действий админа</span>
                 </div>
             </div>
 
@@ -767,7 +859,6 @@
         }
         createSparks();
 
-        // Функция для аккордеона
         function toggleAccordion(header) {
             const content = header.nextElementSibling;
             const arrow = header.querySelector('.arrow');
