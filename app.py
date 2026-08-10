@@ -31,12 +31,67 @@ init_db()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# ===== СЧЕТЧИКИ =====
+def increment_counter(counter_name):
+    """Увеличивает счетчик на 1"""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # Создаем таблицу если не существует
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS counters (
+                id SERIAL PRIMARY KEY,
+                name TEXT UNIQUE NOT NULL,
+                value INTEGER DEFAULT 0
+            )
+        """)
+        
+        # Увеличиваем счетчик
+        cursor.execute("""
+            INSERT INTO counters (name, value) VALUES (%s, 1)
+            ON CONFLICT (name) DO UPDATE SET value = counters.value + 1
+        """, (counter_name,))
+        
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Error incrementing counter: {e}")
+
+def get_counter_value(counter_name):
+    """Получает значение счетчика"""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT value FROM counters WHERE name = %s", (counter_name,))
+        result = cursor.fetchone()
+        conn.close()
+        return result[0] if result else 0
+    except:
+        return 0
+
+def get_all_counters():
+    """Получает все счетчики"""
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT name, value FROM counters ORDER BY name")
+        results = cursor.fetchall()
+        conn.close()
+        return results
+    except:
+        return []
+
+# ===== МАРШРУТЫ =====
+
 @app.route('/')
 def index():
+    increment_counter('visits')
     return redirect(url_for('rating_view', rating_type='duel'))
 
 @app.route('/rating/<rating_type>')
 def rating_view(rating_type):
+    increment_counter('visits')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -139,6 +194,7 @@ def upload_file(rating_type):
 
 @app.route('/manage-nicknames/<rating_type>', methods=['GET', 'POST'])
 def manage_nicknames(rating_type):
+    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -184,6 +240,7 @@ def manage_nicknames(rating_type):
 
 @app.route('/reset-rating/<rating_type>', methods=['POST'])
 def reset_rating_route(rating_type):
+    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -203,6 +260,7 @@ def reset_rating_route(rating_type):
 
 @app.route('/delete-player/<rating_type>/<nickname>', methods=['POST'])
 def delete_player_route(rating_type, nickname):
+    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -222,13 +280,12 @@ def delete_player_route(rating_type, nickname):
 
 @app.route('/rating-stats/<rating_type>')
 def rating_stats(rating_type):
-    """Страница со статистикой рейтинга"""
+    increment_counter('visits')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
         return redirect(url_for('index'))
     
-    # Используем PostgreSQL вместо SQLite
     conn = get_connection()
     cursor = conn.cursor()
     
@@ -318,6 +375,13 @@ def rating_stats(rating_type):
     """)
     reservoir_top_10 = cursor.fetchall()
     
+    # ===== СЧЕТЧИКИ =====
+    visit_count = get_counter_value('visits')
+    turtle_count = get_counter_value('turtle_calculator')
+    hero_count = get_counter_value('hero_calculator')
+    chart_count = get_counter_value('chart_views')
+    admin_count = get_counter_value('admin_actions')
+    
     conn.close()
     
     display_name = get_rating_display_name(rating_type)
@@ -335,10 +399,16 @@ def rating_stats(rating_type):
                          consistently_over=consistently_over,
                          top_15=top_15,
                          reservoir_top_10=reservoir_top_10,
-                         rating_types=rating_types)
+                         rating_types=rating_types,
+                         visit_count=visit_count,
+                         turtle_count=turtle_count,
+                         hero_count=hero_count,
+                         chart_count=chart_count,
+                         admin_count=admin_count)
 
 @app.route('/player/<rating_type>/<nickname>')
 def player_profile(rating_type, nickname):
+    increment_counter('chart_views')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -369,6 +439,7 @@ def player_profile(rating_type, nickname):
 
 @app.route('/underperforming/<rating_type>')
 def underperforming(rating_type):
+    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -388,6 +459,7 @@ def underperforming(rating_type):
 
 @app.route('/consistently-underperforming/<rating_type>')
 def consistently_underperforming(rating_type):
+    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -408,6 +480,7 @@ def consistently_underperforming(rating_type):
 
 @app.route('/api/player/<rating_type>/<nickname>')
 def api_player_data(rating_type, nickname):
+    increment_counter('chart_views')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -424,20 +497,23 @@ def api_player_data(rating_type, nickname):
 
 @app.route('/turtle-calculator')
 def turtle_calculator():
+    increment_counter('turtle_calculator')
     return render_template('turtle_calculator.html')
 
 @app.route('/hero-calculator')
 def hero_calculator():
-    """Калькулятор прокачки"""
+    increment_counter('hero_calculator')
     return render_template('hero_calculator.html')
 
 @app.route('/guides')
 def guides_list():
+    increment_counter('visits')
     guides = get_all_guides()
     return render_template('guides.html', guides=guides)
 
 @app.route('/admin/guides', methods=['GET', 'POST'])
 def admin_guides():
+    increment_counter('admin_actions')
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
         return redirect(url_for('index'))
@@ -486,7 +562,7 @@ def admin_guides():
 
 @app.route('/admin/vacations', methods=['GET', 'POST'])
 def admin_vacations():
-    """Админ-панель для журнала отпусков"""
+    increment_counter('admin_actions')
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
         return redirect(url_for('index'))
@@ -524,5 +600,4 @@ def admin_vacations():
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
 else:
-    # Для Gunicorn
     application = app
