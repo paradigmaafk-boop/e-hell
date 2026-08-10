@@ -24,6 +24,7 @@
             background: linear-gradient(45deg, #ff7e00, #ffcc00);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
         }
         
         .stats-header p {
@@ -340,6 +341,7 @@
             font-size: 0.95rem;
         }
         
+        /* Адаптивность */
         @media (max-width: 992px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -347,8 +349,15 @@
         }
         
         @media (max-width: 768px) {
+            .stats-container {
+                padding: 12px;
+            }
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .stat-card {
+                padding: 14px;
             }
             .stat-card .number {
                 font-size: 1.8rem;
@@ -374,20 +383,26 @@
                 min-height: 38px;
             }
             .accordion-header {
-                padding: 14px 18px;
+                padding: 12px 16px;
             }
             .accordion-header h3 {
                 font-size: 0.95rem;
             }
             .accordion-content.open {
-                padding: 0 18px 16px 18px;
+                padding: 0 16px 16px 16px;
             }
             .leader-list {
                 grid-template-columns: 1fr;
             }
+            .stats-header h2 {
+                font-size: 1.6rem;
+            }
         }
         
         @media (max-width: 480px) {
+            .stats-container {
+                padding: 8px;
+            }
             .header-controls {
                 gap: 4px;
                 justify-content: center;
@@ -415,21 +430,44 @@
             }
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 8px;
             }
             .stat-card .number {
                 font-size: 1.5rem;
             }
-            .stats-container {
-                padding: 10px;
+            .stat-card {
+                padding: 12px;
             }
             .accordion-header {
-                padding: 12px 14px;
+                padding: 10px 12px;
             }
             .accordion-header h3 {
-                font-size: 0.85rem;
+                font-size: 0.8rem;
             }
             .accordion-content.open {
-                padding: 0 14px 12px 14px;
+                padding: 0 12px 12px 12px;
+            }
+            .accordion-header .badge {
+                font-size: 0.65rem;
+                padding: 1px 8px;
+            }
+            .player-tag {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+            .leader-item {
+                font-size: 0.8rem;
+                padding: 6px 10px;
+            }
+            .leader-item .position {
+                min-width: 20px;
+            }
+            .stats-header h2 {
+                font-size: 1.3rem;
+            }
+            .back-link {
+                padding: 8px 20px;
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -668,7 +706,6 @@
             const content = header.nextElementSibling;
             const arrow = header.querySelector('.arrow');
             
-            // Закрываем все остальные аккордеоны
             document.querySelectorAll('.accordion-content.open').forEach(el => {
                 if (el !== content) {
                     el.classList.remove('open');
@@ -680,7 +717,6 @@
             arrow.classList.toggle('open');
         }
 
-        // Открываем первый аккордеон по умолчанию
         document.addEventListener('DOMContentLoaded', function() {
             const firstAccordion = document.querySelector('.accordion-content');
             if (firstAccordion) {
