@@ -661,11 +661,15 @@
 
     <main>
         <div class="tabs-container">
-            {% for rt in rating_types %}
-                <a href="/rating/{{ rt.id }}" class="tab-btn" style="--tab-color: {{ rt.color }};">
-                    <span class="tab-name">{{ rt.name }}</span>
-                </a>
-            {% endfor %}
+            <a href="/rating/duel" class="tab-btn" style="--tab-color: #ff5500;">
+                <span class="tab-name">Дуэль</span>
+            </a>
+            <a href="/rating/reservoir" class="tab-btn" style="--tab-color: #2196F3;">
+                <span class="tab-name">Резервуар</span>
+            </a>
+            <a href="/rating/oil" class="tab-btn" style="--tab-color: #2c1810;">
+                <span class="tab-name">Нефть</span>
+            </a>
             <a href="/guides" class="tab-btn" style="--tab-color: #ff7e00;">
                 <span class="tab-name">Гайды</span>
             </a>
