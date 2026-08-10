@@ -31,7 +31,7 @@
             opacity: 0.6;
         }
         
-        /* Карточки статистики */
+        /* Карточки статистики - ГРИД 4 КОЛОНКИ */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -42,10 +42,15 @@
         .stat-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 16px;
-            padding: 20px;
+            padding: 20px 15px;
             text-align: center;
             border: 1px solid rgba(255, 126, 0, 0.2);
             transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100px;
         }
         
         .stat-card:hover {
@@ -55,15 +60,16 @@
         }
         
         .stat-card .number {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             font-weight: 800;
             color: #ffaa44;
+            line-height: 1.2;
         }
         
         .stat-card .label {
             display: block;
-            font-size: 0.85rem;
-            opacity: 0.7;
+            font-size: 0.8rem;
+            opacity: 0.6;
             margin-top: 5px;
         }
         
@@ -341,13 +347,20 @@
             font-size: 0.95rem;
         }
         
-        /* Адаптивность */
+        /* ===== АДАПТИВНАЯ ВЕРСТКА ===== */
+        
+        /* Планшеты и маленькие ноутбуки */
         @media (max-width: 992px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .stat-card .number {
+                font-size: 1.8rem;
             }
         }
         
+        /* Телефоны в ландшафте и маленькие планшеты */
         @media (max-width: 768px) {
             .stats-container {
                 padding: 12px;
@@ -357,10 +370,14 @@
                 gap: 10px;
             }
             .stat-card {
-                padding: 14px;
+                padding: 14px 12px;
+                min-height: 80px;
             }
             .stat-card .number {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
+            }
+            .stat-card .label {
+                font-size: 0.7rem;
             }
             .header-controls {
                 gap: 6px;
@@ -399,6 +416,7 @@
             }
         }
         
+        /* Маленькие телефоны */
         @media (max-width: 480px) {
             .stats-container {
                 padding: 8px;
@@ -429,14 +447,20 @@
                 font-size: 0.7rem;
             }
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
                 gap: 8px;
             }
-            .stat-card .number {
-                font-size: 1.5rem;
-            }
             .stat-card {
-                padding: 12px;
+                padding: 10px 8px;
+                min-height: 70px;
+                border-radius: 12px;
+            }
+            .stat-card .number {
+                font-size: 1.3rem;
+            }
+            .stat-card .label {
+                font-size: 0.65rem;
+                margin-top: 3px;
             }
             .accordion-header {
                 padding: 10px 12px;
@@ -468,6 +492,48 @@
             .back-link {
                 padding: 8px 20px;
                 font-size: 0.85rem;
+            }
+        }
+        
+        /* Очень маленькие телефоны (до 360px) */
+        @media (max-width: 360px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+            .stat-card {
+                padding: 8px 6px;
+                min-height: 60px;
+                border-radius: 10px;
+            }
+            .stat-card .number {
+                font-size: 1.1rem;
+            }
+            .stat-card .label {
+                font-size: 0.55rem;
+            }
+            .tabs-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+                padding: 6px 8px;
+            }
+            .tab-btn {
+                font-size: 0.6rem;
+                padding: 6px 6px;
+                min-height: 28px;
+            }
+            .tab-name {
+                font-size: 0.6rem;
+            }
+            .accordion-header h3 {
+                font-size: 0.7rem;
+            }
+            .accordion-header .badge {
+                font-size: 0.55rem;
+                padding: 1px 6px;
+            }
+            .accordion-header .arrow {
+                font-size: 0.9rem;
             }
         }
     </style>
