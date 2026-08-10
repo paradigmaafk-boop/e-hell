@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .stats-container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
             padding: 20px;
             position: relative;
@@ -26,9 +26,10 @@
             -webkit-text-fill-color: transparent;
         }
         
+        /* Карточки статистики */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 15px;
             margin-bottom: 30px;
         }
@@ -39,6 +40,13 @@
             padding: 20px;
             text-align: center;
             border: 1px solid rgba(255, 126, 0, 0.2);
+            transition: 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: #ff7e0060;
+            box-shadow: 0 0 30px rgba(255, 126, 0, 0.05);
         }
         
         .stat-card .number {
@@ -54,101 +62,157 @@
             margin-top: 5px;
         }
         
-        .stats-section {
+        /* Аккордеоны */
+        .accordion-section {
             background: rgba(255, 255, 255, 0.03);
             border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 12px;
+            overflow: hidden;
         }
         
-        .stats-section h3 {
+        .accordion-header {
+            padding: 16px 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: 0.3s;
+            user-select: none;
+        }
+        
+        .accordion-header:hover {
+            background: rgba(255, 126, 0, 0.05);
+        }
+        
+        .accordion-header h3 {
             color: #ffaa44;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .stats-section .empty {
+        .accordion-header .badge {
+            background: rgba(255, 126, 0, 0.15);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #ffaa44;
+        }
+        
+        .accordion-header .arrow {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+            color: #9C27B0;
+        }
+        
+        .accordion-header .arrow.open {
+            transform: rotate(180deg);
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease;
+            padding: 0 24px;
+        }
+        
+        .accordion-content.open {
+            max-height: 2000px;
+            padding: 0 24px 20px 24px;
+        }
+        
+        .accordion-content .empty {
             opacity: 0.5;
             text-align: center;
-            padding: 15px;
+            padding: 20px;
+        }
+        
+        /* Списки игроков */
+        .player-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
         }
         
         .player-tag {
             display: inline-block;
-            background: rgba(255, 126, 0, 0.15);
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
-            margin: 3px 4px;
-            font-size: 0.9rem;
-            border: 1px solid rgba(255, 126, 0, 0.2);
-        }
-        
-        .player-tag.good {
-            background: rgba(76, 175, 80, 0.15);
-            border-color: rgba(76, 175, 80, 0.3);
-            color: #4CAF50;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
         }
         
         .player-tag.bad {
-            background: rgba(255, 51, 0, 0.15);
-            border-color: rgba(255, 51, 0, 0.3);
+            background: rgba(255, 51, 0, 0.12);
+            border-color: rgba(255, 51, 0, 0.25);
             color: #ff6644;
         }
         
         .player-tag.warning {
-            background: rgba(255, 170, 0, 0.15);
-            border-color: rgba(255, 170, 0, 0.3);
+            background: rgba(255, 170, 0, 0.12);
+            border-color: rgba(255, 170, 0, 0.25);
             color: #ffaa44;
         }
         
+        .player-tag.good {
+            background: rgba(76, 175, 80, 0.12);
+            border-color: rgba(76, 175, 80, 0.25);
+            color: #4CAF50;
+        }
+        
         .player-tag.leader {
-            background: rgba(255, 215, 0, 0.2);
-            border-color: rgba(255, 215, 0, 0.4);
+            background: rgba(255, 215, 0, 0.15);
+            border-color: rgba(255, 215, 0, 0.3);
             color: #ffd700;
             font-weight: 700;
         }
         
-        .player-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-        
-        .player-list .player-tag {
-            margin: 2px 4px;
-        }
-        
+        /* Таблицы лидеров */
         .leader-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 8px;
         }
         
         .leader-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 8px 14px;
             background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.2s;
+        }
+        
+        .leader-item:hover {
+            background: rgba(255, 126, 0, 0.05);
+            border-color: #ff7e0060;
         }
         
         .leader-item .position {
             font-weight: 700;
             color: #ffaa44;
             margin-right: 10px;
+            min-width: 30px;
         }
         
         .leader-item .name {
             flex: 1;
+            font-weight: 600;
         }
         
         .leader-item .points {
             color: #ffaa44;
             font-weight: 600;
+            font-size: 0.9rem;
         }
         
+        /* Кнопка назад */
         .back-link {
             display: inline-block;
             margin-top: 20px;
@@ -264,6 +328,12 @@
             font-size: 0.95rem;
         }
         
+        @media (max-width: 992px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
         @media (max-width: 768px) {
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -290,6 +360,18 @@
                 font-size: 0.85rem;
                 padding: 10px 12px;
                 min-height: 38px;
+            }
+            .accordion-header {
+                padding: 14px 18px;
+            }
+            .accordion-header h3 {
+                font-size: 0.95rem;
+            }
+            .accordion-content.open {
+                padding: 0 18px 16px 18px;
+            }
+            .leader-list {
+                grid-template-columns: 1fr;
             }
         }
         
@@ -322,8 +404,11 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-            .leader-list {
-                grid-template-columns: 1fr;
+            .stat-card .number {
+                font-size: 1.5rem;
+            }
+            .stats-container {
+                padding: 10px;
             }
         }
     </style>
@@ -377,7 +462,7 @@
                 <p style="opacity: 0.6;">Общая статистика рейтинга</p>
             </div>
 
-            <!-- Общая статистика -->
+            <!-- Карточки с общей статистикой -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <span class="number">{{ total_players }}</span>
@@ -397,80 +482,120 @@
                 </div>
             </div>
 
-            <!-- Отстающие от среднего -->
-            <div class="stats-section">
-                <h3>⚠️ Игроки ниже среднего ({{ underperformers|length }})</h3>
-                {% if underperformers %}
-                    <div class="player-list">
-                        {% for player in underperformers %}
-                            <span class="player-tag bad">{{ player[0] }}</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty">Все игроки выше среднего! 🎉</div>
-                {% endif %}
+            <!-- Аккордеон: Отстающие от среднего -->
+            <div class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>
+                        ⚠️ Игроки ниже среднего
+                        <span class="badge">{{ underperformers|length }}</span>
+                    </h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content open">
+                    {% if underperformers %}
+                        <div class="player-list">
+                            {% for player in underperformers %}
+                                <span class="player-tag bad">{{ player[0] }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty">Все игроки выше среднего! 🎉</div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Стабильно отстающие -->
-            <div class="stats-section">
-                <h3>🔥 Стабильно отстающие ({{ consistently_under|length }})</h3>
-                <p style="opacity: 0.5; font-size: 0.9rem; margin-bottom: 10px;">Игроки, которые чаще других оказываются ниже среднего</p>
-                {% if consistently_under %}
-                    <div class="player-list">
-                        {% for player in consistently_under %}
-                            <span class="player-tag warning">{{ player[0] }} ({{ player[1] }} раз)</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty">Нет стабильно отстающих игроков</div>
-                {% endif %}
+            <!-- Аккордеон: Стабильно отстающие -->
+            <div class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>
+                        🔥 Стабильно отстающие
+                        <span class="badge">{{ consistently_under|length }}</span>
+                    </h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p style="opacity: 0.5; font-size: 0.85rem; margin-bottom: 12px;">Игроки, которые чаще других оказываются ниже среднего</p>
+                    {% if consistently_under %}
+                        <div class="player-list">
+                            {% for player in consistently_under %}
+                                <span class="player-tag warning">{{ player[0] }} ({{ player[1] }} раз)</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty">Нет стабильно отстающих игроков</div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Стабильно лидирующие -->
-            <div class="stats-section">
-                <h3>🏆 Стабильно лидирующие ({{ consistently_over|length }})</h3>
-                <p style="opacity: 0.5; font-size: 0.9rem; margin-bottom: 10px;">Игроки, которые чаще других оказываются выше среднего</p>
-                {% if consistently_over %}
-                    <div class="player-list">
-                        {% for player in consistently_over %}
-                            <span class="player-tag good">{{ player[0] }} ({{ player[1] }} раз)</span>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="empty">Нет стабильно лидирующих игроков</div>
-                {% endif %}
+            <!-- Аккордеон: Стабильно лидирующие -->
+            <div class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>
+                        🏆 Стабильно лидирующие
+                        <span class="badge">{{ consistently_over|length }}</span>
+                    </h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <p style="opacity: 0.5; font-size: 0.85rem; margin-bottom: 12px;">Игроки, которые чаще других оказываются выше среднего</p>
+                    {% if consistently_over %}
+                        <div class="player-list">
+                            {% for player in consistently_over %}
+                                <span class="player-tag good">{{ player[0] }} ({{ player[1] }} раз)</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty">Нет стабильно лидирующих игроков</div>
+                    {% endif %}
+                </div>
             </div>
 
-            <!-- Топ-15 игроков -->
-            <div class="stats-section">
-                <h3>⭐ Топ-15 игроков по общему рейтингу</h3>
-                <div class="leader-list">
+            <!-- Аккордеон: Топ-15 игроков -->
+            <div class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>
+                        ⭐ Топ-15 игроков по общему рейтингу
+                        <span class="badge">{{ top_15|length }}</span>
+                    </h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
                     {% if top_15 %}
-                        {% for player in top_15 %}
-                            <div class="leader-item">
-                                <span class="position">#{{ loop.index }}</span>
-                                <span class="name">{{ player[0] }}</span>
-                                <span class="points">{{ player[1] }}</span>
-                            </div>
-                        {% endfor %}
+                        <div class="leader-list">
+                            {% for player in top_15 %}
+                                <div class="leader-item">
+                                    <span class="position">#{{ loop.index }}</span>
+                                    <span class="name">{{ player[0] }}</span>
+                                    <span class="points">{{ player[1] }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% else %}
                         <div class="empty">Нет данных</div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Топ-10 Резервуар -->
-            <div class="stats-section">
-                <h3>💧 Топ-10 игроков в Резервуаре</h3>
-                <div class="leader-list">
+            <!-- Аккордеон: Топ-10 Резервуар -->
+            <div class="accordion-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <h3>
+                        💧 Топ-10 игроков в Резервуаре
+                        <span class="badge">{{ reservoir_top_10|length }}</span>
+                    </h3>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="accordion-content">
                     {% if reservoir_top_10 %}
-                        {% for player in reservoir_top_10 %}
-                            <div class="leader-item">
-                                <span class="position">#{{ loop.index }}</span>
-                                <span class="name">{{ player[0] }}</span>
-                                <span class="points">{{ player[1] }}</span>
-                            </div>
-                        {% endfor %}
+                        <div class="leader-list">
+                            {% for player in reservoir_top_10 %}
+                                <div class="leader-item">
+                                    <span class="position">#{{ loop.index }}</span>
+                                    <span class="name">{{ player[0] }}</span>
+                                    <span class="points">{{ player[1] }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
                     {% else %}
                         <div class="empty">Нет данных по Резервуару</div>
                     {% endif %}
@@ -516,6 +641,33 @@
             }
         }
         createSparks();
+
+        // Функция для аккордеона
+        function toggleAccordion(header) {
+            const content = header.nextElementSibling;
+            const arrow = header.querySelector('.arrow');
+            
+            // Закрываем все остальные аккордеоны
+            document.querySelectorAll('.accordion-content.open').forEach(el => {
+                if (el !== content) {
+                    el.classList.remove('open');
+                    el.previousElementSibling.querySelector('.arrow').classList.remove('open');
+                }
+            });
+            
+            content.classList.toggle('open');
+            arrow.classList.toggle('open');
+        }
+
+        // Открываем первый аккордеон по умолчанию
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstAccordion = document.querySelector('.accordion-content');
+            if (firstAccordion) {
+                firstAccordion.classList.add('open');
+                const arrow = firstAccordion.previousElementSibling.querySelector('.arrow');
+                if (arrow) arrow.classList.add('open');
+            }
+        });
     </script>
 </body>
 </html>
