@@ -233,7 +233,6 @@
             opacity: 0.8;
         }
         
-        /* Стили для звезд героев */
         .hero-star-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -284,7 +283,6 @@
             font-size: 0.9rem;
         }
         
-        /* Стили для титана */
         .titan-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -354,7 +352,6 @@
             font-weight: 400;
         }
         
-        /* Стили для эксклюзивного снаряжения */
         .gear-exclusive-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -412,7 +409,6 @@
             color: #FF6B35;
         }
         
-        /* Стили для легендарного снаряжения */
         .legendary-gear-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -475,7 +471,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Стили для кнопок навигации в шапке - ГОРИЗОНТАЛЬНЫЙ FLEX */
+        /* Стили для кнопок навигации в шапке */
         .header-controls {
             display: flex;
             align-items: center;
@@ -525,6 +521,52 @@
             color: white;
         }
         
+        /* Стили для вкладок навигации - ГОРИЗОНТАЛЬНЫЙ GRID */
+        .tabs-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .tab-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 16px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.6);
+            border: 2px solid transparent;
+            text-align: center;
+            min-height: 44px;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: var(--tab-color, #ff5500);
+            color: #fff;
+            box-shadow: 0 0 30px var(--tab-color, #ff5500)40;
+            border-color: var(--tab-color, #ff5500);
+        }
+        
+        .tab-name {
+            font-size: 0.95rem;
+        }
+        
         @media (max-width: 768px) {
             .hero-calculator-container { padding: 10px; }
             .section-header { padding: 14px 18px; }
@@ -538,6 +580,26 @@
             .btn-calc-hero, .btn-reset-hero { width: 100%; }
             .button-group-hero { flex-direction: column; }
             .hero-calculator-header h2 { font-size: 1.6rem; }
+            .header-controls {
+                gap: 6px;
+                justify-content: center;
+            }
+            .header-controls .nav-btn {
+                font-size: 0.75rem;
+                padding: 5px 10px;
+                min-width: 60px;
+                min-height: 30px;
+            }
+            .tabs-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                padding: 10px 15px;
+            }
+            .tab-btn {
+                font-size: 0.85rem;
+                padding: 10px 12px;
+                min-height: 38px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -551,6 +613,20 @@
                 min-width: 40px;
                 min-height: 24px;
                 border-width: 1.5px;
+            }
+            .tabs-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+                padding: 8px 10px;
+            }
+            .tab-btn {
+                font-size: 0.7rem;
+                padding: 8px 8px;
+                min-height: 32px;
+                border-width: 1.5px;
+            }
+            .tab-name {
+                font-size: 0.7rem;
             }
             .result-box .total { font-size: 1.8rem; }
             .titan-total-box { font-size: 1.5rem; }
@@ -573,9 +649,6 @@
                 <span class="flame-icon">⚔️</span>
             </div>
             <div class="header-controls">
-                <a href="/" class="nav-btn">← На главную</a>
-                <a href="/guides" class="nav-btn">Гайды</a>
-                <a href="/turtle-calculator" class="nav-btn">Черепашка</a>
                 <button id="theme-toggle" class="nav-btn">🌙</button>
                 {% if session['logged_in'] %}
                     <a href="/logout" class="nav-btn">Выйти</a>
@@ -587,6 +660,23 @@
     </header>
 
     <main>
+        <div class="tabs-container">
+            {% for rt in rating_types %}
+                <a href="/rating/{{ rt.id }}" class="tab-btn" style="--tab-color: {{ rt.color }};">
+                    <span class="tab-name">{{ rt.name }}</span>
+                </a>
+            {% endfor %}
+            <a href="/guides" class="tab-btn" style="--tab-color: #ff7e00;">
+                <span class="tab-name">Гайды</span>
+            </a>
+            <a href="/turtle-calculator" class="tab-btn" style="--tab-color: #ff7e00;">
+                <span class="tab-name">Черепашка</span>
+            </a>
+            <a href="/hero-calculator" class="tab-btn active" style="--tab-color: #ff7e00;">
+                <span class="tab-name">Прокачка</span>
+            </a>
+        </div>
+
         <div class="hero-calculator-container">
             <div class="hero-calculator-header">
                 <p style="opacity: 0.7; font-size: 1rem;">
