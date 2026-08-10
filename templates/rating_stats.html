@@ -46,7 +46,7 @@
             opacity: 0.6;
         }
         
-        /* Карточки статистики */
+        /* Карточки статистики - ГРИД 4 КОЛОНКИ */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -129,89 +129,65 @@
             margin-top: 3px;
         }
         
-        /* Аккордеоны - упрощенные, без списков игроков */
-        .accordion-section {
-            background: rgba(20, 25, 35, 0.85);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 12px;
-            overflow: hidden;
+        /* Карточки-статистики (без аккордеонов) */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
             position: relative;
             z-index: 2;
         }
         
-        .accordion-header {
-            padding: 16px 24px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .info-card {
+            background: rgba(20, 25, 35, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 18px 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             transition: 0.3s;
-            user-select: none;
-        }
-        
-        .accordion-header:hover {
-            background: rgba(255, 126, 0, 0.05);
-        }
-        
-        .accordion-header h3 {
-            color: #ffaa44;
-            font-size: 1.1rem;
-            margin: 0;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            justify-content: center;
+            min-height: 80px;
         }
         
-        .accordion-header .badge {
-            background: rgba(255, 126, 0, 0.15);
+        .info-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 126, 0, 0.2);
+        }
+        
+        .info-card .number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffaa44;
+            line-height: 1.2;
+        }
+        
+        .info-card .label {
+            display: block;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 5px;
+        }
+        
+        .info-card .badge {
+            display: inline-block;
+            background: rgba(255, 126, 0, 0.1);
             padding: 2px 12px;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: #ffaa44;
+            margin-top: 5px;
         }
         
-        .accordion-header .arrow {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
-            color: #9C27B0;
-            flex-shrink: 0;
-        }
-        
-        .accordion-header .arrow.open {
-            transform: rotate(180deg);
-        }
-        
-        .accordion-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.3s ease;
-            padding: 0 24px;
-        }
-        
-        .accordion-content.open {
-            max-height: 5000px;
-            padding: 0 24px 20px 24px;
-        }
-        
-        .accordion-content .empty {
-            opacity: 0.5;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .accordion-content .subtitle {
-            opacity: 0.5;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-        }
-        
-        .accordion-content .info-text {
-            font-size: 0.95rem;
-            padding: 10px 0;
-            opacity: 0.8;
+        .info-card .sub-label {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.4;
+            margin-top: 3px;
         }
         
         /* Кнопка назад */
@@ -346,8 +322,15 @@
                 grid-template-columns: repeat(3, 1fr);
                 gap: 10px;
             }
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
             .stat-card .number {
                 font-size: 1.8rem;
+            }
+            .info-card .number {
+                font-size: 1.5rem;
             }
         }
         
@@ -362,6 +345,10 @@
             .counters-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 8px;
+            }
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
             .counter-card .number {
                 font-size: 1.2rem;
@@ -378,6 +365,16 @@
             }
             .stat-card .label {
                 font-size: 0.7rem;
+            }
+            .info-card {
+                padding: 14px 12px;
+                min-height: 70px;
+            }
+            .info-card .number {
+                font-size: 1.3rem;
+            }
+            .info-card .label {
+                font-size: 0.65rem;
             }
             .header-controls {
                 gap: 6px;
@@ -398,15 +395,6 @@
                 font-size: 0.85rem;
                 padding: 10px 12px;
                 min-height: 38px;
-            }
-            .accordion-header {
-                padding: 12px 16px;
-            }
-            .accordion-header h3 {
-                font-size: 0.95rem;
-            }
-            .accordion-content.open {
-                padding: 0 16px 16px 16px;
             }
             .stats-header h2 {
                 font-size: 1.6rem;
@@ -450,6 +438,10 @@
                 grid-template-columns: 1fr 1fr;
                 gap: 6px;
             }
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
             .counter-card {
                 padding: 10px 8px;
             }
@@ -471,17 +463,19 @@
                 font-size: 0.65rem;
                 margin-top: 3px;
             }
-            .accordion-header {
-                padding: 10px 12px;
+            .info-card {
+                padding: 10px 8px;
+                min-height: 60px;
+                border-radius: 12px;
             }
-            .accordion-header h3 {
-                font-size: 0.8rem;
+            .info-card .number {
+                font-size: 1.1rem;
             }
-            .accordion-content.open {
-                padding: 0 12px 12px 12px;
+            .info-card .label {
+                font-size: 0.6rem;
             }
-            .accordion-header .badge {
-                font-size: 0.65rem;
+            .info-card .badge {
+                font-size: 0.55rem;
                 padding: 1px 8px;
             }
             .stats-header h2 {
@@ -502,6 +496,10 @@
                 grid-template-columns: 1fr 1fr;
                 gap: 4px;
             }
+            .info-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
             .counter-card .number {
                 font-size: 0.9rem;
             }
@@ -519,6 +517,16 @@
             .stat-card .label {
                 font-size: 0.55rem;
             }
+            .info-card {
+                padding: 8px 6px;
+                min-height: 50px;
+            }
+            .info-card .number {
+                font-size: 0.95rem;
+            }
+            .info-card .label {
+                font-size: 0.5rem;
+            }
             .tabs-container {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 4px;
@@ -531,16 +539,6 @@
             }
             .tab-name {
                 font-size: 0.6rem;
-            }
-            .accordion-header h3 {
-                font-size: 0.7rem;
-            }
-            .accordion-header .badge {
-                font-size: 0.55rem;
-                padding: 1px 6px;
-            }
-            .accordion-header .arrow {
-                font-size: 0.9rem;
             }
         }
     </style>
@@ -638,103 +636,37 @@
                 </div>
             </div>
 
-            <!-- Аккордеон: Отстающие от среднего -->
-            <div class="accordion-section">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <h3>
-                        ⚠️ Игроки ниже среднего
-                        <span class="badge">{{ underperformers|length }}</span>
-                    </h3>
-                    <span class="arrow">▼</span>
+            <!-- Карточки статистики (без аккордеонов) -->
+            <div class="info-grid">
+                <div class="info-card">
+                    <span class="number">{{ underperformers|length }}</span>
+                    <span class="label">Игроки ниже среднего</span>
+                    <span class="badge">⚠️</span>
                 </div>
-                <div class="accordion-content open">
-                    <div class="info-text">
-                        {% if underperformers|length > 0 %}
-                            {{ underperformers|length }} игроков находятся ниже среднего значения рейтинга
-                        {% else %}
-                            Все игроки выше среднего! 🎉
-                        {% endif %}
-                    </div>
+                <div class="info-card">
+                    <span class="number">{{ consistently_under|length }}</span>
+                    <span class="label">Стабильно отстающие</span>
+                    <span class="badge">🔥</span>
                 </div>
-            </div>
-
-            <!-- Аккордеон: Стабильно отстающие -->
-            <div class="accordion-section">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <h3>
-                        🔥 Стабильно отстающие
-                        <span class="badge">{{ consistently_under|length }}</span>
-                    </h3>
-                    <span class="arrow">▼</span>
+                <div class="info-card">
+                    <span class="number">{{ consistently_over|length }}</span>
+                    <span class="label">Стабильно лидирующие</span>
+                    <span class="badge">🏆</span>
                 </div>
-                <div class="accordion-content">
-                    <div class="info-text">
-                        {% if consistently_under|length > 0 %}
-                            {{ consistently_under|length }} игроков стабильно оказываются ниже среднего
-                        {% else %}
-                            Нет стабильно отстающих игроков
-                        {% endif %}
-                    </div>
+                <div class="info-card">
+                    <span class="number">{{ top_15|length }}</span>
+                    <span class="label">Топ-15 игроков</span>
+                    <span class="badge">⭐</span>
                 </div>
-            </div>
-
-            <!-- Аккордеон: Стабильно лидирующие -->
-            <div class="accordion-section">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <h3>
-                        🏆 Стабильно лидирующие
-                        <span class="badge">{{ consistently_over|length }}</span>
-                    </h3>
-                    <span class="arrow">▼</span>
+                <div class="info-card" style="grid-column: span 2;">
+                    <span class="number">{{ reservoir_top_10|length }}</span>
+                    <span class="label">Топ-10 в Резервуаре</span>
+                    <span class="badge">💧</span>
                 </div>
-                <div class="accordion-content">
-                    <div class="info-text">
-                        {% if consistently_over|length > 0 %}
-                            {{ consistently_over|length }} игроков стабильно оказываются выше среднего
-                        {% else %}
-                            Нет стабильно лидирующих игроков
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Аккордеон: Топ-15 игроков -->
-            <div class="accordion-section">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <h3>
-                        ⭐ Топ-15 игроков по общему рейтингу
-                        <span class="badge">{{ top_15|length }}</span>
-                    </h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="info-text">
-                        {% if top_15|length > 0 %}
-                            Топ-15 игроков с наивысшим рейтингом
-                        {% else %}
-                            Нет данных
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Аккордеон: Топ-10 Резервуар -->
-            <div class="accordion-section">
-                <div class="accordion-header" onclick="toggleAccordion(this)">
-                    <h3>
-                        💧 Топ-10 игроков в Резервуаре
-                        <span class="badge">{{ reservoir_top_10|length }}</span>
-                    </h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="accordion-content">
-                    <div class="info-text">
-                        {% if reservoir_top_10|length > 0 %}
-                            Топ-10 игроков в разделе Резервуар
-                        {% else %}
-                            Нет данных по Резервуару
-                        {% endif %}
-                    </div>
+                <div class="info-card" style="grid-column: span 2;">
+                    <span class="number">{{ total_players }}</span>
+                    <span class="label">Всего в рейтинге</span>
+                    <span class="badge">👥</span>
                 </div>
             </div>
 
@@ -777,30 +709,6 @@
             }
         }
         createSparks();
-
-        function toggleAccordion(header) {
-            const content = header.nextElementSibling;
-            const arrow = header.querySelector('.arrow');
-            
-            document.querySelectorAll('.accordion-content.open').forEach(el => {
-                if (el !== content) {
-                    el.classList.remove('open');
-                    el.previousElementSibling.querySelector('.arrow').classList.remove('open');
-                }
-            });
-            
-            content.classList.toggle('open');
-            arrow.classList.toggle('open');
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const firstAccordion = document.querySelector('.accordion-content');
-            if (firstAccordion) {
-                firstAccordion.classList.add('open');
-                const arrow = firstAccordion.previousElementSibling.querySelector('.arrow');
-                if (arrow) arrow.classList.add('open');
-            }
-        });
     </script>
 </body>
 </html>
