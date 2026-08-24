@@ -43,7 +43,8 @@ def init_db():
         )
     """)
     
-    rating_types = ['duel', 'reservoir', 'oil']
+    # Только дуэль и резервуар (нефть удалена)
+    rating_types = ['duel', 'reservoir']
     for rt in rating_types:
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS players_{rt} (
@@ -73,7 +74,6 @@ def init_db():
         )
     """)
     
-    # Новая таблица для журнала отпусков
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS vacation_log (
             id SERIAL PRIMARY KEY,
@@ -83,6 +83,14 @@ def init_db():
             end_date TEXT NOT NULL,
             created_at TEXT NOT NULL,
             created_by TEXT NOT NULL
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS counters (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            value INTEGER DEFAULT 0
         )
     """)
     
@@ -188,19 +196,35 @@ def resolve_nickname(rating_type, nickname):
     return result[0] if result else nickname
 
 def save_rating(rating_type, data_list):
+    """Сохраняет рейтинг с СУММИРОВАНИЕМ очков"""
     conn = get_connection()
     cursor = conn.cursor()
     today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    
     for nickname, points in data_list:
         resolved_nickname = resolve_nickname(rating_type, nickname)
+        
         cursor.execute(f"SELECT id, points FROM players_{rating_type} WHERE nickname = %s", (resolved_nickname,))
         existing = cursor.fetchone()
+        
         if existing:
             new_total = existing[1] + points
-            cursor.execute(f"UPDATE players_{rating_type} SET points = %s, last_updated = %s WHERE nickname = %s", (new_total, today, resolved_nickname))
+            cursor.execute(f"""
+                UPDATE players_{rating_type} 
+                SET points = %s, last_updated = %s 
+                WHERE nickname = %s
+            """, (new_total, today, resolved_nickname))
         else:
-            cursor.execute(f"INSERT INTO players_{rating_type} (nickname, points, last_updated) VALUES (%s, %s, %s)", (resolved_nickname, points, today))
-        cursor.execute(f"INSERT INTO history_{rating_type} (nickname, points, date) VALUES (%s, %s, %s)", (resolved_nickname, points, today))
+            cursor.execute(f"""
+                INSERT INTO players_{rating_type} (nickname, points, last_updated) 
+                VALUES (%s, %s, %s)
+            """, (resolved_nickname, points, today))
+        
+        cursor.execute(f"""
+            INSERT INTO history_{rating_type} (nickname, points, date) 
+            VALUES (%s, %s, %s)
+        """, (resolved_nickname, points, today))
+    
     conn.commit()
     conn.close()
 
@@ -336,12 +360,11 @@ def delete_player(rating_type, nickname):
 def get_all_rating_types():
     return [
         {'id': 'duel', 'name': 'Дуэль', 'icon': '⚔️', 'color': '#ff5500'},
-        {'id': 'reservoir', 'name': 'Резервуар', 'icon': '💧', 'color': '#2196F3'},
-        {'id': 'oil', 'name': 'Нефть', 'icon': '🛢️', 'color': '#2c1810'}
+        {'id': 'reservoir', 'name': 'Резервуар', 'icon': '💧', 'color': '#2196F3'}
     ]
 
 def get_rating_display_name(rating_type):
-    names = {'duel': 'Дуэль', 'reservoir': 'Резервуар', 'oil': 'Нефть'}
+    names = {'duel': 'Дуэль', 'reservoir': 'Резервуар'}
     return names.get(rating_type, rating_type)
 
 def create_guide(title, content):
@@ -402,10 +425,7 @@ def delete_guide(guide_id):
     finally:
         conn.close()
 
-# ===== ФУНКЦИИ ДЛЯ ЖУРНАЛА ОТПУСКОВ =====
-
 def add_vacation_record(player_name, comment, start_date, end_date, created_by):
-    """Добавляет запись об отпуске"""
     conn = get_connection()
     cursor = conn.cursor()
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -424,7 +444,6 @@ def add_vacation_record(player_name, comment, start_date, end_date, created_by):
         conn.close()
 
 def get_all_vacation_records():
-    """Получает все записи об отпусках, отсортированные по дате создания (новые сверху)"""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -437,7 +456,6 @@ def get_all_vacation_records():
     return data
 
 def delete_vacation_record(record_id):
-    """Удаляет запись об отпуске"""
     conn = get_connection()
     cursor = conn.cursor()
     try:
