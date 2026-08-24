@@ -9,7 +9,6 @@
 <body class="dark-theme rating-{{ rating_type }}">
     <div id="sparks-container"></div>
     <div id="water-container" style="display: none;"></div>
-    <div id="oil-container" style="display: none;"></div>
 
     <header>
         <div class="header-content">
@@ -255,7 +254,7 @@
         /* Стили для вкладок навигации - ГОРИЗОНТАЛЬНЫЙ GRID */
         .tabs-container {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-bottom: 30px;
             background: rgba(255, 255, 255, 0.03);
@@ -398,34 +397,36 @@
             transform: scale(0.95);
         }
         
-        /* Анимация для нефти */
-        .oil-drop {
+        /* Анимация для воды */
+        .bubble {
             position: absolute;
             border-radius: 50%;
-            animation: floatOil linear infinite;
+            background: radial-gradient(circle at 30% 30%, rgba(100, 200, 255, 0.5), rgba(0, 100, 255, 0.15));
+            border: 2px solid rgba(100, 200, 255, 0.25);
+            animation: riseBubble linear infinite;
         }
 
-        @keyframes floatOil {
-            0% {
-                transform: translate(0, 0) scale(1);
-                opacity: 0.2;
-            }
-            25% {
-                transform: translate(50px, -40px) scale(1.2);
-                opacity: 0.6;
-            }
-            50% {
-                transform: translate(-30px, -80px) scale(0.9);
-                opacity: 0.4;
-            }
-            75% {
-                transform: translate(40px, -30px) scale(1.1);
-                opacity: 0.7;
-            }
-            100% {
-                transform: translate(-20px, -100px) scale(1);
-                opacity: 0.2;
-            }
+        @keyframes riseBubble {
+            0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0.2; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-120vh) scale(1.4) rotate(720deg); opacity: 0; }
+        }
+        
+        /* Анимация для искр (Дуэль) */
+        .spark {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.9;
+            animation: floatSpark linear infinite alternate;
+            filter: blur(1px);
+        }
+
+        @keyframes floatSpark {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0.9; }
+            25% { transform: translate(60px, -80px) scale(1.6) rotate(90deg); opacity: 0.7; }
+            50% { transform: translate(-40px, -160px) scale(0.9) rotate(180deg); opacity: 1; }
+            75% { transform: translate(80px, -60px) scale(1.4) rotate(270deg); opacity: 0.8; }
+            100% { transform: translate(-20px, -180px) scale(1.1) rotate(360deg); opacity: 0.9; }
         }
         
         /* Адаптивность для шапки */
@@ -436,10 +437,13 @@
                 min-width: 70px;
                 min-height: 34px;
             }
+            .tabs-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
         }
         
-        /* Адаптивность для вкладок */
-        @media (max-width: 992px) {
+        @media (max-width: 768px) {
             .tabs-container {
                 grid-template-columns: repeat(3, 1fr);
                 gap: 8px;
@@ -449,6 +453,9 @@
                 font-size: 0.85rem;
                 padding: 10px 12px;
                 min-height: 38px;
+            }
+            .admin-actions .admin-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
         
@@ -467,109 +474,8 @@
             .tab-name {
                 font-size: 0.7rem;
             }
-        }
-        
-        /* Адаптивность для шапки */
-        @media (max-width: 768px) {
-            .header-controls {
-                gap: 6px;
-                justify-content: center;
-            }
-            .header-controls .nav-btn {
-                font-size: 0.75rem;
-                padding: 5px 10px;
-                min-width: 60px;
-                min-height: 30px;
-            }
-            .header-controls .user-greeting {
-                font-size: 0.8rem;
-                width: 100%;
-                text-align: center;
-            }
-            
-            .admin-actions .admin-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .admin-actions .btn-admin {
-                font-size: 0.8rem;
-                padding: 10px 12px;
-                min-height: 44px;
-                white-space: normal;
-            }
-            
-            .chart-link {
-                font-size: 0.7rem;
-                padding: 3px 10px;
-                min-width: 45px;
-                border-width: 1.5px;
-            }
-            
-            .btn-delete-player {
-                font-size: 0.65rem;
-                padding: 3px 8px;
-            }
-            
-            th, td {
-                padding: 8px 10px;
-                font-size: 0.8rem;
-            }
-            
-            .points {
-                font-size: 0.95rem;
-            }
-            
-            .nickname {
-                font-size: 0.85rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .header-controls {
-                gap: 4px;
-            }
-            .header-controls .nav-btn {
-                font-size: 0.6rem;
-                padding: 3px 6px;
-                min-width: 40px;
-                min-height: 24px;
-                border-width: 1.5px;
-            }
-            
             .admin-actions .admin-grid {
                 grid-template-columns: 1fr;
-            }
-            .admin-actions .btn-admin {
-                font-size: 0.85rem;
-                padding: 12px 16px;
-                min-height: 48px;
-            }
-            
-            .chart-link {
-                font-size: 0.6rem;
-                padding: 2px 8px;
-                min-width: 35px;
-                border-width: 1.5px;
-                border-radius: 15px;
-            }
-            
-            .btn-delete-player {
-                font-size: 0.55rem;
-                padding: 2px 6px;
-                border-width: 1.5px;
-                border-radius: 15px;
-            }
-            
-            th, td {
-                padding: 5px 6px;
-                font-size: 0.7rem;
-            }
-            
-            .points {
-                font-size: 0.85rem;
-            }
-            
-            .nickname {
-                font-size: 0.75rem;
             }
         }
     </style>
@@ -639,37 +545,12 @@
             }
         }
 
-        function createOilDrops() {
-            const container = document.getElementById('oil-container');
-            if (!container) return;
-            container.style.display = 'block';
-            const colors = ['#4a2818', '#5a3828', '#6a4838', '#3a1a0a', '#8a6848'];
-            for (let i = 0; i < 35; i++) {
-                const drop = document.createElement('div');
-                drop.classList.add('oil-drop');
-                const size = Math.random() * 25 + 10;
-                drop.style.width = size + 'px';
-                drop.style.height = (size * 1.2) + 'px';
-                drop.style.left = Math.random() * 100 + '%';
-                drop.style.top = Math.random() * 100 + '%';
-                drop.style.background = colors[Math.floor(Math.random() * colors.length)];
-                drop.style.borderRadius = '50%';
-                drop.style.opacity = Math.random() * 0.4 + 0.2;
-                drop.style.animationDuration = (Math.random() * 12 + 6) + 's';
-                drop.style.animationDelay = (Math.random() * 10) + 's';
-                drop.style.boxShadow = '0 0 15px rgba(74, 40, 24, 0.3)';
-                container.appendChild(drop);
-            }
-        }
-
         const ratingType = '{{ rating_type }}';
         
         if (ratingType === 'duel') {
             createSparks();
         } else if (ratingType === 'reservoir') {
             createWaterBubbles();
-        } else if (ratingType === 'oil') {
-            createOilDrops();
         }
     </script>
 </body>
