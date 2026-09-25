@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ display_name }} — Рейтинг | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0d0804;
+            --line: #2a1f14;
+            --line-soft: #1d150c;
+            --text: #e8d9c0;
+            --muted: #8c7a62;
+            --dim: #5a4a37;
+            --accent: #ff8a1f;
+            --accent-warm: #ffb04a;
+            --gold: #d9b26a;
+            --danger: #e0392b;
+            --success: #4caf50;
+        }
+
+        html, body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-size: 15px;
+            line-height: 1.55;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(1200px 500px at 50% -10%, rgba(255, 130, 30, 0.08), transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 1.25rem 2rem 4rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--line);
+            gap: 2rem;
+        }
+
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.75rem;
+        }
+
+        .user {
+            font-size: 0.88rem;
+            color: var(--muted);
+        }
+        .user b { color: var(--text); font-weight: 500; }
+
+        .link-btn {
+            background: none;
+            border: none;
+            font: inherit;
+            font-size: 0.88rem;
+            color: var(--muted);
+            cursor: pointer;
+            transition: color 0.2s ease;
+            text-decoration: none;
+        }
+        .link-btn:hover { color: var(--accent); }
+
+        .moon {
+            color: var(--gold);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            background: none;
+            border: none;
+        }
+        .moon:hover { color: var(--accent-warm); }
+
+        .nav {
+            display: flex;
+            gap: 2.5rem;
+            padding: 1rem 0 1.1rem;
+            border-bottom: 1px solid var(--line);
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        .nav::-webkit-scrollbar { display: none; }
+
+        .nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.92rem;
+            white-space: nowrap;
+            padding-bottom: 0.3rem;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s ease, border-color 0.2s ease;
+        }
+        .nav a:hover { color: var(--text); }
+        .nav a.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .page-head {
+            padding: 2.5rem 0 2rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-sub {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 0.7rem;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.6rem;
+            border-bottom: 1px solid var(--line);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 50px;
+            height: 1px;
+            background: var(--accent);
+        }
+
+        /* ПОДИУМ */
+        .podium {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr 1fr;
+            gap: 1rem;
+            align-items: end;
+            margin-bottom: 2rem;
+        }
+
+        .podium-item {
+            background: linear-gradient(180deg, #17100a, #100a05);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1.75rem 1.25rem 1.5rem;
+            text-align: center;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .podium-item:hover {
+            transform: translateY(-3px);
+            border-color: #3a2a1a;
+        }
+
+        .podium-item.winner {
+            padding: 4px;
+            border: none;
+            background: linear-gradient(100deg, #ff3d00, #ff8c1a, #ffd700, #ffec80, #ffd700, #ff8c1a, #ff3d00);
+            background-size: 200% 100%;
+            animation: fireFlow 8s linear infinite;
+            transform: translateY(-6px);
+            box-shadow: 0 0 40px rgba(255, 200, 87, 0.25);
+        }
+
+        .podium-item.winner > .inner {
+            background: linear-gradient(180deg, #1a1208, #0f0a05);
+            border-radius: 13px;
+            padding: 1.75rem 1.25rem 1.5rem;
+            height: 100%;
+        }
+
+        @keyframes fireFlow {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .medal {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            line-height: 1;
+        }
+
+        .podium-item.winner .medal {
+            font-size: 2.6rem;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            animation: bounceGold 2.5s ease-in-out infinite;
+        }
+
+        @keyframes bounceGold {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.05); }
+        }
+
+        .podium-name {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: var(--text);
+        }
+
+        .podium-item.winner .podium-name {
+            font-size: 1.2rem;
+            color: var(--gold);
+            text-shadow: 0 0 15px rgba(217, 178, 106, 0.5);
+        }
+
+        .podium-points {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-bottom: 1rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .podium-points b { color: var(--accent-warm); font-weight: 700; }
+
+        .podium-badge {
+            font-size: 0.65rem;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--dim);
+            padding-top: 0.9rem;
+            border-top: 1px solid var(--line);
+            font-weight: 600;
+        }
+
+        .podium-item.winner .podium-badge {
+            color: var(--accent);
+            border-top-color: #3a2a1a;
+        }
+
+        /* ФОРМА */
+        .upload-form {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 1.25rem 1.5rem;
+            border: 1px dashed var(--line);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-form input[type="file"] { display: none; }
+
+        .file-label {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            transition: all 0.2s ease;
+            color: var(--muted);
+        }
+
+        .file-label:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+        }
+
+        .file-name {
+            color: var(--dim);
+            font-size: 0.82rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.6rem 1.4rem;
+            background: transparent;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--text);
+            font: inherit;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff8a1f, #ffb04a);
+            border-color: var(--accent);
+            color: #1a0f05;
+            font-weight: 700;
+        }
+
+        .btn-primary:hover {
+            color: #1a0f05;
+            box-shadow: 0 0 25px rgba(255, 138, 31, 0.4);
+        }
+
+        .btn-small {
+            padding: 0.35rem 0.9rem;
+            font-size: 0.78rem;
+            border-radius: 6px;
+        }
+
+        .btn-danger {
+            border-color: #4a1e1e;
+            color: #ff6655;
+        }
+
+        .btn-danger:hover {
+            border-color: var(--danger);
+            color: #ff8877;
+        }
+
+        .flash-message {
+            padding: 0.9rem 1.2rem;
+            border-left: 3px solid var(--accent);
+            background: rgba(255, 138, 31, 0.05);
+            color: var(--accent-warm);
+            font-size: 0.88rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ТАБЛИЦА */
+        .table-wrap {
+            overflow-x: auto;
+            border-top: 1px solid var(--line);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.9rem 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+            font-size: 0.92rem;
+        }
+
+        th {
+            color: var(--dim);
+            font-weight: 500;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding-bottom: 0.7rem;
+        }
+
+        tr:hover td {
+            background: rgba(255, 138, 31, 0.02);
+        }
+
+        td.num {
+            color: var(--dim);
+            font-variant-numeric: tabular-nums;
+            width: 40px;
+        }
+
+        td.name-cell a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        td.name-cell a:hover { color: var(--accent-warm); }
+
+        td.points-cell {
+            color: var(--accent-warm);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        tr:nth-child(1) td.points-cell { color: var(--gold); }
+
+        .empty-msg {
+            text-align: center;
+            padding: 3rem;
+            color: var(--dim);
+        }
+
+        /* АДМИН-ПАНЕЛЬ */
+        .admin-panel {
+            margin-top: 3rem;
+            padding: 1.5rem;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: linear-gradient(180deg, #130c06, #0e0803);
+        }
+
+        .admin-panel h3 {
+            font-size: 0.7rem;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 500;
+            margin-bottom: 1.25rem;
+        }
+
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .admin-grid .btn { width: 100%; text-align: center; }
+
+        body.light-theme {
+            --bg: #fbf5ea;
+            --line: #e8dcc8;
+            --line-soft: #f0e8db;
+            --text: #2a1a0a;
+            --muted: #7a6a54;
+            --dim: #a89880;
+        }
+
+        body.light-theme .podium-item {
+            background: linear-gradient(180deg, #fffbf2, #fdf7ec);
+        }
+
+        body.light-theme .admin-panel {
+            background: linear-gradient(180deg, #fffbf2, #fdf7ec);
+        }
+
+        @media (max-width: 780px) {
+            .page { padding: 1rem 1.25rem 3rem; }
+            .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .brand-name { font-size: 1.1rem; }
+            .header-right { gap: 1.25rem; }
+            .nav { gap: 1.75rem; }
+            .page-title { font-size: 1.6rem; }
+            .podium { grid-template-columns: 1fr; gap: 1rem; }
+            .podium-item.winner { transform: none; order: -1; }
+            .podium-item.winner:hover { transform: translateY(-2px); }
+            .admin-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+
+    <header class="header">
+        <a href="/" class="brand-name">[HEL] Ацкое Пламя</a>
+        <div class="header-right">
+            {% if session['logged_in'] %}
+                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                <a href="/logout" class="link-btn">Выйти</a>
+            {% else %}
+                <a href="/login" class="link-btn">Войти</a>
+            {% endif %}
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/duel" class="active">Дуэль</a>
+        <a href="/turtle-calculator">Черепашка</a>
+        <a href="/hero-calculator">Прокачка</a>
+    </nav>
+
+    <div class="page-head">
+        <h1 class="page-title">{{ display_name }}</h1>
+        <p class="page-sub">Лучшие вкладчики за эту неделю</p>
+    </div>
+
+    {% if leaders %}
+    <section class="section">
+        <div class="section-title">Топы Ацкого Пламени</div>
+
+        <div class="podium">
+            <div class="podium-item">
+                <div class="medal">🥈</div>
+                <div class="podium-name">{% if leaders|length >= 2 %}{{ leaders[1][0] }}{% else %}—{% endif %}</div>
+                <div class="podium-points">{% if leaders|length >= 2 %}<b>{{ leaders[1][1] }}</b> ★{% endif %}</div>
+                <div class="podium-badge">2 место</div>
+            </div>
+
+            <div class="podium-item winner">
+                <div class="inner">
+                    <div class="medal">🏆</div>
+                    <div class="podium-name">{% if leaders|length >= 1 %}{{ leaders[0][0] }}{% else %}—{% endif %}</div>
+                    <div class="podium-points">{% if leaders|length >= 1 %}<b>{{ leaders[0][1] }}</b> ★{% endif %}</div>
+                    <div class="podium-badge">1 место</div>
+                </div>
+            </div>
+
+            <div class="podium-item">
+                <div class="medal">🥉</div>
+                <div class="podium-name">{% if leaders|length >= 3 %}{{ leaders[2][0] }}{% else %}—{% endif %}</div>
+                <div class="podium-points">{% if leaders|length >= 3 %}<b>{{ leaders[2][1] }}</b> ★{% endif %}</div>
+                <div class="podium-badge">3 место</div>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% if session['username'] == 'admin' %}
+    <section class="section">
+        <div class="section-title">Загрузка рейтинга</div>
+        <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="file" accept=".xlsx,.xls" id="fileInput" required>
+            <label for="fileInput" class="file-label">Выбрать Excel</label>
+            <span id="fileName" class="file-name">Файл не выбран</span>
+            <button type="submit" class="btn btn-primary">Загрузить</button>
+        </form>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+    </section>
+    {% endif %}
+
+    <section class="section">
+        <div class="section-title">Общий рейтинг</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Никнейм</th>
+                        <th style="width: 150px;">Очки</th>
+                        <th style="width: 120px;">Прогресс</th>
+                        {% if session['username'] == 'admin' %}
+                        <th style="width: 120px;">Действия</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rating %}
+                        {% for player in rating %}
+                        <tr>
+                            <td class="num">{{ loop.index }}</td>
+                            <td class="name-cell">
+                                <a href="/player/{{ rating_type }}/{{ player[0] }}">{{ player[0] }}</a>
+                            </td>
+                            <td class="points-cell">{{ player[1] }}</td>
+                            <td>
+                                <a href="/player/{{ rating_type }}/{{ player[0] }}" class="btn btn-small">График</a>
+                            </td>
+                            {% if session['username'] == 'admin' %}
+                            <td>
+                                <form action="/delete-player/{{ rating_type }}/{{ player[0] }}" method="POST" style="display: inline;"
+                                      onsubmit="return confirm('Удалить игрока {{ player[0] }} и всю его историю?');">
+                                    <button type="submit" class="btn btn-small btn-danger">Удалить</button>
+                                </form>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="{% if session['username'] == 'admin' %}5{% else %}4{% endif %}" class="empty-msg">
+                                Нет данных. Загрузите рейтинг!
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {% if session['username'] == 'admin' %}
+    <section class="admin-panel">
+        <h3>Админ-панель</h3>
+        <div class="admin-grid">
+            <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
+            <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
+            <a href="/rating-stats/{{ rating_type }}" class="btn">Статистика</a>
+            <a href="/manage-nicknames/{{ rating_type }}" class="btn">Никнеймы</a>
+            <a href="/admin/vacations" class="btn">Журнал отпусков</a>
+            <a href="/admin/carousel" class="btn">Карусель</a>
+            <form action="/reset-rating/{{ rating_type }}" method="POST"
+                  onsubmit="return confirm('Удалить ВСЕ данные рейтинга {{ display_name }}?');">
+                <button type="submit" class="btn btn-danger" style="width: 100%;">Сбросить рейтинг</button>
+            </form>
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
+
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+
+    const fileInput = document.getElementById('fileInput');
+    const fileNameSpan = document.getElementById('fileName');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            fileNameSpan.textContent = e.target.files.length > 0 ? e.target.files[0].name : 'Файл не выбран';
+        });
+    }
+</script>
+
+</body>
+</html>
