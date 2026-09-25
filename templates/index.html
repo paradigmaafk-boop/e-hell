@@ -3,788 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ display_name }} | HEL</title>
+    <title>{{ display_name }} | [HEL] Ацкое Пламя</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body class="dark-theme rating-{{ rating_type }}">
-    <div id="sparks-container"></div>
-    <div id="water-container" style="display: none;"></div>
+<body>
+<div class="wrap">
 
-    <header>
-        <div class="header-content">
-            <div class="title-group">
-                <span class="flame-icon">🔥</span>
-                <h1>[HEL] Аццкое Пламя</h1>
-                <span class="flame-icon">🔥</span>
-            </div>
-            <div class="header-controls">
-                {% if session['logged_in'] %}
-                    <span class="user-greeting">👋 Привет, {{ session['username'] }}</span>
-                    <button id="theme-toggle" class="nav-btn">🌙</button>
-                    <a href="/logout" class="nav-btn">Выйти</a>
-                {% else %}
-                    <button id="theme-toggle" class="nav-btn">🌙</button>
-                    <a href="/login" class="nav-btn primary">Войти</a>
-                {% endif %}
-            </div>
+    <!-- ШАПКА -->
+    <header class="header">
+        <a href="/" class="brand">
+            <span class="brand-name">[HEL] Ацкое Пламя</span>
+        </a>
+        <div class="header-right">
+            {% if session['logged_in'] %}
+                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                <a href="/logout" class="link-btn">Выйти</a>
+            {% else %}
+                <a href="/login" class="link-btn">Войти</a>
+            {% endif %}
+            <button id="theme-toggle" class="theme-toggle">🌙</button>
         </div>
     </header>
 
-    <main>
-        <!-- КАРУСЕЛЬ -->
-        {% if slides %}
-        <div class="carousel-container">
-            <div class="carousel-wrapper">
-                {% if slides|length > 1 %}
-                <button class="carousel-btn prev" onclick="prevSlide()">❮</button>
-                {% endif %}
-                
-                <div class="carousel-slides" id="carouselSlides">
-                    {% for slide in slides %}
-                    <div class="carousel-slide {% if loop.first %}active{% endif %}">
-                        {% if slide[4] %}
-                            <div class="slide-media">
-                                {% if slide[3] == 'video' %}
-                                    <video src="{{ slide[4] }}" autoplay muted loop playsinline></video>
-                                {% else %}
-                                    <img src="{{ slide[4] }}" alt="{{ slide[1] or '' }}">
-                                {% endif %}
-                            </div>
-                        {% endif %}
-                        <div class="slide-text">
-                            {% if slide[1] %}
-                                <h3>{{ slide[1] }}</h3>
-                            {% endif %}
-                            <p>{{ slide[2] }}</p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                {% if slides|length > 1 %}
-                <button class="carousel-btn next" onclick="nextSlide()">❯</button>
-                {% endif %}
-            </div>
-            
+    <!-- НАВИГАЦИЯ -->
+    <nav class="nav">
+        <a href="/rating/duel" class="{% if rating_type == 'duel' %}active{% endif %}">Дуэль</a>
+        <a href="/turtle-calculator" class="{% if 'turtle' in request.path %}active{% endif %}">Черепашка</a>
+        <a href="/hero-calculator" class="{% if 'hero' in request.path %}active{% endif %}">Прокачка</a>
+    </nav>
+
+    <!-- КАРУСЕЛЬ -->
+    {% if slides %}
+    <div class="carousel-wrap" style="margin-top: 2rem;">
+        <div class="carousel">
             {% if slides|length > 1 %}
-            <div class="carousel-dots" id="carouselDots">
-                {% for slide in slides %}
-                <span class="dot {% if loop.first %}active{% endif %}" onclick="goToSlide({{ loop.index0 }})"></span>
-                {% endfor %}
-            </div>
+            <button class="carousel-btn prev" onclick="prevSlide()">‹</button>
             {% endif %}
+
+            {% for slide in slides %}
+            <div class="carousel-slide {% if loop.first %}active{% endif %}">
+                {% if slide[4] %}
+                <div class="slide-media">
+                    {% if slide[3] == 'video' %}
+                    <video src="{{ slide[4] }}" autoplay muted loop playsinline></video>
+                    {% else %}
+                    <img src="{{ slide[4] }}" alt="{{ slide[1] or '' }}">
+                    {% endif %}
+                </div>
+                {% endif %}
+                <div class="slide-text">
+                    {% if slide[1] %}<h3>{{ slide[1] }}</h3>{% endif %}
+                    <p>{{ slide[2] }}</p>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if slides|length > 1 %}
+            <button class="carousel-btn next" onclick="nextSlide()">›</button>
+            {% endif %}
+        </div>
+        {% if slides|length > 1 %}
+        <div class="carousel-dots">
+            {% for slide in slides %}
+            <span class="dot {% if loop.first %}active{% endif %}" onclick="goToSlide({{ loop.index0 }})"></span>
+            {% endfor %}
         </div>
         {% endif %}
+    </div>
+    {% endif %}
 
-        <div class="tabs-container">
-            {% for rt in rating_types %}
-                <a href="/rating/{{ rt.id }}" class="tab-btn {% if rt.id == rating_type %}active{% endif %}" 
-                   style="--tab-color: {{ rt.color }};">
-                    <span class="tab-name">{{ rt.name }}</span>
-                </a>
-            {% endfor %}
-            <a href="/guides" class="tab-btn" style="--tab-color: #ff7e00;">
-                <span class="tab-name">Гайды</span>
-            </a>
-            <a href="/turtle-calculator" class="tab-btn" style="--tab-color: #ff7e00;">
-                <span class="tab-name">Черепашка</span>
-            </a>
-            <a href="/hero-calculator" class="tab-btn" style="--tab-color: #ff7e00;">
-                <span class="tab-name">Прокачка</span>
-            </a>
+    <!-- ЗАГОЛОВОК -->
+    <div class="page-head">
+        <h1 class="page-title">{{ display_name }}</h1>
+        <p class="page-sub">Лучшие вкладчики за эту неделю</p>
+    </div>
+
+    <!-- ТОПЫ -->
+    {% if leaders %}
+    <section>
+        <div class="section-head">Топы Ацкого Пламени</div>
+
+        <div class="podium">
+            <div class="podium-item">
+                <div class="medal">🥈</div>
+                <div class="name">{% if leaders|length >= 2 %}{{ leaders[1][0] }}{% else %}—{% endif %}</div>
+                <div class="score">{% if leaders|length >= 2 %}<b>{{ leaders[1][1] }}</b> ★{% endif %}</div>
+                <div class="place">2 место</div>
+            </div>
+
+            <div class="podium-item winner">
+                <div class="inner">
+                    <div class="medal">🏆</div>
+                    <div class="name">{% if leaders|length >= 1 %}{{ leaders[0][0] }}{% else %}—{% endif %}</div>
+                    <div class="score">{% if leaders|length >= 1 %}<b>{{ leaders[0][1] }}</b> ★{% endif %}</div>
+                    <div class="place">1 место</div>
+                </div>
+            </div>
+
+            <div class="podium-item">
+                <div class="medal">🥉</div>
+                <div class="name">{% if leaders|length >= 3 %}{{ leaders[2][0] }}{% else %}—{% endif %}</div>
+                <div class="score">{% if leaders|length >= 3 %}<b>{{ leaders[2][1] }}</b> ★{% endif %}</div>
+                <div class="place">3 место</div>
+            </div>
         </div>
 
-        <section class="rating-section">
-            <h2>⭐ {{ display_name }} ⭐</h2>
-            <p class="subtitle">Лучшие вкладчики за эту неделю</p>
-            
-            {% if leaders %}
-            <div class="podium-container">
-                <div class="podium-title">🏆 ТОПЫ АЦКОГО ПЛАМЕНИ 🏆</div>
-                <div class="podium">
-                    <div class="podium-item place-2">
-                        <div class="podium-emoji">🥈</div>
-                        <div class="podium-name">
-                            {% if leaders|length >= 2 %}
-                                {{ leaders[1][0] }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </div>
-                        <div class="podium-points">
-                            {% if leaders|length >= 2 %}
-                                {{ leaders[1][1] }} ⭐
-                            {% endif %}
-                        </div>
-                        <div class="podium-badge">2 место</div>
-                    </div>
+        <div class="podium-footer">Суммарно за всю историю союза</div>
+    </section>
+    {% endif %}
 
-                    <div class="podium-item place-1">
-                        <div class="podium-emoji">🏆</div>
-                        <div class="podium-name">
-                            {% if leaders|length >= 1 %}
-                                {{ leaders[0][0] }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </div>
-                        <div class="podium-points">
-                            {% if leaders|length >= 1 %}
-                                {{ leaders[0][1] }} ⭐
-                            {% endif %}
-                        </div>
-                        <div class="podium-badge">1 место</div>
-                    </div>
+    <!-- ЗАГРУЗКА ТАБЛИЦЫ -->
+    {% if session['username'] == 'admin' %}
+    <section style="margin-top: 3rem;">
+        <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="file" accept=".xlsx,.xls" id="fileInput" required>
+            <label for="fileInput" class="file-label">Выбрать Excel</label>
+            <span id="fileName" class="file-name">Файл не выбран</span>
+            <button type="submit" class="btn btn-primary">Загрузить</button>
+        </form>
 
-                    <div class="podium-item place-3">
-                        <div class="podium-emoji">🥉</div>
-                        <div class="podium-name">
-                            {% if leaders|length >= 3 %}
-                                {{ leaders[2][0] }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </div>
-                        <div class="podium-points">
-                            {% if leaders|length >= 3 %}
-                                {{ leaders[2][1] }} ⭐
-                            {% endif %}
-                        </div>
-                        <div class="podium-badge">3 место</div>
-                    </div>
-                </div>
-                <div class="podium-subtitle">🏅 Суммарно за всю историю союза</div>
-            </div>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">{{ messages[0] }}</div>
             {% endif %}
+        {% endwith %}
+    </section>
+    {% endif %}
 
-            {% if session['username'] == 'admin' %}
-            <div class="upload-area">
-                <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" id="uploadForm">
-                    <div class="file-input-wrapper">
-                        <input type="file" name="file" accept=".xlsx,.xls" id="fileInput" required>
-                        <label for="fileInput" class="file-label">Выбрать Excel файл</label>
-                        <span id="fileName">Файл не выбран</span>
-                    </div>
-                    <button type="submit" class="btn-upload">Добавить в историю</button>
-                </form>
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <div class="flash-message">{{ messages[0] }}</div>
-                    {% endif %}
-                {% endwith %}
-            </div>
-
-            <div class="admin-actions">
-                <h3>Админ-панель</h3>
-                <div class="admin-grid">
-                    <a href="/underperforming/{{ rating_type }}" class="btn-admin">Показать отстающих</a>
-                    <a href="/consistently-underperforming/{{ rating_type }}" class="btn-admin">Стабильно отстающие</a>
-                    <a href="/rating-stats/{{ rating_type }}" class="btn-admin">Статистика рейтинга</a>
-                    <a href="/manage-nicknames/{{ rating_type }}" class="btn-admin">Управление никнеймами</a>
-                    <a href="/admin/guides" class="btn-admin">Управление гайдами</a>
-                    <a href="/admin/vacations" class="btn-admin">Журнал отпусков</a>
-                    <a href="/admin/carousel" class="btn-admin">Управление каруселью</a>
-                    <form action="/reset-rating/{{ rating_type }}" method="POST" style="display: contents;" 
-                          onsubmit="return confirm('ВНИМАНИЕ! Это действие удалит ВСЕ данные рейтинга {{ display_name }}. Продолжить?');">
-                        <button type="submit" class="btn-admin btn-danger">Сбросить рейтинг</button>
-                    </form>
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
+    <!-- ТАБЛИЦА РЕЙТИНГА -->
+    <section class="section" style="margin-top: 2rem;">
+        <div class="section-title">Общий рейтинг</div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Никнейм</th>
+                        <th style="width: 150px;">Очки</th>
+                        <th style="width: 120px;">Прогресс</th>
+                        {% if session['username'] == 'admin' %}
+                        <th style="width: 120px;">Действия</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if rating %}
+                        {% for player in rating %}
                         <tr>
-                            <th>#</th>
-                            <th>Никнейм</th>
-                            <th>Очки</th>
-                            <th>Прогресс</th>
+                            <td class="num">{{ loop.index }}</td>
+                            <td class="name-cell">
+                                <a href="/player/{{ rating_type }}/{{ player[0] }}">{{ player[0] }}</a>
+                            </td>
+                            <td class="points-cell">{{ player[1] }}</td>
+                            <td>
+                                <a href="/player/{{ rating_type }}/{{ player[0] }}" class="btn btn-small">График</a>
+                            </td>
                             {% if session['username'] == 'admin' %}
-                            <th>Действия</th>
+                            <td>
+                                <form action="/delete-player/{{ rating_type }}/{{ player[0] }}" method="POST" style="display: inline;"
+                                      onsubmit="return confirm('Удалить игрока {{ player[0] }} и всю его историю?');">
+                                    <button type="submit" class="btn btn-small btn-danger">Удалить</button>
+                                </form>
+                            </td>
                             {% endif %}
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% if rating %}
-                            {% for player in rating %}
-                            <tr>
-                                <td>{{ loop.index }}</td>
-                                <td>
-                                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="nickname-link">
-                                        <span class="nickname">{{ player[0] }}</span>
-                                    </a>
-                                </td>
-                                <td><span class="points">{{ player[1] }}</span></td>
-                                <td>
-                                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="chart-link">График</a>
-                                </td>
-                                {% if session['username'] == 'admin' %}
-                                <td>
-                                    <form action="/delete-player/{{ rating_type }}/{{ player[0] }}" method="POST" style="display: inline;"
-                                          onsubmit="return confirm('Вы уверены, что хотите удалить игрока {{ player[0] }} и ВСЮ его историю? Это действие НЕЛЬЗЯ отменить!');">
-                                        <button type="submit" class="btn-delete-player">Удалить</button>
-                                    </form>
-                                </td>
-                                {% endif %}
-                            </tr>
-                            {% endfor %}
-                        {% else %}
-                            <tr>
-                                <td colspan="{% if session['username'] == 'admin' %}5{% else %}4{% endif %}" class="empty-msg">Нет данных. Загрузите рейтинг!</td>
-                            </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="{% if session['username'] == 'admin' %}5{% else %}4{% endif %}" class="empty-msg">
+                                Нет данных. Загрузите рейтинг!
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <style>
-        /* Карусель */
-        .carousel-container {
-            max-width: 900px;
-            margin: 0 auto 30px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .carousel-wrapper {
-            position: relative;
-            background: rgba(20, 25, 35, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 2px solid #ff7e0060;
-            overflow: hidden;
-            box-shadow: 0 8px 32px rgba(255, 100, 0, 0.2);
-            min-height: 300px;
-        }
-        
-        .carousel-slides {
-            position: relative;
-            width: 100%;
-        }
-        
-        .carousel-slide {
-            display: none;
-            padding: 0;
-            animation: slideFade 0.5s ease;
-        }
-        
-        .carousel-slide.active {
-            display: block;
-        }
-        
-        @keyframes slideFade {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        
-        .slide-media {
-            width: 100%;
-            max-height: 400px;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #000;
-        }
-        
-        .slide-media img,
-        .slide-media video {
-            max-width: 100%;
-            max-height: 400px;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            display: block;
-        }
-        
-        .slide-text {
-            padding: 25px 60px;
-            text-align: center;
-        }
-        
-        .slide-text h3 {
-            color: #ffaa44;
-            font-size: 1.5rem;
-            margin-bottom: 12px;
-        }
-        
-        .slide-text p {
-            font-size: 1.05rem;
-            line-height: 1.7;
-            opacity: 0.9;
-            white-space: pre-wrap;
-        }
-        
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 126, 0, 0.3);
-            border: 2px solid #ff7e0060;
-            color: white;
-            font-size: 1.8rem;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: 0.3s;
-            z-index: 3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .carousel-btn:hover {
-            background: #ff7e00;
-            transform: translateY(-50%) scale(1.1);
-            box-shadow: 0 0 20px #ff7e0080;
-        }
-        
-        .carousel-btn.prev {
-            left: 15px;
-        }
-        
-        .carousel-btn.next {
-            right: 15px;
-        }
-        
-        .carousel-dots {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .carousel-dots .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        .carousel-dots .dot.active {
-            background: #ff7e00;
-            box-shadow: 0 0 15px #ff7e0080;
-            transform: scale(1.2);
-        }
-        
-        /* Стили для кнопок навигации в шапке */
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .header-controls .user-greeting {
-            font-weight: 600;
-            opacity: 0.9;
-            white-space: nowrap;
-        }
-        
-        .header-controls .nav-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #ff7e0060;
-            padding: 8px 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1.0rem;
-            transition: 0.3s;
-            color: inherit;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 90px;
-            min-height: 40px;
-            text-align: center;
-            white-space: nowrap;
-        }
-        
-        .header-controls .nav-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px #ff7e0060;
-            background: rgba(255, 126, 0, 0.1);
-        }
-        
-        .header-controls .nav-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .header-controls .nav-btn.primary {
-            background: #ff7e00;
-            border-color: #ff7e00;
-            color: white;
-        }
-        
-        .header-controls .nav-btn.primary:hover {
-            background: #ff5500;
-            border-color: #ff5500;
-            color: white;
-        }
-        
-        /* Стили для вкладок навигации */
-        .tabs-container {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 12px 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .tab-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 16px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.6);
-            border: 2px solid transparent;
-            text-align: center;
-            min-height: 44px;
-        }
-        
-        .tab-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            transform: translateY(-2px);
-        }
-        
-        .tab-btn.active {
-            background: var(--tab-color, #ff5500);
-            color: #fff;
-            box-shadow: 0 0 30px var(--tab-color, #ff5500)40;
-            border-color: var(--tab-color, #ff5500);
-        }
-        
-        .tab-name {
-            font-size: 0.95rem;
-        }
-        
-        /* Стили для кнопок в админ-панели - ГРИД */
-        .admin-actions .admin-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-        
-        .admin-actions .btn-admin {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #ff7e0060;
-            padding: 12px 16px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-            transition: 0.3s;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: inherit;
-            min-height: 50px;
-            text-align: center;
-            width: 100%;
-            white-space: nowrap;
-        }
-        
-        .admin-actions .btn-admin:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 20px #ff7e0060;
-            background: rgba(255, 126, 0, 0.1);
-        }
-        
-        .admin-actions .btn-admin:active {
-            transform: scale(0.97);
-        }
-        
-        .admin-actions .btn-admin.btn-danger {
-            border-color: #dc3545;
-            color: #dc3545;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .admin-actions .btn-admin.btn-danger:hover {
-            background: rgba(220, 53, 69, 0.1);
-            box-shadow: 0 0 20px #dc354580;
-            border-color: #dc3545;
-        }
-        
-        /* Кнопки в таблице */
-        .chart-link {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #ff7e0060;
-            padding: 4px 14px;
-            border-radius: 20px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: 0.3s;
-            color: #ffaa44;
-            display: inline-block;
-            white-space: nowrap;
-            text-align: center;
-            min-width: 60px;
-        }
-        
-        .chart-link:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #ff7e0060;
-            background: rgba(255, 126, 0, 0.1);
-        }
-        
-        .btn-delete-player {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #dc3545;
-            color: #dc3545;
-            padding: 4px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: 0.3s;
-            white-space: nowrap;
-        }
-        
-        .btn-delete-player:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 15px #dc354580;
-            background: rgba(220, 53, 69, 0.1);
-        }
-        
-        /* Анимация для воды */
-        .bubble {
-            position: absolute;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(100, 200, 255, 0.5), rgba(0, 100, 255, 0.15));
-            border: 2px solid rgba(100, 200, 255, 0.25);
-            animation: riseBubble linear infinite;
-        }
+    <!-- АДМИН-ПАНЕЛЬ -->
+    {% if session['username'] == 'admin' %}
+    <section class="admin-panel">
+        <h3>Админ-панель</h3>
+        <div class="admin-grid">
+            <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
+            <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
+            <a href="/rating-stats/{{ rating_type }}" class="btn">Статистика</a>
+            <a href="/manage-nicknames/{{ rating_type }}" class="btn">Никнеймы</a>
+            <a href="/admin/vacations" class="btn">Журнал отпусков</a>
+            <a href="/admin/carousel" class="btn">Карусель</a>
+            <form action="/reset-rating/{{ rating_type }}" method="POST"
+                  onsubmit="return confirm('Удалить ВСЕ данные рейтинга {{ display_name }}?');">
+                <button type="submit" class="btn btn-danger" style="width: 100%;">Сбросить рейтинг</button>
+            </form>
+        </div>
+    </section>
+    {% endif %}
 
-        @keyframes riseBubble {
-            0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 0.2; }
-            50% { opacity: 0.8; }
-            100% { transform: translateY(-120vh) scale(1.4) rotate(720deg); opacity: 0; }
-        }
-        
-        /* Анимация для искр (Дуэль) */
-        .spark {
-            position: absolute;
-            border-radius: 50%;
-            opacity: 0.9;
-            animation: floatSpark linear infinite alternate;
-            filter: blur(1px);
-        }
+</div>
 
-        @keyframes floatSpark {
-            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0.9; }
-            25% { transform: translate(60px, -80px) scale(1.6) rotate(90deg); opacity: 0.7; }
-            50% { transform: translate(-40px, -160px) scale(0.9) rotate(180deg); opacity: 1; }
-            75% { transform: translate(80px, -60px) scale(1.4) rotate(270deg); opacity: 0.8; }
-            100% { transform: translate(-20px, -180px) scale(1.1) rotate(360deg); opacity: 0.9; }
-        }
-        
-        /* Адаптивность */
-        @media (max-width: 992px) {
-            .header-controls .nav-btn {
-                font-size: 0.85rem;
-                padding: 6px 12px;
-                min-width: 70px;
-                min-height: 34px;
-            }
-            .tabs-container {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .tabs-container {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-                padding: 10px 15px;
-            }
-            .tab-btn {
-                font-size: 0.85rem;
-                padding: 10px 12px;
-                min-height: 38px;
-            }
-            .admin-actions .admin-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .slide-text {
-                padding: 20px 50px;
-            }
-            .slide-text h3 {
-                font-size: 1.2rem;
-            }
-            .slide-text p {
-                font-size: 0.9rem;
-            }
-            .carousel-btn {
-                width: 40px;
-                height: 40px;
-                font-size: 1.3rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .tabs-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 6px;
-                padding: 8px 10px;
-            }
-            .tab-btn {
-                font-size: 0.7rem;
-                padding: 8px 8px;
-                min-height: 32px;
-                border-width: 1.5px;
-            }
-            .tab-name {
-                font-size: 0.7rem;
-            }
-            .admin-actions .admin-grid {
-                grid-template-columns: 1fr;
-            }
-            .slide-text {
-                padding: 15px 45px;
-            }
-            .slide-text h3 {
-                font-size: 1rem;
-            }
-            .slide-text p {
-                font-size: 0.85rem;
-            }
-            .carousel-btn {
-                width: 35px;
-                height: 35px;
-                font-size: 1.1rem;
-            }
-        }
-    </style>
+<script>
+    // Тема
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
 
-    <script>
-        const toggleBtn = document.getElementById('theme-toggle');
-        const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
 
-        toggleBtn.addEventListener('click', () => {
-            body.classList.toggle('dark-theme');
-            body.classList.toggle('light-theme');
-            toggleBtn.textContent = body.classList.contains('dark-theme') ? '🌙' : '☀️';
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+
+    // Загрузка файла
+    const fileInput = document.getElementById('fileInput');
+    const fileNameSpan = document.getElementById('fileName');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            fileNameSpan.textContent = e.target.files.length > 0 ? e.target.files[0].name : 'Файл не выбран';
         });
+    }
 
-        body.classList.add('dark-theme');
-        toggleBtn.textContent = '🌙';
+    // Карусель
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.carousel-slide');
+    const dots = document.querySelectorAll('.carousel-dots .dot');
 
-        const fileInput = document.getElementById('fileInput');
-        const fileNameSpan = document.getElementById('fileName');
-        if (fileInput) {
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    fileNameSpan.textContent = e.target.files[0].name;
-                } else {
-                    fileNameSpan.textContent = 'Файл не выбран';
-                }
-            });
-        }
+    function showSlide(index) {
+        if (slides.length === 0) return;
+        slides.forEach(s => s.classList.remove('active'));
+        dots.forEach(d => d.classList.remove('active'));
+        if (index >= slides.length) currentSlide = 0;
+        else if (index < 0) currentSlide = slides.length - 1;
+        else currentSlide = index;
+        slides[currentSlide].classList.add('active');
+        if (dots[currentSlide]) dots[currentSlide].classList.add('active');
+    }
 
-        function createSparks() {
-            const container = document.getElementById('sparks-container');
-            if (!container) return;
-            const colors = ['#ff7e00', '#ff4500', '#ffcc00', '#ffaa00', '#ff5500'];
-            for (let i = 0; i < 50; i++) {
-                const spark = document.createElement('div');
-                spark.classList.add('spark');
-                const size = Math.random() * 14 + 8;
-                spark.style.width = size + 'px';
-                spark.style.height = size + 'px';
-                spark.style.left = Math.random() * 100 + '%';
-                spark.style.top = Math.random() * 100 + '%';
-                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
-                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
-                spark.style.animationDelay = (Math.random() * 12) + 's';
-                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
-                container.appendChild(spark);
-            }
-        }
+    function nextSlide() { showSlide(currentSlide + 1); }
+    function prevSlide() { showSlide(currentSlide - 1); }
+    function goToSlide(index) { showSlide(index); }
 
-        function createWaterBubbles() {
-            const container = document.getElementById('water-container');
-            if (!container) return;
-            container.style.display = 'block';
-            for (let i = 0; i < 40; i++) {
-                const bubble = document.createElement('div');
-                bubble.classList.add('bubble');
-                const size = Math.random() * 60 + 25;
-                bubble.style.width = size + 'px';
-                bubble.style.height = size + 'px';
-                bubble.style.left = Math.random() * 100 + '%';
-                bubble.style.bottom = '-15%';
-                bubble.style.animationDuration = (Math.random() * 12 + 8) + 's';
-                bubble.style.animationDelay = (Math.random() * 15) + 's';
-                bubble.style.opacity = Math.random() * 0.5 + 0.25;
-                bubble.style.boxShadow = 'inset 0 0 30px rgba(100, 200, 255, 0.3), 0 0 40px rgba(33, 150, 243, 0.1)';
-                container.appendChild(bubble);
-            }
-        }
+    if (slides.length > 1) {
+        setInterval(nextSlide, 10000);
+    }
+</script>
 
-        const ratingType = '{{ rating_type }}';
-        
-        if (ratingType === 'duel') {
-            createSparks();
-        } else if (ratingType === 'reservoir') {
-            createWaterBubbles();
-        }
-
-        // ===== КАРУСЕЛЬ =====
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.carousel-slide');
-        const dots = document.querySelectorAll('.carousel-dots .dot');
-
-        function showSlide(index) {
-            if (slides.length === 0) return;
-            
-            slides.forEach(s => s.classList.remove('active'));
-            dots.forEach(d => d.classList.remove('active'));
-            
-            if (index >= slides.length) currentSlide = 0;
-            else if (index < 0) currentSlide = slides.length - 1;
-            else currentSlide = index;
-            
-            slides[currentSlide].classList.add('active');
-            if (dots[currentSlide]) dots[currentSlide].classList.add('active');
-        }
-
-        function nextSlide() {
-            showSlide(currentSlide + 1);
-        }
-
-        function prevSlide() {
-            showSlide(currentSlide - 1);
-        }
-
-        function goToSlide(index) {
-            showSlide(index);
-        }
-
-        // Автопрокрутка каждые 10 секунд
-        if (slides.length > 1) {
-            setInterval(nextSlide, 10000);
-        }
-    </script>
 </body>
 </html>
