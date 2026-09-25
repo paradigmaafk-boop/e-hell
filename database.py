@@ -43,7 +43,6 @@ def init_db():
         )
     """)
     
-    # Только дуэль и резервуар (нефть удалена)
     rating_types = ['duel', 'reservoir']
     for rt in rating_types:
         cursor.execute(f"""
@@ -91,6 +90,21 @@ def init_db():
             id SERIAL PRIMARY KEY,
             name TEXT UNIQUE NOT NULL,
             value INTEGER DEFAULT 0
+        )
+    """)
+    
+    # Таблица для слайдов карусели
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS carousel_slides (
+            id SERIAL PRIMARY KEY,
+            title TEXT,
+            content TEXT NOT NULL,
+            media_type TEXT DEFAULT 'image',
+            media_url TEXT,
+            position INTEGER DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
         )
     """)
     
@@ -196,7 +210,6 @@ def resolve_nickname(rating_type, nickname):
     return result[0] if result else nickname
 
 def save_rating(rating_type, data_list):
-    """Сохраняет рейтинг с СУММИРОВАНИЕМ очков"""
     conn = get_connection()
     cursor = conn.cursor()
     today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -351,7 +364,8 @@ def delete_player(rating_type, nickname):
         cursor.execute("DELETE FROM nickname_aliases WHERE rating_type = %s AND (current_nickname = %s OR old_nickname = %s)", (rating_type, nickname, nickname))
         conn.commit()
         return True
-    except:
+    except Exception as e:
+        print(f"Error deleting player: {e}")
         conn.rollback()
         return False
     finally:
@@ -425,6 +439,8 @@ def delete_guide(guide_id):
     finally:
         conn.close()
 
+# ===== ЖУРНАЛ ОТПУСКОВ =====
+
 def add_vacation_record(player_name, comment, start_date, end_date, created_by):
     conn = get_connection()
     cursor = conn.cursor()
@@ -464,6 +480,91 @@ def delete_vacation_record(record_id):
         return True
     except Exception as e:
         print(f"Error deleting vacation record: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+# ===== КАРУСЕЛЬ (СЛАЙДЫ) =====
+
+def create_slide(title, content, media_type, media_url, position):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            INSERT INTO carousel_slides (title, content, media_type, media_url, position, is_active, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, TRUE, %s, %s) RETURNING id
+        """, (title, content, media_type, media_url, position, now, now))
+        slide_id = cursor.fetchone()[0]
+        conn.commit()
+        return slide_id
+    except Exception as e:
+        print(f"Error creating slide: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+def get_all_slides(only_active=False):
+    conn = get_connection()
+    cursor = conn.cursor()
+    if only_active:
+        cursor.execute("""
+            SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at
+            FROM carousel_slides
+            WHERE is_active = TRUE
+            ORDER BY position ASC, id ASC
+        """)
+    else:
+        cursor.execute("""
+            SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at
+            FROM carousel_slides
+            ORDER BY position ASC, id ASC
+        """)
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def get_slide_by_id(slide_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at
+        FROM carousel_slides WHERE id = %s
+    """, (slide_id,))
+    data = cursor.fetchone()
+    conn.close()
+    return data
+
+def update_slide(slide_id, title, content, media_type, media_url, position, is_active):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            UPDATE carousel_slides
+            SET title = %s, content = %s, media_type = %s, media_url = %s, position = %s, is_active = %s, updated_at = %s
+            WHERE id = %s
+        """, (title, content, media_type, media_url, position, is_active, now, slide_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error updating slide: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def delete_slide(slide_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM carousel_slides WHERE id = %s", (slide_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error deleting slide: {e}")
         conn.rollback()
         return False
     finally:
