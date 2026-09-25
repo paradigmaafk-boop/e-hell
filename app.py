@@ -12,6 +12,7 @@ from database import (
     delete_nickname_alias, reset_rating, delete_player,
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
+    get_all_map_values, save_map_values, reset_map_values,
     get_connection
 )
 from werkzeug.utils import secure_filename
@@ -61,7 +62,6 @@ def get_counter_value(counter_name):
 
 @app.route('/')
 def index():
-    """Главная страница — только карусель и боковое меню"""
     increment_counter('visits')
     slides = get_all_slides(only_active=True)
     rating_types = get_all_rating_types()
@@ -71,7 +71,6 @@ def index():
 
 @app.route('/rating/<rating_type>')
 def rating_view(rating_type):
-    """Страница рейтинга — подиум, загрузка, таблица, админ-панель"""
     increment_counter('visits')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
@@ -88,6 +87,40 @@ def rating_view(rating_type):
                            rating_type=rating_type,
                            display_name=display_name,
                            rating_types=rating_types)
+
+@app.route('/reservoir-map')
+def reservoir_map():
+    increment_counter('visits')
+    map_values = get_all_map_values()
+    return render_template('reservoir_map.html', map_values=map_values)
+
+@app.route('/api/reservoir-map/save', methods=['POST'])
+def save_reservoir_map():
+    if 'logged_in' not in session or session['username'] != 'admin':
+        return jsonify({'success': False, 'error': 'Доступ запрещён'}), 403
+
+    try:
+        data = request.get_json()
+        if not data or not isinstance(data, dict):
+            return jsonify({'success': False, 'error': 'Неверные данные'}), 400
+
+        if save_map_values(data):
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
+    except Exception as e:
+        print(f"Error saving map: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/reservoir-map/reset', methods=['POST'])
+def reset_reservoir_map():
+    if 'logged_in' not in session or session['username'] != 'admin':
+        return jsonify({'success': False, 'error': 'Доступ запрещён'}), 403
+
+    if reset_map_values():
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False, 'error': 'Ошибка сброса'}), 500
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
