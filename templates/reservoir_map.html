@@ -6,7 +6,7 @@
     <title>Карта боя — Резервуар | [HEL] Ацкое Пламя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -56,15 +56,62 @@
             padding: 1.5rem 2rem 2.5rem;
         }
 
-        /* ШАПКА */
         .header {
             display: flex; justify-content: space-between; align-items: center;
             padding-bottom: 1.25rem; border-bottom: 1px solid var(--line); gap: 2rem;
         }
-        .brand-name {
-            font-size: 1.25rem; font-weight: 700;
-            color: var(--accent); text-decoration: none; letter-spacing: 0.3px;
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            text-decoration: none;
+            transition: transform 0.25s ease;
         }
+
+        .brand:hover { transform: scale(1.02); }
+
+        .brand-icon {
+            font-size: 1.6rem;
+            filter: drop-shadow(0 0 12px rgba(255, 138, 31, 0.6));
+            animation: flicker 3s ease-in-out infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { 
+                filter: drop-shadow(0 0 12px rgba(255, 138, 31, 0.6));
+                transform: scale(1);
+            }
+            50% { 
+                filter: drop-shadow(0 0 20px rgba(255, 180, 74, 0.9));
+                transform: scale(1.05);
+            }
+        }
+
+        .brand-name {
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            background: linear-gradient(
+                180deg,
+                #ffd98a 0%,
+                #ffb04a 20%,
+                #ff8a1f 45%,
+                #e0621a 55%,
+                #ff8a1f 70%,
+                #ffb04a 85%,
+                #ffd98a 100%
+            );
+            background-size: 100% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(255, 138, 31, 0.25));
+            text-shadow: 0 1px 0 rgba(255, 220, 160, 0.15);
+            line-height: 1;
+        }
+
         .header-right { display: flex; align-items: center; gap: 1.75rem; }
         .user { font-size: 0.88rem; color: var(--muted); }
         .user b { color: var(--text); font-weight: 500; }
@@ -77,7 +124,6 @@
         .moon { color: var(--gold); font-size: 1rem; cursor: pointer; background: none; border: none; }
         .moon:hover { color: var(--accent-warm); }
 
-        /* НАВИГАЦИЯ */
         .nav {
             display: flex; gap: 2.5rem;
             padding: 1rem 0 1.1rem;
@@ -94,7 +140,6 @@
         .nav a:hover { color: var(--text); }
         .nav a.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-        /* ХЛЕБНЫЕ КРОШКИ */
         .breadcrumbs {
             display: flex;
             align-items: center;
@@ -111,7 +156,6 @@
         .breadcrumbs .sep { color: var(--dim); }
         .breadcrumbs .current { color: var(--text); }
 
-        /* АДМИН-БАР */
         .admin-bar {
             display: flex; justify-content: space-between; align-items: center;
             gap: 1.5rem; padding: 1rem 0 0; flex-wrap: wrap;
@@ -435,7 +479,6 @@
         .hq-1, .hq-3 { max-height: calc(50% - 0.5rem); }
         .hq-2, .hq-4 { max-height: calc(50% - 0.5rem); }
 
-        /* Светлая тема */
         body.light-theme {
             --bg: #fbf5ea;
             --line: #e8dcc8;
@@ -472,6 +515,7 @@
 
         @media (max-width: 900px) {
             .page { padding: 1rem 1.25rem 2rem; }
+            .brand-icon { font-size: 1.3rem; }
             .brand-name { font-size: 1.15rem; }
             .header-right { gap: 1.25rem; font-size: 0.85rem; }
             .nav { gap: 1.5rem; padding: 1rem 0 1.1rem; }
@@ -519,9 +563,11 @@
 
 <div class="page">
 
-    <!-- ШАПКА -->
     <header class="header">
-        <a href="/" class="brand-name">[HEL] Ацкое Пламя</a>
+        <a href="/" class="brand">
+            <span class="brand-icon">🔥</span>
+            <span class="brand-name">[HEL] Ацкое Пламя</span>
+        </a>
         <div class="header-right">
             {% if session['logged_in'] %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
@@ -533,7 +579,6 @@
         </div>
     </header>
 
-    <!-- НАВИГАЦИЯ -->
     <nav class="nav">
         <a href="/rating/duel">Дуэль</a>
         <a href="/reservoir-map" class="active">Резервуар</a>
@@ -541,7 +586,6 @@
         <a href="/hero-calculator">Прокачка</a>
     </nav>
 
-    <!-- ХЛЕБНЫЕ КРОШКИ -->
     <div class="breadcrumbs">
         <a href="/">← На главную</a>
         <span class="sep">·</span>
@@ -550,7 +594,6 @@
         <span class="current">Карта боя Резервуара</span>
     </div>
 
-    <!-- ЗАГОЛОВОК И АДМИН-БАР -->
     <div class="admin-bar">
         <div class="page-title-block">
             <h1>Карта боя</h1>
@@ -826,7 +869,6 @@
 </div>
 
 <script>
-    // Тема
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
 
@@ -841,7 +883,6 @@
         toggleBtn.textContent = '☀️';
     }
 
-    // Режим редактирования (только для админа)
     {% if session['username'] == 'admin' %}
     (function() {
         const editToggle = document.getElementById('editToggle');
