@@ -47,12 +47,13 @@
             z-index: 1;
             height: 100vh;
             display: grid;
-            grid-template-rows: auto auto 1fr;
+            grid-template-rows: auto 1fr;
             padding: 1.25rem 2rem 1.5rem;
             max-width: 1440px;
             margin: 0 auto;
         }
 
+        /* ШАПКА */
         .header {
             display: flex;
             justify-content: space-between;
@@ -104,31 +105,7 @@
         }
         .moon:hover { color: var(--accent-warm); }
 
-        .nav {
-            display: flex;
-            gap: 2.5rem;
-            padding: 1rem 0 1.1rem;
-            border-bottom: 1px solid var(--line);
-            overflow-x: auto;
-            scrollbar-width: none;
-        }
-        .nav::-webkit-scrollbar { display: none; }
-
-        .nav a {
-            color: var(--muted);
-            text-decoration: none;
-            font-size: 0.92rem;
-            white-space: nowrap;
-            padding-bottom: 0.3rem;
-            border-bottom: 2px solid transparent;
-            transition: color 0.2s ease, border-color 0.2s ease;
-        }
-        .nav a:hover { color: var(--text); }
-        .nav a.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-        }
-
+        /* ОСНОВНОЙ БЛОК */
         .main-grid {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -138,6 +115,7 @@
             overflow: hidden;
         }
 
+        /* ЛЕВАЯ КОЛОНКА */
         .side-nav {
             display: flex;
             flex-direction: column;
@@ -205,6 +183,7 @@
         }
         .side-btn.active .arrow { color: var(--accent); }
 
+        /* ПРАВАЯ КОЛОНКА: карусель */
         .carousel {
             background: #110a04;
             border: 1px solid var(--line);
@@ -343,6 +322,7 @@
 
         .empty-carousel p { font-size: 0.9rem; }
 
+        /* Светлая тема */
         body.light-theme {
             --bg: #fbf5ea;
             --line: #e8dcc8;
@@ -355,12 +335,11 @@
         body.light-theme .carousel { background: #fffbf2; }
         body.light-theme .carousel-caption { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
 
+        /* АДАПТИВ */
         @media (max-width: 900px) and (orientation: landscape) {
             .page { padding: 1rem 1.25rem; }
             .brand-name { font-size: 1.1rem; }
             .header-right { gap: 1.25rem; font-size: 0.82rem; }
-            .nav { gap: 1.75rem; padding: 0.85rem 0; }
-            .nav a { font-size: 0.85rem; }
             .main-grid { grid-template-columns: 200px 1fr; gap: 1.25rem; padding-top: 1.25rem; }
             .side-btn { padding: 0.55rem 0.85rem; font-size: 0.82rem; }
             .side-title { font-size: 0.6rem; margin-bottom: 0.4rem; }
@@ -371,11 +350,9 @@
 
         @media (max-width: 900px) and (orientation: portrait) {
             html, body { overflow: auto; height: auto; }
-            .page { height: auto; min-height: 100vh; padding: 1rem 1rem 1.5rem; grid-template-rows: auto auto auto; }
+            .page { height: auto; min-height: 100vh; padding: 1rem 1rem 1.5rem; grid-template-rows: auto auto; }
             .brand-name { font-size: 1.05rem; }
             .header-right { gap: 1rem; font-size: 0.8rem; }
-            .nav { gap: 1.5rem; padding: 0.85rem 0; }
-            .nav a { font-size: 0.82rem; }
             .main-grid { grid-template-columns: 1fr; gap: 1rem; padding-top: 1.25rem; overflow: visible; }
             .side-nav { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; overflow: visible; }
             .side-title { grid-column: 1 / -1; }
@@ -421,13 +398,6 @@
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
-
-    <nav class="nav">
-        <a href="/rating/duel">Дуэль</a>
-        <a href="/reservoir-map">Резервуар</a>
-        <a href="/turtle-calculator">Черепашка</a>
-        <a href="/hero-calculator">Прокачка</a>
-    </nav>
 
     <div class="main-grid">
 
