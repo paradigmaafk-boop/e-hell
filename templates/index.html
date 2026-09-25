@@ -72,6 +72,43 @@
     </div>
     {% endif %}
 
+    <!-- АДМИН-ПАНЕЛЬ (сразу под каруселью) -->
+    {% if session['username'] == 'admin' %}
+    <section class="admin-panel">
+        <h3>Админ-панель</h3>
+        <div class="admin-grid">
+            <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
+            <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
+            <a href="/rating-stats/{{ rating_type }}" class="btn">Статистика</a>
+            <a href="/manage-nicknames/{{ rating_type }}" class="btn">Никнеймы</a>
+            <a href="/admin/vacations" class="btn">Журнал отпусков</a>
+            <a href="/admin/carousel" class="btn">Карусель</a>
+            <form action="/reset-rating/{{ rating_type }}" method="POST"
+                  onsubmit="return confirm('Удалить ВСЕ данные рейтинга {{ display_name }}?');">
+                <button type="submit" class="btn btn-danger" style="width: 100%;">Сбросить рейтинг</button>
+            </form>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ЗАГРУЗКА ТАБЛИЦЫ -->
+    {% if session['username'] == 'admin' %}
+    <section style="margin-top: 2rem;">
+        <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="file" accept=".xlsx,.xls" id="fileInput" required>
+            <label for="fileInput" class="file-label">Выбрать Excel</label>
+            <span id="fileName" class="file-name">Файл не выбран</span>
+            <button type="submit" class="btn btn-primary">Загрузить</button>
+        </form>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+    </section>
+    {% endif %}
+
     <!-- ЗАГОЛОВОК -->
     <div class="page-head">
         <h1 class="page-title">{{ display_name }}</h1>
@@ -109,24 +146,6 @@
         </div>
 
         <div class="podium-footer">Суммарно за всю историю союза</div>
-    </section>
-    {% endif %}
-
-    <!-- ЗАГРУЗКА ТАБЛИЦЫ -->
-    {% if session['username'] == 'admin' %}
-    <section style="margin-top: 3rem;">
-        <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form">
-            <input type="file" name="file" accept=".xlsx,.xls" id="fileInput" required>
-            <label for="fileInput" class="file-label">Выбрать Excel</label>
-            <span id="fileName" class="file-name">Файл не выбран</span>
-            <button type="submit" class="btn btn-primary">Загрузить</button>
-        </form>
-
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-message">{{ messages[0] }}</div>
-            {% endif %}
-        {% endwith %}
     </section>
     {% endif %}
 
@@ -180,29 +199,9 @@
         </div>
     </section>
 
-    <!-- АДМИН-ПАНЕЛЬ -->
-    {% if session['username'] == 'admin' %}
-    <section class="admin-panel">
-        <h3>Админ-панель</h3>
-        <div class="admin-grid">
-            <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
-            <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
-            <a href="/rating-stats/{{ rating_type }}" class="btn">Статистика</a>
-            <a href="/manage-nicknames/{{ rating_type }}" class="btn">Никнеймы</a>
-            <a href="/admin/vacations" class="btn">Журнал отпусков</a>
-            <a href="/admin/carousel" class="btn">Карусель</a>
-            <form action="/reset-rating/{{ rating_type }}" method="POST"
-                  onsubmit="return confirm('Удалить ВСЕ данные рейтинга {{ display_name }}?');">
-                <button type="submit" class="btn btn-danger" style="width: 100%;">Сбросить рейтинг</button>
-            </form>
-        </div>
-    </section>
-    {% endif %}
-
 </div>
 
 <script>
-    // Тема
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
 
@@ -217,7 +216,6 @@
         toggleBtn.textContent = '☀️';
     }
 
-    // Загрузка файла
     const fileInput = document.getElementById('fileInput');
     const fileNameSpan = document.getElementById('fileName');
     if (fileInput) {
@@ -226,7 +224,6 @@
         });
     }
 
-    // Карусель
     let currentSlide = 0;
     const slides = document.querySelectorAll('.carousel-slide');
     const dots = document.querySelectorAll('.carousel-dots .dot');
