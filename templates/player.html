@@ -4,16 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Прогресс: {{ nickname }} | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="wrap">
 
-    <!-- ШАПКА -->
     <header class="header">
         <a href="/" class="brand">
-            <span class="brand-name">[HEL] Ацкое Пламя</span>
+            <div class="brand-emblem">
+                <svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
+                    <path class="flame-outline" d="M 20 4 C 20 4, 12 14, 12 22 C 12 28, 15 33, 20 33 C 25 33, 28 28, 28 22 C 28 14, 20 4, 20 4 Z" />
+                    <path class="flame-inner" d="M 20 14 C 20 14, 16 20, 16 25 C 16 28, 18 30, 20 30 C 22 30, 24 28, 24 25 C 24 20, 20 14, 20 14 Z" />
+                    <circle class="flame-dot" cx="20" cy="2" r="1.2" />
+                    <line class="flame-base" x1="10" y1="40" x2="30" y2="40" />
+                    <circle class="flame-dot" cx="20" cy="45" r="1.2" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+                <span class="brand-sub">— союз избранных —</span>
+            </div>
         </a>
         <div class="header-right">
             {% if session['logged_in'] %}
@@ -22,24 +36,22 @@
             {% else %}
                 <a href="/login" class="link-btn">Войти</a>
             {% endif %}
-            <button id="theme-toggle" class="theme-toggle">🌙</button>
+            <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
 
-    <!-- НАВИГАЦИЯ -->
     <nav class="nav">
         <a href="/rating/duel">Дуэль</a>
+        <a href="/reservoir-map">Резервуар</a>
         <a href="/turtle-calculator">Черепашка</a>
         <a href="/hero-calculator">Прокачка</a>
     </nav>
 
-    <!-- ЗАГОЛОВОК -->
     <div class="page-head">
         <h1 class="page-title">{{ nickname }}</h1>
         <p class="page-sub">Прогресс в разделе {{ display_name }}</p>
     </div>
 
-    <!-- СТАТИСТИКА -->
     <section class="stats-grid">
         <div class="stat-card">
             <div class="number">{{ dates|length }}</div>
@@ -61,7 +73,6 @@
         </div>
     </section>
 
-    <!-- ГРАФИК -->
     <section class="section">
         <div class="section-title">Динамика</div>
         <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1.5rem;">
@@ -74,7 +85,6 @@
 </div>
 
 <script>
-    // Тема
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
 
@@ -89,7 +99,6 @@
         toggleBtn.textContent = '☀️';
     }
 
-    // Данные
     const dates = {{ dates|tojson }};
     const points = {{ points|tojson }};
     const avgPoints = {{ avg_points|tojson }};
