@@ -32,7 +32,6 @@ html, body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Многослойный фон с золотыми искрами */
 body::before {
     content: "";
     position: fixed;
@@ -45,7 +44,6 @@ body::before {
     z-index: 0;
 }
 
-/* Лёгкая сетка из золотых точек — как искры */
 body::after {
     content: "";
     position: fixed;
@@ -80,7 +78,6 @@ body.light-theme {
     --dim: #a89880;
 }
 
-/* Обёртка */
 .wrap {
     position: relative;
     z-index: 1;
@@ -331,7 +328,6 @@ body.light-theme {
     box-shadow: 0 10px 40px rgba(255, 200, 87, 0.08);
 }
 
-/* 2 и 3 место — серебро и бронза с золотистым отливом */
 .podium-item:nth-child(1) {
     border-color: #5c4a3a;
 }
@@ -348,7 +344,6 @@ body.light-theme {
     box-shadow: 0 10px 40px rgba(205, 127, 50, 0.15);
 }
 
-/* Победитель — огненно-золотая рамка */
 .podium-item.winner {
     position: relative;
     padding: 3px;
@@ -594,7 +589,6 @@ td.points-cell {
     text-shadow: 0 0 10px rgba(255, 200, 87, 0.25);
 }
 
-/* Первое место в таблице — золотое выделение */
 tr:nth-child(1) td.points-cell {
     color: var(--gold);
     text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
@@ -661,21 +655,25 @@ tr:nth-child(1) td.name-cell a { color: var(--gold); }
    АДМИН-ПАНЕЛЬ
    ================================================== */
 .admin-panel {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--line);
+    margin-top: 2rem;
+    margin-bottom: 3rem;
+    padding: 1.75rem;
+    border: 1px solid var(--line-gold);
+    border-radius: 16px;
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
     position: relative;
+    overflow: hidden;
 }
 
 .admin-panel::before {
     content: "";
     position: absolute;
-    top: -1px;
+    top: 0;
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, var(--gold-deep), transparent);
-    opacity: 0.4;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0.5;
 }
 
 .admin-panel h3 {
@@ -684,7 +682,7 @@ tr:nth-child(1) td.name-cell a { color: var(--gold); }
     text-transform: uppercase;
     letter-spacing: 3px;
     font-weight: 700;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     text-shadow: 0 0 15px rgba(255, 200, 87, 0.3);
 }
 
@@ -703,7 +701,7 @@ tr:nth-child(1) td.name-cell a { color: var(--gold); }
    КАРУСЕЛЬ
    ================================================== */
 .carousel-wrap {
-    margin: 0 auto 3rem;
+    margin: 0 auto 1.5rem;
     max-width: 900px;
 }
 
@@ -747,7 +745,7 @@ tr:nth-child(1) td.name-cell a { color: var(--gold); }
 }
 
 .slide-text {
-    padding: 2rem 3rem;
+    padding: 2rem 5rem;
     text-align: center;
 }
 
@@ -1200,10 +1198,15 @@ tr:nth-child(1) td.name-cell a { color: var(--gold); }
     .podium-item.winner:hover { transform: translateY(-2px); }
     .section-head::before,
     .section-head::after { width: 30px; }
-    .slide-text { padding: 1.5rem 1.5rem; }
+    .slide-text { padding: 1.5rem 4rem; }
     .slide-text h3 { font-size: 1.15rem; }
     .slide-text p { font-size: 0.9rem; }
     .admin-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: 1fr 1fr; }
     .calc-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .slide-text { padding: 1.25rem 3.5rem; }
+    .carousel-btn { width: 36px; height: 36px; font-size: 1rem; }
 }
