@@ -20,6 +20,7 @@
             --accent: #ff8a1f;
             --accent-warm: #ffb04a;
             --gold: #d9b26a;
+            --danger: #e0392b;
         }
 
         html, body {
@@ -53,7 +54,6 @@
             margin: 0 auto;
         }
 
-        /* ШАПКА */
         .header {
             display: flex;
             justify-content: space-between;
@@ -105,7 +105,6 @@
         }
         .moon:hover { color: var(--accent-warm); }
 
-        /* ОСНОВНОЙ БЛОК */
         .main-grid {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -115,7 +114,6 @@
             overflow: hidden;
         }
 
-        /* ЛЕВАЯ КОЛОНКА */
         .side-nav {
             display: flex;
             flex-direction: column;
@@ -141,6 +139,10 @@
             padding-left: 0.25rem;
         }
 
+        .side-title.danger {
+            color: #b8443a;
+        }
+
         .side-btn {
             background: transparent;
             border: 1px solid var(--line);
@@ -158,6 +160,7 @@
             gap: 0.75rem;
             flex-shrink: 0;
             text-decoration: none;
+            width: 100%;
         }
 
         .side-btn:hover {
@@ -172,6 +175,26 @@
             color: var(--accent-warm);
         }
 
+        .side-btn.danger {
+            border-color: #3a1e1e;
+            color: #d65446;
+        }
+
+        .side-btn.danger:hover {
+            border-color: var(--danger);
+            color: #ff8877;
+            background: rgba(224, 57, 43, 0.08);
+            box-shadow: 0 0 20px rgba(224, 57, 43, 0.15);
+        }
+
+        .side-btn.danger .arrow {
+            color: #d65446;
+        }
+
+        .side-btn.danger:hover .arrow {
+            color: #ff8877;
+        }
+
         .side-btn .arrow {
             color: var(--dim);
             font-size: 0.95rem;
@@ -183,7 +206,6 @@
         }
         .side-btn.active .arrow { color: var(--accent); }
 
-        /* ПРАВАЯ КОЛОНКА: карусель */
         .carousel {
             background: #110a04;
             border: 1px solid var(--line);
@@ -322,7 +344,29 @@
 
         .empty-carousel p { font-size: 0.9rem; }
 
-        /* Светлая тема */
+        /* Flash-сообщение на главной */
+        .flash-top {
+            position: fixed;
+            top: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            padding: 0.9rem 1.5rem;
+            background: rgba(20, 14, 8, 0.95);
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            color: var(--accent-warm);
+            font-size: 0.88rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
         body.light-theme {
             --bg: #fbf5ea;
             --line: #e8dcc8;
@@ -334,8 +378,8 @@
 
         body.light-theme .carousel { background: #fffbf2; }
         body.light-theme .carousel-caption { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
+        body.light-theme .flash-top { background: rgba(255, 251, 242, 0.95); }
 
-        /* АДАПТИВ */
         @media (max-width: 900px) and (orientation: landscape) {
             .page { padding: 1rem 1.25rem; }
             .brand-name { font-size: 1.1rem; }
@@ -383,6 +427,13 @@
     </style>
 </head>
 <body>
+
+<!-- Flash-сообщение (показывается после сброса рейтинга) -->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="flash-top">{{ messages[0] }}</div>
+    {% endif %}
+{% endwith %}
 
 <div class="page">
 
@@ -448,6 +499,16 @@
                     Стабильно отстающие
                     <span class="arrow">→</span>
                 </a>
+
+                <div class="side-title danger" style="margin-top: 1rem;">Опасная зона</div>
+
+                <form action="/reset-rating/duel" method="POST" style="margin: 0;"
+                      onsubmit="return confirm('⚠️ ВНИМАНИЕ!\n\nЭто действие полностью удалит ВСЕ данные рейтинга Дуэль:\n— всех игроков\n— всю историю очков\n\nОтменить это действие НЕВОЗМОЖНО!\n\nПродолжить?');">
+                    <button type="submit" class="side-btn danger">
+                        Сбросить рейтинг
+                        <span class="arrow">→</span>
+                    </button>
+                </form>
             {% endif %}
         </aside>
 
@@ -522,6 +583,16 @@
     if (localStorage.getItem('theme') === 'light') {
         body.classList.add('light-theme');
         toggleBtn.textContent = '☀️';
+    }
+
+    // Автоскрытие flash-сообщения
+    const flash = document.querySelector('.flash-top');
+    if (flash) {
+        setTimeout(() => {
+            flash.style.transition = 'opacity 0.5s ease';
+            flash.style.opacity = '0';
+            setTimeout(() => flash.remove(), 500);
+        }, 4000);
     }
 
     (function() {
