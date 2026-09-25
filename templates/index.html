@@ -31,6 +31,51 @@
     </header>
 
     <main>
+        <!-- КАРУСЕЛЬ -->
+        {% if slides %}
+        <div class="carousel-container">
+            <div class="carousel-wrapper">
+                {% if slides|length > 1 %}
+                <button class="carousel-btn prev" onclick="prevSlide()">❮</button>
+                {% endif %}
+                
+                <div class="carousel-slides" id="carouselSlides">
+                    {% for slide in slides %}
+                    <div class="carousel-slide {% if loop.first %}active{% endif %}">
+                        {% if slide[4] %}
+                            <div class="slide-media">
+                                {% if slide[3] == 'video' %}
+                                    <video src="{{ slide[4] }}" autoplay muted loop playsinline></video>
+                                {% else %}
+                                    <img src="{{ slide[4] }}" alt="{{ slide[1] or '' }}">
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        <div class="slide-text">
+                            {% if slide[1] %}
+                                <h3>{{ slide[1] }}</h3>
+                            {% endif %}
+                            <p>{{ slide[2] }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if slides|length > 1 %}
+                <button class="carousel-btn next" onclick="nextSlide()">❯</button>
+                {% endif %}
+            </div>
+            
+            {% if slides|length > 1 %}
+            <div class="carousel-dots" id="carouselDots">
+                {% for slide in slides %}
+                <span class="dot {% if loop.first %}active{% endif %}" onclick="goToSlide({{ loop.index0 }})"></span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
         <div class="tabs-container">
             {% for rt in rating_types %}
                 <a href="/rating/{{ rt.id }}" class="tab-btn {% if rt.id == rating_type %}active{% endif %}" 
@@ -138,6 +183,7 @@
                     <a href="/manage-nicknames/{{ rating_type }}" class="btn-admin">Управление никнеймами</a>
                     <a href="/admin/guides" class="btn-admin">Управление гайдами</a>
                     <a href="/admin/vacations" class="btn-admin">Журнал отпусков</a>
+                    <a href="/admin/carousel" class="btn-admin">Управление каруселью</a>
                     <form action="/reset-rating/{{ rating_type }}" method="POST" style="display: contents;" 
                           onsubmit="return confirm('ВНИМАНИЕ! Это действие удалит ВСЕ данные рейтинга {{ display_name }}. Продолжить?');">
                         <button type="submit" class="btn-admin btn-danger">Сбросить рейтинг</button>
@@ -195,6 +241,138 @@
     </main>
 
     <style>
+        /* Карусель */
+        .carousel-container {
+            max-width: 900px;
+            margin: 0 auto 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .carousel-wrapper {
+            position: relative;
+            background: rgba(20, 25, 35, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 2px solid #ff7e0060;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(255, 100, 0, 0.2);
+            min-height: 300px;
+        }
+        
+        .carousel-slides {
+            position: relative;
+            width: 100%;
+        }
+        
+        .carousel-slide {
+            display: none;
+            padding: 0;
+            animation: slideFade 0.5s ease;
+        }
+        
+        .carousel-slide.active {
+            display: block;
+        }
+        
+        @keyframes slideFade {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .slide-media {
+            width: 100%;
+            max-height: 400px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+        }
+        
+        .slide-media img,
+        .slide-media video {
+            max-width: 100%;
+            max-height: 400px;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+        
+        .slide-text {
+            padding: 25px 60px;
+            text-align: center;
+        }
+        
+        .slide-text h3 {
+            color: #ffaa44;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .slide-text p {
+            font-size: 1.05rem;
+            line-height: 1.7;
+            opacity: 0.9;
+            white-space: pre-wrap;
+        }
+        
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 126, 0, 0.3);
+            border: 2px solid #ff7e0060;
+            color: white;
+            font-size: 1.8rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-btn:hover {
+            background: #ff7e00;
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 0 20px #ff7e0080;
+        }
+        
+        .carousel-btn.prev {
+            left: 15px;
+        }
+        
+        .carousel-btn.next {
+            right: 15px;
+        }
+        
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .carousel-dots .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .carousel-dots .dot.active {
+            background: #ff7e00;
+            box-shadow: 0 0 15px #ff7e0080;
+            transform: scale(1.2);
+        }
+        
         /* Стили для кнопок навигации в шапке */
         .header-controls {
             display: flex;
@@ -251,7 +429,7 @@
             color: white;
         }
         
-        /* Стили для вкладок навигации - ГОРИЗОНТАЛЬНЫЙ GRID */
+        /* Стили для вкладок навигации */
         .tabs-container {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -346,7 +524,7 @@
             border-color: #dc3545;
         }
         
-        /* Стили для кнопки "График" в таблице */
+        /* Кнопки в таблице */
         .chart-link {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #ff7e0060;
@@ -369,11 +547,6 @@
             background: rgba(255, 126, 0, 0.1);
         }
         
-        .chart-link:active {
-            transform: scale(0.95);
-        }
-        
-        /* Кнопка удаления игрока */
         .btn-delete-player {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid #dc3545;
@@ -391,10 +564,6 @@
             transform: scale(1.05);
             box-shadow: 0 0 15px #dc354580;
             background: rgba(220, 53, 69, 0.1);
-        }
-        
-        .btn-delete-player:active {
-            transform: scale(0.95);
         }
         
         /* Анимация для воды */
@@ -429,7 +598,7 @@
             100% { transform: translate(-20px, -180px) scale(1.1) rotate(360deg); opacity: 0.9; }
         }
         
-        /* Адаптивность для шапки */
+        /* Адаптивность */
         @media (max-width: 992px) {
             .header-controls .nav-btn {
                 font-size: 0.85rem;
@@ -457,6 +626,20 @@
             .admin-actions .admin-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+            .slide-text {
+                padding: 20px 50px;
+            }
+            .slide-text h3 {
+                font-size: 1.2rem;
+            }
+            .slide-text p {
+                font-size: 0.9rem;
+            }
+            .carousel-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1.3rem;
+            }
         }
         
         @media (max-width: 480px) {
@@ -476,6 +659,20 @@
             }
             .admin-actions .admin-grid {
                 grid-template-columns: 1fr;
+            }
+            .slide-text {
+                padding: 15px 45px;
+            }
+            .slide-text h3 {
+                font-size: 1rem;
+            }
+            .slide-text p {
+                font-size: 0.85rem;
+            }
+            .carousel-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 1.1rem;
             }
         }
     </style>
@@ -551,6 +748,42 @@
             createSparks();
         } else if (ratingType === 'reservoir') {
             createWaterBubbles();
+        }
+
+        // ===== КАРУСЕЛЬ =====
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.carousel-dots .dot');
+
+        function showSlide(index) {
+            if (slides.length === 0) return;
+            
+            slides.forEach(s => s.classList.remove('active'));
+            dots.forEach(d => d.classList.remove('active'));
+            
+            if (index >= slides.length) currentSlide = 0;
+            else if (index < 0) currentSlide = slides.length - 1;
+            else currentSlide = index;
+            
+            slides[currentSlide].classList.add('active');
+            if (dots[currentSlide]) dots[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        function goToSlide(index) {
+            showSlide(index);
+        }
+
+        // Автопрокрутка каждые 10 секунд
+        if (slides.length > 1) {
+            setInterval(nextSlide, 10000);
         }
     </script>
 </body>
