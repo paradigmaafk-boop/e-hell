@@ -201,7 +201,7 @@
 
         /* ===== КАРУСЕЛЬ ===== */
         .carousel {
-            background: #0a0602;
+            background: #110a04;
             border: 1px solid var(--line);
             border-radius: 20px;
             overflow: hidden;
@@ -227,22 +227,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0.5rem;
         }
 
         .slide.active { opacity: 1; }
 
-        /* ★ ИЗМЕНЕНО: object-fit: contain вместо cover — фото не растягивается */
+        /* ★ ВОЗВРАЩЕНО: object-fit: cover — фото заполняет весь контейнер */
         .slide img,
         .slide video {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .nav-arrow {
@@ -252,7 +247,7 @@
             width: 44px;
             height: 44px;
             border-radius: 50%;
-            background: rgba(13, 8, 4, 0.7);
+            background: rgba(13, 8, 4, 0.6);
             border: 1px solid rgba(217, 178, 106, 0.35);
             color: var(--gold);
             font-size: 1.15rem;
@@ -266,7 +261,7 @@
         }
 
         .nav-arrow:hover {
-            background: rgba(255, 130, 30, 0.2);
+            background: rgba(255, 130, 30, 0.15);
             border-color: var(--accent);
             color: var(--accent-warm);
             transform: translateY(-50%) scale(1.06);
@@ -283,10 +278,6 @@
             display: flex;
             gap: 0.5rem;
             z-index: 3;
-            padding: 0.4rem 0.7rem;
-            background: rgba(13, 8, 4, 0.6);
-            border-radius: 20px;
-            backdrop-filter: blur(6px);
         }
 
         .dot {
@@ -379,8 +370,7 @@
             --dim: #a89880;
         }
 
-        body.light-theme .carousel { background: #fdf7ec; }
-        body.light-theme .carousel-stage { background: #f0e8db; }
+        body.light-theme .carousel { background: #fffbf2; }
         body.light-theme .carousel-caption { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
         body.light-theme .flash-top { background: rgba(255, 251, 242, 0.95); }
 
