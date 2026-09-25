@@ -6,43 +6,10 @@
     <title>[HEL] Ацкое Пламя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --bg: #0d0804;
-            --line: #2a1f14;
-            --line-soft: #1d150c;
-            --text: #e8d9c0;
-            --muted: #8c7a62;
-            --dim: #5a4a37;
-            --accent: #ff8a1f;
-            --accent-warm: #ffb04a;
-            --gold: #d9b26a;
-            --danger: #e0392b;
-        }
-
-        html, body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            font-size: 15px;
-            line-height: 1.55;
-            height: 100vh;
-            overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(1200px 500px at 50% -10%, rgba(255, 130, 30, 0.08), transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-        }
-
+        html, body { height: 100vh; overflow: hidden; }
         .page {
             position: relative;
             z-index: 1;
@@ -53,103 +20,6 @@
             max-width: 1440px;
             margin: 0 auto;
         }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--line);
-            gap: 2rem;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            text-decoration: none;
-            transition: transform 0.25s ease;
-        }
-
-        .brand:hover {
-            transform: scale(1.02);
-        }
-
-        .brand-icon {
-            font-size: 1.6rem;
-            filter: drop-shadow(0 0 12px rgba(255, 138, 31, 0.6));
-            animation: flicker 3s ease-in-out infinite;
-        }
-
-        @keyframes flicker {
-            0%, 100% { 
-                filter: drop-shadow(0 0 12px rgba(255, 138, 31, 0.6));
-                transform: scale(1);
-            }
-            50% { 
-                filter: drop-shadow(0 0 20px rgba(255, 180, 74, 0.9));
-                transform: scale(1.05);
-            }
-        }
-
-        .brand-name {
-            font-size: 1.4rem;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            background: linear-gradient(
-                180deg,
-                #ffd98a 0%,
-                #ffb04a 20%,
-                #ff8a1f 45%,
-                #e0621a 55%,
-                #ff8a1f 70%,
-                #ffb04a 85%,
-                #ffd98a 100%
-            );
-            background-size: 100% 200%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 15px rgba(255, 138, 31, 0.25));
-            text-shadow: 0 1px 0 rgba(255, 220, 160, 0.15);
-            line-height: 1;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1.75rem;
-        }
-
-        .user {
-            font-size: 0.88rem;
-            color: var(--muted);
-        }
-        .user b { color: var(--text); font-weight: 500; }
-
-        .link-btn {
-            background: none;
-            border: none;
-            font: inherit;
-            font-size: 0.88rem;
-            color: var(--muted);
-            cursor: pointer;
-            transition: color 0.2s ease;
-            text-decoration: none;
-        }
-        .link-btn:hover { color: var(--accent); }
-
-        .moon {
-            color: var(--gold);
-            font-size: 1rem;
-            cursor: pointer;
-            transition: color 0.2s ease;
-            background: none;
-            border: none;
-        }
-        .moon:hover { color: var(--accent-warm); }
-
         .main-grid {
             display: grid;
             grid-template-columns: 260px 1fr;
@@ -158,7 +28,6 @@
             min-height: 0;
             overflow: hidden;
         }
-
         .side-nav {
             display: flex;
             flex-direction: column;
@@ -169,11 +38,8 @@
             scrollbar-color: var(--line) transparent;
             padding-right: 4px;
         }
-
         .side-nav::-webkit-scrollbar { width: 4px; }
         .side-nav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
-        .side-nav::-webkit-scrollbar-track { background: transparent; }
-
         .side-title {
             font-size: 0.65rem;
             font-weight: 500;
@@ -183,9 +49,7 @@
             margin-bottom: 0.6rem;
             padding-left: 0.25rem;
         }
-
         .side-title.danger { color: #b8443a; }
-
         .side-btn {
             background: transparent;
             border: 1px solid var(--line);
@@ -205,43 +69,31 @@
             text-decoration: none;
             width: 100%;
         }
-
         .side-btn:hover {
             color: var(--text);
             border-color: #3a2a1a;
             background: rgba(255, 130, 30, 0.03);
         }
-
         .side-btn.active {
             background: linear-gradient(180deg, rgba(255, 130, 30, 0.10), rgba(255, 130, 30, 0.03));
             border-color: var(--accent);
             color: var(--accent-warm);
         }
-
-        .side-btn.danger {
-            border-color: #3a1e1e;
-            color: #d65446;
-        }
-
+        .side-btn.danger { border-color: #3a1e1e; color: #d65446; }
         .side-btn.danger:hover {
             border-color: var(--danger);
             color: #ff8877;
             background: rgba(224, 57, 43, 0.08);
             box-shadow: 0 0 20px rgba(224, 57, 43, 0.15);
         }
-
         .side-btn.danger .arrow { color: #d65446; }
         .side-btn.danger:hover .arrow { color: #ff8877; }
-
         .side-btn .arrow {
             color: var(--dim);
             font-size: 0.95rem;
             transition: color 0.25s ease, transform 0.25s ease;
         }
-        .side-btn:hover .arrow {
-            color: var(--accent);
-            transform: translateX(3px);
-        }
+        .side-btn:hover .arrow { color: var(--accent); transform: translateX(3px); }
         .side-btn.active .arrow { color: var(--accent); }
 
         .carousel {
@@ -254,7 +106,6 @@
             min-height: 0;
             height: 100%;
         }
-
         .carousel-stage {
             position: relative;
             background: #000;
@@ -262,7 +113,6 @@
             flex: 1 1 auto;
             min-height: 0;
         }
-
         .slide {
             position: absolute;
             inset: 0;
@@ -272,17 +122,13 @@
             align-items: center;
             justify-content: center;
         }
-
         .slide.active { opacity: 1; }
-
-        .slide img,
-        .slide video {
+        .slide img, .slide video {
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
         }
-
         .nav-arrow {
             position: absolute;
             top: 50%;
@@ -302,17 +148,14 @@
             backdrop-filter: blur(6px);
             transition: all 0.25s ease;
         }
-
         .nav-arrow:hover {
             background: rgba(255, 130, 30, 0.15);
             border-color: var(--accent);
             color: var(--accent-warm);
             transform: translateY(-50%) scale(1.06);
         }
-
         .nav-arrow.prev { left: 1rem; }
         .nav-arrow.next { right: 1rem; }
-
         .dots {
             position: absolute;
             bottom: 0.9rem;
@@ -322,7 +165,6 @@
             gap: 0.5rem;
             z-index: 3;
         }
-
         .dot {
             width: 7px;
             height: 7px;
@@ -333,14 +175,12 @@
             border: none;
             padding: 0;
         }
-
         .dot.active {
             background: var(--accent);
             width: 22px;
             border-radius: 4px;
             box-shadow: 0 0 10px rgba(255, 138, 31, 0.6);
         }
-
         .carousel-caption {
             flex: 0 0 auto;
             padding: 1.5rem 2rem 1.75rem;
@@ -348,7 +188,6 @@
             background: linear-gradient(180deg, #110a04, #0e0803);
             border-top: 1px solid var(--line-soft);
         }
-
         .caption-title {
             font-size: 1.2rem;
             font-weight: 700;
@@ -362,7 +201,6 @@
             -webkit-text-fill-color: transparent;
             filter: drop-shadow(0 0 10px rgba(255, 138, 31, 0.2));
         }
-
         .caption-text {
             font-size: 0.88rem;
             color: var(--muted);
@@ -374,7 +212,6 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-
         .empty-carousel {
             display: flex;
             flex-direction: column;
@@ -384,9 +221,7 @@
             color: var(--dim);
             gap: 1rem;
         }
-
         .empty-carousel p { font-size: 0.9rem; }
-
         .flash-top {
             position: fixed;
             top: 5rem;
@@ -403,71 +238,32 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
             animation: fadeIn 0.3s ease;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translate(-50%, -10px); }
             to { opacity: 1; transform: translate(-50%, 0); }
         }
-
-        body.light-theme {
-            --bg: #fbf5ea;
-            --line: #e8dcc8;
-            --line-soft: #f0e8db;
-            --text: #2a1a0a;
-            --muted: #7a6a54;
-            --dim: #a89880;
-        }
-
         body.light-theme .carousel { background: #fffbf2; }
         body.light-theme .carousel-caption { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
         body.light-theme .flash-top { background: rgba(255, 251, 242, 0.95); }
 
         @media (max-width: 900px) and (orientation: landscape) {
             .page { padding: 1rem 1.25rem; }
-            .brand-icon { font-size: 1.3rem; }
-            .brand-name { font-size: 1.15rem; }
-            .header-right { gap: 1.25rem; font-size: 0.82rem; }
             .main-grid { grid-template-columns: 200px 1fr; gap: 1.25rem; padding-top: 1.25rem; }
             .side-btn { padding: 0.55rem 0.85rem; font-size: 0.82rem; }
-            .side-title { font-size: 0.6rem; margin-bottom: 0.4rem; }
-            .carousel-caption { padding: 1rem 1.5rem 1.25rem; }
-            .caption-title { font-size: 1rem; margin-bottom: 0.4rem; }
-            .caption-text { font-size: 0.8rem; -webkit-line-clamp: 2; }
         }
-
         @media (max-width: 900px) and (orientation: portrait) {
             html, body { overflow: auto; height: auto; }
             .page { height: auto; min-height: 100vh; padding: 1rem 1rem 1.5rem; grid-template-rows: auto auto; }
-            .brand-icon { font-size: 1.2rem; }
-            .brand-name { font-size: 1.1rem; }
-            .header-right { gap: 1rem; font-size: 0.8rem; }
             .main-grid { grid-template-columns: 1fr; gap: 1rem; padding-top: 1.25rem; overflow: visible; }
             .side-nav { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; overflow: visible; }
             .side-title { grid-column: 1 / -1; }
-            .side-btn { padding: 0.6rem 0.85rem; font-size: 0.82rem; }
             .side-btn .arrow { display: none; }
             .carousel { height: auto; min-height: 60vh; }
             .carousel-stage { aspect-ratio: 4 / 3; flex: 0 0 auto; }
-            .carousel-caption { padding: 1.25rem 1.25rem 1.5rem; }
-            .caption-title { font-size: 1.05rem; }
-            .caption-text { font-size: 0.82rem; -webkit-line-clamp: 3; }
-            .nav-arrow { width: 38px; height: 38px; font-size: 1rem; }
-            .nav-arrow.prev { left: 0.6rem; }
-            .nav-arrow.next { right: 0.6rem; }
         }
-
         @media (max-width: 480px) {
             .side-nav { grid-template-columns: 1fr; }
-            .brand-icon { font-size: 1.1rem; }
-            .brand-name { font-size: 1rem; }
             .user { display: none; }
-        }
-
-        @media (max-height: 720px) and (min-width: 901px) {
-            .carousel-caption { padding: 1rem 1.75rem 1.25rem; }
-            .caption-title { font-size: 1rem; margin-bottom: 0.35rem; }
-            .caption-text { font-size: 0.8rem; -webkit-line-clamp: 2; }
-            .side-btn { padding: 0.55rem 0.9rem; font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -483,8 +279,19 @@
 
     <header class="header">
         <a href="/" class="brand">
-            <span class="brand-icon">🔥</span>
-            <span class="brand-name">[HEL] Ацкое Пламя</span>
+            <div class="brand-emblem">
+                <svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
+                    <path class="flame-outline" d="M 20 4 C 20 4, 12 14, 12 22 C 12 28, 15 33, 20 33 C 25 33, 28 28, 28 22 C 28 14, 20 4, 20 4 Z" />
+                    <path class="flame-inner" d="M 20 14 C 20 14, 16 20, 16 25 C 16 28, 18 30, 20 30 C 22 30, 24 28, 24 25 C 24 20, 20 14, 20 14 Z" />
+                    <circle class="flame-dot" cx="20" cy="2" r="1.2" />
+                    <line class="flame-base" x1="10" y1="40" x2="30" y2="40" />
+                    <circle class="flame-dot" cx="20" cy="45" r="1.2" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+                <span class="brand-sub">— союз избранных —</span>
+            </div>
         </a>
         <div class="header-right">
             {% if session['logged_in'] %}
