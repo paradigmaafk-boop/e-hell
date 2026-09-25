@@ -3,1349 +3,434 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Калькулятор прокачки | HEL</title>
+    <title>Калькулятор прокачки | [HEL] Ацкое Пламя</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        .hero-calculator-container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 20px;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .hero-calculator-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .hero-calculator-header h2 {
-            font-size: 2.2rem;
-            background: linear-gradient(45deg, #9C27B0, #E040FB);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .calc-section {
-            background: rgba(20, 25, 35, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 2px solid #9C27B060;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-        
-        .section-header {
-            padding: 18px 25px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: 0.3s;
-            user-select: none;
-        }
-        
-        .section-header:hover {
-            background: rgba(156, 39, 176, 0.08);
-        }
-        
-        .section-header h3 {
-            color: #ffaa44;
-            font-size: 1.3rem;
-            margin: 0;
-        }
-        
-        .section-header .arrow {
-            font-size: 1.4rem;
-            transition: transform 0.3s ease;
-            color: #9C27B0;
-        }
-        
-        .section-header .arrow.open {
-            transform: rotate(180deg);
-        }
-        
-        .section-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, padding 0.3s ease;
-            padding: 0 25px;
-        }
-        
-        .section-content.open {
-            max-height: 5000px;
-            padding: 0 25px 25px 25px;
-        }
-        
-        .calc-section .subtitle {
-            opacity: 0.6;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-        }
-        
-        .skill-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .skill-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 18px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .skill-item label {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #ffaa44;
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .skill-item .skill-inputs {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .skill-item .skill-inputs input {
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 2px solid #3a2a1a;
-            background: rgba(255, 255, 255, 0.05);
-            color: #f0e6d3;
-            font-size: 1rem;
-            transition: 0.3s;
-            width: 80px;
-        }
-        
-        .skill-item .skill-inputs input:focus {
-            border-color: #9C27B0;
-            outline: none;
-            box-shadow: 0 0 20px #9C27B040;
-        }
-        
-        .skill-item .skill-inputs span {
-            opacity: 0.6;
-            font-size: 0.9rem;
-        }
-        
-        .skill-item .skill-result {
-            margin-top: 10px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #E040FB;
-        }
-        
-        .btn-calc-hero {
-            padding: 14px 50px;
-            background: linear-gradient(145deg, #9C27B0, #7B1FA2);
-            border: none;
-            border-radius: 50px;
-            color: white;
-            font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 10px;
-        }
-        
-        .btn-calc-hero:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px #9C27B080;
-        }
-        
-        .btn-calc-hero:active {
-            transform: scale(0.95);
-        }
-        
-        .btn-reset-hero {
-            padding: 14px 40px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #ff7e0060;
-            border-radius: 50px;
-            color: inherit;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        
-        .btn-reset-hero:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px #ff7e0060;
-            background: rgba(255, 126, 0, 0.1);
-        }
-        
-        .btn-reset-hero:active {
-            transform: scale(0.95);
-        }
-        
-        .button-group-hero {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        
-        .result-box {
-            background: rgba(156, 39, 176, 0.08);
-            border: 2px solid #9C27B060;
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-        }
-        
-        .result-box.show {
-            display: block;
-            animation: fadeIn 0.4s ease;
-        }
-        
-        .result-box .total {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #E040FB;
-            text-align: center;
-        }
-        
-        .result-box .total span {
-            font-size: 1rem;
-            opacity: 0.6;
-            display: block;
-            font-weight: 400;
-        }
-        
-        .info-box-hero {
-            background: rgba(156, 39, 176, 0.08);
-            border: 1px solid #9C27B060;
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-        }
-        
-        .info-box-hero p {
-            margin: 5px 0;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .hero-star-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-        
-        .hero-star-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 18px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .hero-star-item label {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #ffaa44;
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .hero-star-item .hero-star-inputs {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .hero-star-item .hero-star-inputs input {
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 2px solid #3a2a1a;
-            background: rgba(255, 255, 255, 0.05);
-            color: #f0e6d3;
-            font-size: 1rem;
-            transition: 0.3s;
-            width: 80px;
-        }
-        
-        .hero-star-item .hero-star-inputs input:focus {
-            border-color: #FFD700;
-            outline: none;
-            box-shadow: 0 0 20px #FFD70040;
-        }
-        
-        .hero-star-item .hero-star-inputs span {
-            opacity: 0.6;
-            font-size: 0.9rem;
-        }
-        
-        .titan-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-        
-        .titan-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 18px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .titan-item label {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #ffaa44;
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .titan-item .titan-inputs {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .titan-item .titan-inputs input {
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 2px solid #3a2a1a;
-            background: rgba(255, 255, 255, 0.05);
-            color: #f0e6d3;
-            font-size: 1rem;
-            transition: 0.3s;
-            width: 80px;
-        }
-        
-        .titan-item .titan-inputs input:focus {
-            border-color: #E040FB;
-            outline: none;
-            box-shadow: 0 0 20px #E040FB40;
-        }
-        
-        .titan-item .titan-inputs span {
-            opacity: 0.6;
-            font-size: 0.9rem;
-        }
-        
-        .titan-total-box {
-            text-align: center;
-            font-size: 2rem;
-            font-weight: 800;
-            color: #E040FB;
-            padding: 15px;
-            background: rgba(156, 39, 176, 0.05);
-            border-radius: 12px;
-            border: 1px solid #9C27B060;
-            margin-top: 15px;
-        }
-        
-        .titan-total-box span {
-            font-size: 1rem;
-            opacity: 0.6;
-            display: block;
-            font-weight: 400;
-        }
-        
-        .gear-exclusive-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .gear-exclusive-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 18px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .gear-exclusive-item label {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #ffaa44;
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .gear-exclusive-item .gear-inputs {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .gear-exclusive-item .gear-inputs input {
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 2px solid #3a2a1a;
-            background: rgba(255, 255, 255, 0.05);
-            color: #f0e6d3;
-            font-size: 1rem;
-            transition: 0.3s;
-            width: 80px;
-        }
-        
-        .gear-exclusive-item .gear-inputs input:focus {
-            border-color: #FF6B35;
-            outline: none;
-            box-shadow: 0 0 20px #FF6B3540;
-        }
-        
-        .gear-exclusive-item .gear-inputs span {
-            opacity: 0.6;
-            font-size: 0.9rem;
-        }
-        
-        .gear-exclusive-item .gear-result {
-            margin-top: 10px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #FF6B35;
-        }
-        
-        .legendary-gear-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .legendary-gear-item {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 16px;
-            padding: 18px 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .legendary-gear-item label {
-            font-weight: 700;
-            font-size: 0.95rem;
-            color: #ffaa44;
-            display: block;
-            margin-bottom: 10px;
-        }
-        
-        .legendary-gear-item .legendary-inputs {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        
-        .legendary-gear-item .legendary-inputs input {
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 2px solid #3a2a1a;
-            background: rgba(255, 255, 255, 0.05);
-            color: #f0e6d3;
-            font-size: 1rem;
-            transition: 0.3s;
-            width: 80px;
-        }
-        
-        .legendary-gear-item .legendary-inputs input:focus {
-            border-color: #FFD700;
-            outline: none;
-            box-shadow: 0 0 20px #FFD70040;
-        }
-        
-        .legendary-gear-item .legendary-inputs span {
-            opacity: 0.6;
-            font-size: 0.9rem;
-        }
-        
-        .legendary-gear-item .legendary-result {
-            margin-top: 10px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #FFD700;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        /* Стили для кнопок навигации в шапке */
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .header-controls .nav-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #ff7e0060;
-            padding: 8px 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1.0rem;
-            transition: 0.3s;
-            color: inherit;
-            font-weight: 600;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 90px;
-            min-height: 40px;
-            text-align: center;
-            white-space: nowrap;
-        }
-        
-        .header-controls .nav-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px #ff7e0060;
-            background: rgba(255, 126, 0, 0.1);
-        }
-        
-        .header-controls .nav-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .header-controls .nav-btn.primary {
-            background: #ff7e00;
-            border-color: #ff7e00;
-            color: white;
-        }
-        
-        .header-controls .nav-btn.primary:hover {
-            background: #ff5500;
-            border-color: #ff5500;
-            color: white;
-        }
-        
-        /* Стили для вкладок навигации - ГОРИЗОНТАЛЬНЫЙ GRID */
-        .tabs-container {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 12px 20px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .tab-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px 16px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.6);
-            border: 2px solid transparent;
-            text-align: center;
-            min-height: 44px;
-        }
-        
-        .tab-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            transform: translateY(-2px);
-        }
-        
-        .tab-btn.active {
-            background: var(--tab-color, #ff5500);
-            color: #fff;
-            box-shadow: 0 0 30px var(--tab-color, #ff5500)40;
-            border-color: var(--tab-color, #ff5500);
-        }
-        
-        .tab-name {
-            font-size: 0.95rem;
-        }
-        
-        @media (max-width: 768px) {
-            .hero-calculator-container { padding: 10px; }
-            .section-header { padding: 14px 18px; }
-            .section-header h3 { font-size: 1.1rem; }
-            .section-content.open { padding: 0 18px 18px 18px; }
-            .skill-grid { grid-template-columns: 1fr; }
-            .hero-star-grid { grid-template-columns: 1fr; }
-            .titan-grid { grid-template-columns: 1fr; }
-            .gear-exclusive-grid { grid-template-columns: 1fr; }
-            .legendary-gear-grid { grid-template-columns: 1fr; }
-            .btn-calc-hero, .btn-reset-hero { width: 100%; }
-            .button-group-hero { flex-direction: column; }
-            .hero-calculator-header h2 { font-size: 1.6rem; }
-            .header-controls {
-                gap: 6px;
-                justify-content: center;
-            }
-            .header-controls .nav-btn {
-                font-size: 0.75rem;
-                padding: 5px 10px;
-                min-width: 60px;
-                min-height: 30px;
-            }
-            .tabs-container {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-                padding: 10px 15px;
-            }
-            .tab-btn {
-                font-size: 0.85rem;
-                padding: 10px 12px;
-                min-height: 38px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .header-controls {
-                gap: 4px;
-                justify-content: center;
-            }
-            .header-controls .nav-btn {
-                font-size: 0.6rem;
-                padding: 3px 6px;
-                min-width: 40px;
-                min-height: 24px;
-                border-width: 1.5px;
-            }
-            .tabs-container {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 6px;
-                padding: 8px 10px;
-            }
-            .tab-btn {
-                font-size: 0.7rem;
-                padding: 8px 8px;
-                min-height: 32px;
-                border-width: 1.5px;
-            }
-            .tab-name {
-                font-size: 0.7rem;
-            }
-            .result-box .total { font-size: 1.8rem; }
-            .titan-total-box { font-size: 1.5rem; }
-            .skill-item .skill-inputs input { width: 60px; }
-            .hero-star-item .hero-star-inputs input { width: 60px; }
-            .titan-item .titan-inputs input { width: 60px; }
-            .gear-exclusive-item .gear-inputs input { width: 60px; }
-            .legendary-gear-item .legendary-inputs input { width: 60px; }
-        }
-    </style>
 </head>
-<body class="dark-theme">
-    <div id="sparks-container"></div>
+<body>
+<div class="wrap">
 
-    <header>
-        <div class="header-content">
-            <div class="title-group">
-                <span class="flame-icon">⚔️</span>
-                <h1>Калькулятор прокачки</h1>
-                <span class="flame-icon">⚔️</span>
-            </div>
-            <div class="header-controls">
-                <button id="theme-toggle" class="nav-btn">🌙</button>
-                {% if session['logged_in'] %}
-                    <a href="/logout" class="nav-btn">Выйти</a>
-                {% else %}
-                    <a href="/login" class="nav-btn primary">Войти</a>
-                {% endif %}
-            </div>
+    <header class="header">
+        <a href="/" class="brand">
+            <span class="brand-name">[HEL] Ацкое Пламя</span>
+        </a>
+        <div class="header-right">
+            {% if session['logged_in'] %}
+                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                <a href="/logout" class="link-btn">Выйти</a>
+            {% else %}
+                <a href="/login" class="link-btn">Войти</a>
+            {% endif %}
+            <button id="theme-toggle" class="theme-toggle">🌙</button>
         </div>
     </header>
 
-    <main>
-        <div class="tabs-container">
-            <a href="/rating/duel" class="tab-btn" style="--tab-color: #ff5500;">
-                <span class="tab-name">Дуэль</span>
-            </a>
-            <a href="/rating/reservoir" class="tab-btn" style="--tab-color: #2196F3;">
-                <span class="tab-name">Резервуар</span>
-            </a>
-            <a href="/rating/oil" class="tab-btn" style="--tab-color: #2c1810;">
-                <span class="tab-name">Нефть</span>
-            </a>
-            <a href="/guides" class="tab-btn" style="--tab-color: #ff7e00;">
-                <span class="tab-name">Гайды</span>
-            </a>
-            <a href="/turtle-calculator" class="tab-btn" style="--tab-color: #ff7e00;">
-                <span class="tab-name">Черепашка</span>
-            </a>
-            <a href="/hero-calculator" class="tab-btn active" style="--tab-color: #ff7e00;">
-                <span class="tab-name">Прокачка</span>
-            </a>
+    <nav class="nav">
+        <a href="/rating/duel">Дуэль</a>
+        <a href="/turtle-calculator">Черепашка</a>
+        <a href="/hero-calculator" class="active">Прокачка</a>
+    </nav>
+
+    <div class="page-head">
+        <h1 class="page-title">Калькулятор прокачки</h1>
+        <p class="page-sub">Расчёт ресурсов для героев и снаряжения</p>
+    </div>
+
+    <!-- ЗВЁЗДЫ ГЕРОЕВ -->
+    <div class="accordion">
+        <div class="accordion-head" onclick="toggleAccordion(this)">
+            <h3>Звёзды легендарных героев</h3>
+            <span class="arrow open">▼</span>
         </div>
+        <div class="accordion-body open">
+            <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                Введите текущую звезду и лепесток, а также желаемое количество звёзд (1–10)
+            </p>
 
-        <div class="hero-calculator-container">
-            <div class="hero-calculator-header">
-                <p style="opacity: 0.7; font-size: 1rem;">
-                    Рассчитайте количество ресурсов для прокачки героев, титанов и снаряжения
-                </p>
-            </div>
-
-            <!-- ===== СЕКЦИЯ ЗВЕЗД ГЕРОЕВ ===== -->
-            <div class="calc-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h3>Звезды легендарных героев</h3>
-                    <span class="arrow">▼</span>
+            <div class="calc-grid">
+                <div class="calc-field">
+                    <label>Текущая звезда</label>
+                    <input type="number" id="hero_star_current" value="1" min="1" max="10">
                 </div>
-                <div class="section-content open">
-                    <p class="subtitle">Введите текущее количество звезд и лепестков, а также желаемое количество звезд</p>
-                    
-                    <div class="info-box-hero">
-                        <p>Каждая звезда имеет 6 этапов (лепестков).</p>
-                        <p>Для прокачки каждого этапа требуются фрагменты героев.</p>
-                        <p>Всего звезд: от 1 до 10 (максимум).</p>
-                    </div>
-
-                    <form id="heroStarForm" onsubmit="return false;">
-                        <div class="hero-star-grid">
-                            <div class="hero-star-item">
-                                <label>Текущая звезда</label>
-                                <div class="hero-star-inputs">
-                                    <input type="number" id="hero_star_current" placeholder="Звезда" min="1" max="10" value="1">
-                                </div>
-                            </div>
-                            <div class="hero-star-item">
-                                <label>Текущий лепесток (1-6)</label>
-                                <div class="hero-star-inputs">
-                                    <input type="number" id="hero_star_petal" placeholder="Лепесток" min="1" max="6" value="1">
-                                </div>
-                            </div>
-                            <div class="hero-star-item">
-                                <label>Желаемая звезда</label>
-                                <div class="hero-star-inputs">
-                                    <input type="number" id="hero_star_target" placeholder="Звезда" min="1" max="10" value="10">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="button-group-hero">
-                            <button type="button" class="btn-calc-hero" onclick="calculateHeroStars()">Рассчитать звезды героев</button>
-                            <button type="reset" class="btn-reset-hero" onclick="resetHeroStars()">Сбросить</button>
-                        </div>
-                    </form>
-
-                    <div id="heroStarResultBox" class="result-box" style="border-color: #FFD700;">
-                        <div class="total">
-                            <span>Всего нужно фрагментов героев</span>
-                            <span id="heroStarTotal" style="color: #FFD700;">0</span>
-                        </div>
-                    </div>
+                <div class="calc-field">
+                    <label>Текущий лепесток (1–6)</label>
+                    <input type="number" id="hero_star_petal" value="1" min="1" max="6">
+                </div>
+                <div class="calc-field">
+                    <label>Желаемая звезда</label>
+                    <input type="number" id="hero_star_target" value="10" min="1" max="10">
                 </div>
             </div>
 
-            <!-- ===== СЕКЦИЯ НАВЫКОВ ===== -->
-            <div class="calc-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h3>Калькулятор навыков</h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="section-content open">
-                    <p class="subtitle">Введите текущий и желаемый уровень каждого навыка (1-40)</p>
-                    
-                    <div class="info-box-hero">
-                        <p>Каждый навык прокачивается отдельно. Всего 4 навыка.</p>
-                        <p>Стоимость повышения зависит от уровня.</p>
-                    </div>
-
-                    <form id="skillForm" onsubmit="return false;">
-                        <div class="skill-grid">
-                            <div class="skill-item">
-                                <label>Навык 1</label>
-                                <div class="skill-inputs">
-                                    <input type="number" id="skill1_current" placeholder="Текущий" min="1" max="40" value="1">
-                                    <span>→</span>
-                                    <input type="number" id="skill1_target" placeholder="Целевой" min="1" max="40" value="40">
-                                </div>
-                                <div class="skill-result" id="skill1_result">Нужно: 0 книг</div>
-                            </div>
-                            
-                            <div class="skill-item">
-                                <label>Навык 2</label>
-                                <div class="skill-inputs">
-                                    <input type="number" id="skill2_current" placeholder="Текущий" min="1" max="40" value="1">
-                                    <span>→</span>
-                                    <input type="number" id="skill2_target" placeholder="Целевой" min="1" max="40" value="40">
-                                </div>
-                                <div class="skill-result" id="skill2_result">Нужно: 0 книг</div>
-                            </div>
-                            
-                            <div class="skill-item">
-                                <label>Навык 3</label>
-                                <div class="skill-inputs">
-                                    <input type="number" id="skill3_current" placeholder="Текущий" min="1" max="40" value="1">
-                                    <span>→</span>
-                                    <input type="number" id="skill3_target" placeholder="Целевой" min="1" max="40" value="40">
-                                </div>
-                                <div class="skill-result" id="skill3_result">Нужно: 0 книг</div>
-                            </div>
-                            
-                            <div class="skill-item">
-                                <label>Навык 4</label>
-                                <div class="skill-inputs">
-                                    <input type="number" id="skill4_current" placeholder="Текущий" min="1" max="40" value="1">
-                                    <span>→</span>
-                                    <input type="number" id="skill4_target" placeholder="Целевой" min="1" max="40" value="40">
-                                </div>
-                                <div class="skill-result" id="skill4_result">Нужно: 0 книг</div>
-                            </div>
-                        </div>
-
-                        <div class="button-group-hero">
-                            <button type="button" class="btn-calc-hero" onclick="calculateSkills()">Рассчитать навыки</button>
-                            <button type="reset" class="btn-reset-hero" onclick="resetSkills()">Сбросить</button>
-                        </div>
-                    </form>
-
-                    <div id="skillResultBox" class="result-box">
-                        <div class="total">
-                            <span>Всего нужно книг для навыков</span>
-                            <span id="skillTotal">0</span>
-                        </div>
-                    </div>
-                </div>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-primary" onclick="calculateHeroStars()">Рассчитать</button>
+                <button type="button" class="btn" onclick="resetHeroStars()">Сбросить</button>
             </div>
 
-            <!-- ===== СЕКЦИЯ ТИТАНА (ЗВЕЗДЫ) ===== -->
-            <div class="calc-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h3>Калькулятор титана (звезды)</h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="section-content open">
-                    <p class="subtitle">Введите текущее количество звезд и лепестков, а также желаемое количество звезд</p>
-                    
-                    <div class="info-box-hero">
-                        <p>Каждая звезда имеет 6 этапов (лепестков).</p>
-                        <p>Для прокачки каждого этапа требуются клетки титана.</p>
-                        <p>Всего звезд: от 1 до 60 (максимум).</p>
-                    </div>
-
-                    <form id="titanForm" onsubmit="return false;">
-                        <div class="titan-grid">
-                            <div class="titan-item">
-                                <label>Текущая звезда</label>
-                                <div class="titan-inputs">
-                                    <input type="number" id="titan_current_star" placeholder="Звезда" min="1" max="60" value="1">
-                                </div>
-                            </div>
-                            <div class="titan-item">
-                                <label>Текущий лепесток (1-6)</label>
-                                <div class="titan-inputs">
-                                    <input type="number" id="titan_current_petal" placeholder="Лепесток" min="1" max="6" value="1">
-                                </div>
-                            </div>
-                            <div class="titan-item">
-                                <label>Желаемая звезда</label>
-                                <div class="titan-inputs">
-                                    <input type="number" id="titan_target_star" placeholder="Звезда" min="1" max="60" value="60">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="button-group-hero">
-                            <button type="button" class="btn-calc-hero" onclick="calculateTitan()">Рассчитать титана</button>
-                            <button type="reset" class="btn-reset-hero" onclick="resetTitan()">Сбросить</button>
-                        </div>
-                    </form>
-
-                    <div id="titanResultBox" class="result-box">
-                        <div class="titan-total-box">
-                            <span>Всего нужно клеток титана</span>
-                            <span id="titanTotal">0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== СЕКЦИЯ ЭКСКЛЮЗИВНОГО СНАРЯЖЕНИЯ ===== -->
-            <div class="calc-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h3>Эксклюзивное снаряжение</h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="section-content open">
-                    <p class="subtitle">Введите текущий и желаемый уровень снаряжения (1-15)</p>
-                    
-                    <div class="info-box-hero">
-                        <p>Эксклюзивное снаряжение прокачивается до 15 уровня.</p>
-                        <p>Стоимость повышения зависит от уровня.</p>
-                    </div>
-
-                    <form id="gearExclusiveForm" onsubmit="return false;">
-                        <div class="gear-exclusive-grid">
-                            <div class="gear-exclusive-item">
-                                <label>Снаряжение</label>
-                                <div class="gear-inputs">
-                                    <input type="number" id="gear_current" placeholder="Текущий" min="1" max="15" value="1">
-                                    <span>→</span>
-                                    <input type="number" id="gear_target" placeholder="Целевой" min="1" max="15" value="15">
-                                </div>
-                                <div class="gear-result" id="gear_result">Нужно: 0 фрагментов</div>
-                            </div>
-                        </div>
-
-                        <div class="button-group-hero">
-                            <button type="button" class="btn-calc-hero" onclick="calculateGearExclusive()">Рассчитать снаряжение</button>
-                            <button type="reset" class="btn-reset-hero" onclick="resetGearExclusive()">Сбросить</button>
-                        </div>
-                    </form>
-
-                    <div id="gearExclusiveResultBox" class="result-box" style="border-color: #FF6B35;">
-                        <div class="total">
-                            <span>Всего нужно фрагментов снаряжения</span>
-                            <span id="gearExclusiveTotal" style="color: #FF6B35;">0</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== СЕКЦИЯ ЛЕГЕНДАРНОГО СНАРЯЖЕНИЯ ===== -->
-            <div class="calc-section">
-                <div class="section-header" onclick="toggleSection(this)">
-                    <h3>Усиление легендарного снаряжения</h3>
-                    <span class="arrow">▼</span>
-                </div>
-                <div class="section-content open">
-                    <p class="subtitle">Введите текущее количество звезд и желаемое количество звезд (0-10)</p>
-                    
-                    <div class="info-box-hero">
-                        <p>Легендарное снаряжение прокачивается до 10 звезд.</p>
-                        <p>Стоимость повышения зависит от уровня.</p>
-                    </div>
-
-                    <form id="legendaryGearForm" onsubmit="return false;">
-                        <div class="legendary-gear-grid">
-                            <div class="legendary-gear-item">
-                                <label>Текущее количество звезд</label>
-                                <div class="legendary-inputs">
-                                    <input type="number" id="legendary_current" placeholder="Текущие" min="0" max="10" value="0">
-                                </div>
-                            </div>
-                            <div class="legendary-gear-item">
-                                <label>Желаемое количество звезд</label>
-                                <div class="legendary-inputs">
-                                    <input type="number" id="legendary_target" placeholder="Желаемые" min="0" max="10" value="10">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="button-group-hero">
-                            <button type="button" class="btn-calc-hero" onclick="calculateLegendaryGear()">Рассчитать усиление</button>
-                            <button type="reset" class="btn-reset-hero" onclick="resetLegendaryGear()">Сбросить</button>
-                        </div>
-                    </form>
-
-                    <div id="legendaryGearResultBox" class="result-box" style="border-color: #FFD700;">
-                        <div class="total">
-                            <span>Всего нужно фрагментов легендарного снаряжения</span>
-                            <span id="legendaryGearTotal" style="color: #FFD700;">0</span>
-                        </div>
-                    </div>
-                </div>
+            <div id="heroStarResult" class="calc-result">
+                <span class="total-label">Нужно фрагментов героев</span>
+                <div class="total" id="heroStarTotal">0</div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <script>
-        const toggleBtn = document.getElementById('theme-toggle');
-        const body = document.body;
+    <!-- НАВЫКИ -->
+    <div class="accordion">
+        <div class="accordion-head" onclick="toggleAccordion(this)">
+            <h3>Калькулятор навыков</h3>
+            <span class="arrow open">▼</span>
+        </div>
+        <div class="accordion-body open">
+            <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                Введите текущий и желаемый уровень каждого навыка (1–40)
+            </p>
 
-        toggleBtn.addEventListener('click', () => {
-            body.classList.toggle('dark-theme');
-            body.classList.toggle('light-theme');
-            toggleBtn.textContent = body.classList.contains('dark-theme') ? '🌙' : '☀️';
-        });
+            <div class="calc-grid">
+                <div class="calc-field">
+                    <label>Навык 1</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" id="skill1_current" value="1" min="1" max="40">
+                        <span style="color: var(--dim);">→</span>
+                        <input type="number" id="skill1_target" value="40" min="1" max="40">
+                    </div>
+                </div>
+                <div class="calc-field">
+                    <label>Навык 2</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" id="skill2_current" value="1" min="1" max="40">
+                        <span style="color: var(--dim);">→</span>
+                        <input type="number" id="skill2_target" value="40" min="1" max="40">
+                    </div>
+                </div>
+                <div class="calc-field">
+                    <label>Навык 3</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" id="skill3_current" value="1" min="1" max="40">
+                        <span style="color: var(--dim);">→</span>
+                        <input type="number" id="skill3_target" value="40" min="1" max="40">
+                    </div>
+                </div>
+                <div class="calc-field">
+                    <label>Навык 4</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" id="skill4_current" value="1" min="1" max="40">
+                        <span style="color: var(--dim);">→</span>
+                        <input type="number" id="skill4_target" value="40" min="1" max="40">
+                    </div>
+                </div>
+            </div>
 
-        body.classList.add('dark-theme');
-        toggleBtn.textContent = '🌙';
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-primary" onclick="calculateSkills()">Рассчитать</button>
+                <button type="button" class="btn" onclick="resetSkills()">Сбросить</button>
+            </div>
 
-        function createSparks() {
-            const container = document.getElementById('sparks-container');
-            if (!container) return;
-            const colors = ['#9C27B0', '#E040FB', '#CE93D8', '#AB47BC', '#7B1FA2'];
-            for (let i = 0; i < 40; i++) {
-                const spark = document.createElement('div');
-                spark.classList.add('spark');
-                const size = Math.random() * 12 + 6;
-                spark.style.width = size + 'px';
-                spark.style.height = size + 'px';
-                spark.style.left = Math.random() * 100 + '%';
-                spark.style.top = Math.random() * 100 + '%';
-                spark.style.background = colors[Math.floor(Math.random() * colors.length)];
-                spark.style.animationDuration = (Math.random() * 10 + 8) + 's';
-                spark.style.animationDelay = (Math.random() * 12) + 's';
-                spark.style.boxShadow = '0 0 ' + (size * 2) + 'px ' + spark.style.background;
-                container.appendChild(spark);
-            }
+            <div id="skillResult" class="calc-result">
+                <span class="total-label">Всего нужно книг</span>
+                <div class="total" id="skillTotal">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ТИТАН -->
+    <div class="accordion">
+        <div class="accordion-head" onclick="toggleAccordion(this)">
+            <h3>Калькулятор титана (звёзды)</h3>
+            <span class="arrow open">▼</span>
+        </div>
+        <div class="accordion-body open">
+            <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                Введите текущую звезду и лепесток, а также желаемое количество звёзд (1–60)
+            </p>
+
+            <div class="calc-grid">
+                <div class="calc-field">
+                    <label>Текущая звезда</label>
+                    <input type="number" id="titan_current_star" value="1" min="1" max="60">
+                </div>
+                <div class="calc-field">
+                    <label>Текущий лепесток (1–6)</label>
+                    <input type="number" id="titan_current_petal" value="1" min="1" max="6">
+                </div>
+                <div class="calc-field">
+                    <label>Желаемая звезда</label>
+                    <input type="number" id="titan_target_star" value="60" min="1" max="60">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-primary" onclick="calculateTitan()">Рассчитать</button>
+                <button type="button" class="btn" onclick="resetTitan()">Сбросить</button>
+            </div>
+
+            <div id="titanResult" class="calc-result">
+                <span class="total-label">Нужно клеток титана</span>
+                <div class="total" id="titanTotal">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЭКСКЛЮЗИВНОЕ СНАРЯЖЕНИЕ -->
+    <div class="accordion">
+        <div class="accordion-head" onclick="toggleAccordion(this)">
+            <h3>Эксклюзивное снаряжение</h3>
+            <span class="arrow open">▼</span>
+        </div>
+        <div class="accordion-body open">
+            <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                Прокачка с 1 по 15 уровень
+            </p>
+
+            <div class="calc-grid">
+                <div class="calc-field">
+                    <label>Снаряжение</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="number" id="gear_current" value="1" min="1" max="15">
+                        <span style="color: var(--dim);">→</span>
+                        <input type="number" id="gear_target" value="15" min="1" max="15">
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-primary" onclick="calculateGear()">Рассчитать</button>
+                <button type="button" class="btn" onclick="resetGear()">Сбросить</button>
+            </div>
+
+            <div id="gearResult" class="calc-result">
+                <span class="total-label">Нужно фрагментов снаряжения</span>
+                <div class="total" id="gearTotal">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЛЕГЕНДАРНОЕ СНАРЯЖЕНИЕ -->
+    <div class="accordion">
+        <div class="accordion-head" onclick="toggleAccordion(this)">
+            <h3>Усиление легендарного снаряжения</h3>
+            <span class="arrow open">▼</span>
+        </div>
+        <div class="accordion-body open">
+            <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                Прокачка с 0 по 10 звёзд
+            </p>
+
+            <div class="calc-grid">
+                <div class="calc-field">
+                    <label>Текущее количество звёзд</label>
+                    <input type="number" id="legendary_current" value="0" min="0" max="10">
+                </div>
+                <div class="calc-field">
+                    <label>Желаемое количество звёзд</label>
+                    <input type="number" id="legendary_target" value="10" min="0" max="10">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-primary" onclick="calculateLegendary()">Рассчитать</button>
+                <button type="button" class="btn" onclick="resetLegendary()">Сбросить</button>
+            </div>
+
+            <div id="legendaryResult" class="calc-result">
+                <span class="total-label">Нужно фрагментов</span>
+                <div class="total" id="legendaryTotal">0</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+
+    function toggleAccordion(header) {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector('.arrow');
+        content.classList.toggle('open');
+        if (arrow) arrow.classList.toggle('open');
+    }
+
+    // ===== ЗВЁЗДЫ ГЕРОЕВ =====
+    const heroStarData = {
+        1: [2, 2, 2, 3, 3, 3],
+        2: [5, 5, 5, 5, 10, 10],
+        3: [15, 15, 15, 20, 20, 20],
+        4: [25, 25, 25, 25, 25, 25],
+        5: [30, 30, 30, 30, 30, 30],
+        6: [40, 40, 40, 40, 40, 40],
+        7: [45, 45, 45, 45, 45, 45],
+        8: [50, 50, 50, 50, 50, 50],
+        9: [55, 55, 55, 55, 55, 55],
+        10: [60, 60, 60, 60, 60, 60]
+    };
+
+    function getHeroStarCost(current, petal, target) {
+        if (current > target) return 0;
+        if (current === target && petal === 1) return 0;
+        let total = 0, star = current, p = petal;
+        while (star < target) {
+            const data = heroStarData[star];
+            if (!data) break;
+            for (let i = p - 1; i < 6; i++) total += data[i];
+            star++; p = 1;
         }
-        createSparks();
-
-        function toggleSection(header) {
-            const content = header.nextElementSibling;
-            const arrow = header.querySelector('.arrow');
-            content.classList.toggle('open');
-            arrow.classList.toggle('open');
+        if (star === target) {
+            const data = heroStarData[star];
+            if (data) for (let i = p - 1; i < 6; i++) total += data[i];
         }
+        return total;
+    }
 
-        // ===== ЗВЕЗДЫ ГЕРОЕВ =====
-        const heroStarData = {
-            1: [2, 2, 2, 3, 3, 3],
-            2: [5, 5, 5, 5, 10, 10],
-            3: [15, 15, 15, 20, 20, 20],
-            4: [25, 25, 25, 25, 25, 25],
-            5: [30, 30, 30, 30, 30, 30],
-            6: [40, 40, 40, 40, 40, 40],
-            7: [45, 45, 45, 45, 45, 45],
-            8: [50, 50, 50, 50, 50, 50],
-            9: [55, 55, 55, 55, 55, 55],
-            10: [60, 60, 60, 60, 60, 60]
-        };
+    function calculateHeroStars() {
+        const c = Math.max(1, Math.min(10, parseInt(document.getElementById('hero_star_current').value) || 1));
+        const p = Math.max(1, Math.min(6, parseInt(document.getElementById('hero_star_petal').value) || 1));
+        const t = Math.max(1, Math.min(10, parseInt(document.getElementById('hero_star_target').value) || 1));
+        document.getElementById('heroStarTotal').textContent = getHeroStarCost(c, p, t);
+        document.getElementById('heroStarResult').classList.add('show');
+    }
 
-        function getHeroStarCost(currentStar, currentPetal, targetStar) {
-            if (currentStar > targetStar) return 0;
-            if (currentStar === targetStar && currentPetal === 1) return 0;
-            
-            let total = 0;
-            let star = currentStar;
-            let petal = currentPetal;
-            
-            while (star < targetStar) {
-                const data = heroStarData[star];
-                if (!data) break;
-                for (let p = petal - 1; p < 6; p++) {
-                    total += data[p];
-                }
-                star++;
-                petal = 1;
-            }
-            
-            if (star === targetStar) {
-                for (let p = petal - 1; p < 6; p++) {
-                    const data = heroStarData[star];
-                    if (data) total += data[p];
-                }
-            }
-            
-            return total;
+    function resetHeroStars() {
+        document.getElementById('hero_star_current').value = 1;
+        document.getElementById('hero_star_petal').value = 1;
+        document.getElementById('hero_star_target').value = 10;
+        document.getElementById('heroStarResult').classList.remove('show');
+    }
+
+    // ===== НАВЫКИ =====
+    const skillCost = {
+        1:1,2:3,3:6,4:10,5:20,6:30,7:40,8:50,9:70,10:90,
+        11:110,12:130,13:150,14:180,15:210,16:240,17:270,18:300,19:335,20:370,
+        21:405,22:440,23:475,24:510,25:545,26:580,27:615,28:650,29:685,30:850,
+        31:990,32:1140,33:1300,34:1470,35:1650,36:1840,37:2040,38:2245,39:2460
+    };
+
+    function getSkillCost(c, t) {
+        if (c >= t) return 0;
+        let total = 0;
+        for (let i = c; i < t; i++) total += skillCost[i] || 0;
+        return total;
+    }
+
+    function calculateSkills() {
+        let total = 0;
+        for (let i = 1; i <= 4; i++) {
+            const c = Math.max(1, Math.min(40, parseInt(document.getElementById('skill' + i + '_current').value) || 1));
+            const t = Math.max(1, Math.min(40, parseInt(document.getElementById('skill' + i + '_target').value) || 1));
+            total += getSkillCost(c, t);
         }
+        document.getElementById('skillTotal').textContent = total;
+        document.getElementById('skillResult').classList.add('show');
+    }
 
-        function calculateHeroStars() {
-            const currentStar = parseInt(document.getElementById('hero_star_current').value) || 1;
-            const currentPetal = parseInt(document.getElementById('hero_star_petal').value) || 1;
-            const targetStar = parseInt(document.getElementById('hero_star_target').value) || 1;
-            
-            if (currentStar < 1) document.getElementById('hero_star_current').value = 1;
-            if (currentPetal < 1) document.getElementById('hero_star_petal').value = 1;
-            if (currentPetal > 6) document.getElementById('hero_star_petal').value = 6;
-            if (targetStar < 1) document.getElementById('hero_star_target').value = 1;
-            if (targetStar > 10) document.getElementById('hero_star_target').value = 10;
-            
-            const finalStar = parseInt(document.getElementById('hero_star_current').value);
-            const finalPetal = parseInt(document.getElementById('hero_star_petal').value);
-            const finalTarget = parseInt(document.getElementById('hero_star_target').value);
-            
-            const cost = getHeroStarCost(finalStar, finalPetal, finalTarget);
-            
-            document.getElementById('heroStarTotal').textContent = cost;
-            document.getElementById('heroStarResultBox').classList.add('show');
+    function resetSkills() {
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById('skill' + i + '_current').value = 1;
+            document.getElementById('skill' + i + '_target').value = 40;
         }
+        document.getElementById('skillResult').classList.remove('show');
+    }
 
-        function resetHeroStars() {
-            document.getElementById('heroStarForm').reset();
-            document.getElementById('heroStarResultBox').classList.remove('show');
+    // ===== ТИТАН =====
+    const titanData = {
+        1:[4,4,4,4,4,6], 2:[6,6,6,6,6,8], 3:[8,8,8,8,8,10], 4:[10,10,10,10,10,12],
+        5:[12,12,12,12,12,14], 6:[14,14,14,14,14,16], 7:[16,16,16,16,16,18],
+        8:[18,18,18,18,18,20], 9:[20,20,20,20,20,22], 10:[22,22,22,22,22,24],
+        11:[24,24,24,24,24,26], 12:[26,26,26,26,26,28], 13:[28,28,28,28,28,30],
+        14:[30,30,30,30,30,32], 15:[32,32,32,32,32,34], 16:[36,36,36,36,36,38],
+        17:[38,38,38,38,38,40], 18:[40,40,40,40,40,42], 19:[42,42,42,42,42,44],
+        20:[44,44,44,44,44,46], 21:[46,46,46,46,46,48], 22:[48,48,48,48,48,50],
+        23:[50,50,50,50,50,52], 24:[52,52,52,52,52,56], 25:[60,60,60,60,60,64],
+        26:[64,64,64,64,64,68], 27:[68,68,68,68,68,72], 28:[72,72,72,72,72,76],
+        29:[76,76,76,76,76,80], 30:[76,76,76,76,76,80], 31:[80,80,80,80,80,84],
+        32:[84,84,84,84,84,88], 33:[88,88,88,88,88,92], 34:[92,92,92,92,92,96],
+        35:[96,96,96,96,96,100], 36:[100,100,100,100,100,104], 37:[104,104,104,104,104,108],
+        38:[108,108,108,108,108,112], 39:[112,112,112,112,112,116], 40:[116,116,116,116,116,120],
+        41:[120,120,120,120,120,124], 42:[124,124,124,124,124,128], 43:[128,128,128,128,128,132],
+        44:[132,132,132,132,132,136], 45:[136,136,136,136,136,140], 46:[140,140,140,140,140,144],
+        47:[144,144,144,144,144,148], 48:[148,148,148,148,148,152], 49:[152,152,152,152,152,156],
+        50:[156,156,156,156,156,160], 51:[160,160,160,160,160,164], 52:[164,164,164,164,164,168],
+        53:[168,168,168,168,168,172], 54:[172,172,172,172,172,176], 55:[176,176,176,176,176,180],
+        56:[180,180,180,180,180,184], 57:[184,184,184,184,184,188], 58:[188,188,188,188,188,192],
+        59:[192,192,192,192,192,196], 60:[196,196,196,196,196,200]
+    };
+
+    function getTitanCost(c, p, t) {
+        if (c > t) return 0;
+        if (c === t && p === 1) return 0;
+        let total = 0, star = c, petal = p;
+        while (star < t) {
+            const data = titanData[star];
+            if (!data) break;
+            for (let i = petal - 1; i < 6; i++) total += data[i];
+            star++; petal = 1;
         }
-
-        // ===== НАВЫКИ =====
-        const skillCost = {
-            1: 1, 2: 3, 3: 6, 4: 10, 5: 20, 6: 30, 7: 40, 8: 50, 9: 70, 10: 90,
-            11: 110, 12: 130, 13: 150, 14: 180, 15: 210, 16: 240, 17: 270, 18: 300, 19: 335, 20: 370,
-            21: 405, 22: 440, 23: 475, 24: 510, 25: 545, 26: 580, 27: 615, 28: 650, 29: 685, 30: 850,
-            31: 990, 32: 1140, 33: 1300, 34: 1470, 35: 1650, 36: 1840, 37: 2040, 38: 2245, 39: 2460
-        };
-
-        function getSkillCost(current, target) {
-            if (current >= target) return 0;
-            let total = 0;
-            for (let level = current; level < target; level++) {
-                total += skillCost[level] || 0;
-            }
-            return total;
+        if (star === t) {
+            const data = titanData[star];
+            if (data) for (let i = petal - 1; i < 6; i++) total += data[i];
         }
+        return total;
+    }
 
-        function calculateSkills() {
-            const skills = [
-                { id: 1, current: document.getElementById('skill1_current'), target: document.getElementById('skill1_target'), result: document.getElementById('skill1_result') },
-                { id: 2, current: document.getElementById('skill2_current'), target: document.getElementById('skill2_target'), result: document.getElementById('skill2_result') },
-                { id: 3, current: document.getElementById('skill3_current'), target: document.getElementById('skill3_target'), result: document.getElementById('skill3_result') },
-                { id: 4, current: document.getElementById('skill4_current'), target: document.getElementById('skill4_target'), result: document.getElementById('skill4_result') }
-            ];
+    function calculateTitan() {
+        const c = Math.max(1, Math.min(60, parseInt(document.getElementById('titan_current_star').value) || 1));
+        const p = Math.max(1, Math.min(6, parseInt(document.getElementById('titan_current_petal').value) || 1));
+        const t = Math.max(1, Math.min(60, parseInt(document.getElementById('titan_target_star').value) || 1));
+        document.getElementById('titanTotal').textContent = getTitanCost(c, p, t);
+        document.getElementById('titanResult').classList.add('show');
+    }
 
-            let totalBooks = 0;
+    function resetTitan() {
+        document.getElementById('titan_current_star').value = 1;
+        document.getElementById('titan_current_petal').value = 1;
+        document.getElementById('titan_target_star').value = 60;
+        document.getElementById('titanResult').classList.remove('show');
+    }
 
-            skills.forEach((skill) => {
-                const current = parseInt(skill.current.value) || 1;
-                const target = parseInt(skill.target.value) || 1;
-                
-                if (current < 1) skill.current.value = 1;
-                if (target < 1) skill.target.value = 1;
-                if (current > 40) skill.current.value = 40;
-                if (target > 40) skill.target.value = 40;
-                
-                const cost = getSkillCost(current, target);
-                totalBooks += cost;
-                skill.result.textContent = `Нужно: ${cost} книг`;
-            });
+    // ===== ЭКСКЛЮЗИВНОЕ СНАРЯЖЕНИЕ =====
+    const gearCost = {1:5,2:10,3:20,4:25,5:30,6:30,7:30,8:30,9:30,10:30,11:30,12:40,13:40,14:40};
 
-            document.getElementById('skillTotal').textContent = totalBooks;
-            document.getElementById('skillResultBox').classList.add('show');
-        }
+    function calculateGear() {
+        const c = Math.max(1, Math.min(15, parseInt(document.getElementById('gear_current').value) || 1));
+        const t = Math.max(1, Math.min(15, parseInt(document.getElementById('gear_target').value) || 1));
+        let total = 0;
+        for (let i = c; i < t; i++) total += gearCost[i] || 0;
+        document.getElementById('gearTotal').textContent = total;
+        document.getElementById('gearResult').classList.add('show');
+    }
 
-        function resetSkills() {
-            document.getElementById('skillForm').reset();
-            document.getElementById('skillResultBox').classList.remove('show');
-            document.querySelectorAll('.skill-result').forEach(el => {
-                el.textContent = 'Нужно: 0 книг';
-            });
-        }
+    function resetGear() {
+        document.getElementById('gear_current').value = 1;
+        document.getElementById('gear_target').value = 15;
+        document.getElementById('gearResult').classList.remove('show');
+    }
 
-        // ===== ТИТАН =====
-        const titanData = {
-            1: [4, 4, 4, 4, 4, 6],
-            2: [6, 6, 6, 6, 6, 8],
-            3: [8, 8, 8, 8, 8, 10],
-            4: [10, 10, 10, 10, 10, 12],
-            5: [12, 12, 12, 12, 12, 14],
-            6: [14, 14, 14, 14, 14, 16],
-            7: [16, 16, 16, 16, 16, 18],
-            8: [18, 18, 18, 18, 18, 20],
-            9: [20, 20, 20, 20, 20, 22],
-            10: [22, 22, 22, 22, 22, 24],
-            11: [24, 24, 24, 24, 24, 26],
-            12: [26, 26, 26, 26, 26, 28],
-            13: [28, 28, 28, 28, 28, 30],
-            14: [30, 30, 30, 30, 30, 32],
-            15: [32, 32, 32, 32, 32, 34],
-            16: [36, 36, 36, 36, 36, 38],
-            17: [38, 38, 38, 38, 38, 40],
-            18: [40, 40, 40, 40, 40, 42],
-            19: [42, 42, 42, 42, 42, 44],
-            20: [44, 44, 44, 44, 44, 46],
-            21: [46, 46, 46, 46, 46, 48],
-            22: [48, 48, 48, 48, 48, 50],
-            23: [50, 50, 50, 50, 50, 52],
-            24: [52, 52, 52, 52, 52, 56],
-            25: [60, 60, 60, 60, 60, 64],
-            26: [64, 64, 64, 64, 64, 68],
-            27: [68, 68, 68, 68, 68, 72],
-            28: [72, 72, 72, 72, 72, 76],
-            29: [76, 76, 76, 76, 76, 80],
-            30: [76, 76, 76, 76, 76, 80],
-            31: [80, 80, 80, 80, 80, 84],
-            32: [84, 84, 84, 84, 84, 88],
-            33: [88, 88, 88, 88, 88, 92],
-            34: [92, 92, 92, 92, 92, 96],
-            35: [96, 96, 96, 96, 96, 100],
-            36: [100, 100, 100, 100, 100, 104],
-            37: [104, 104, 104, 104, 104, 108],
-            38: [108, 108, 108, 108, 108, 112],
-            39: [112, 112, 112, 112, 112, 116],
-            40: [116, 116, 116, 116, 116, 120],
-            41: [120, 120, 120, 120, 120, 124],
-            42: [124, 124, 124, 124, 124, 128],
-            43: [128, 128, 128, 128, 128, 132],
-            44: [132, 132, 132, 132, 132, 136],
-            45: [136, 136, 136, 136, 136, 140],
-            46: [140, 140, 140, 140, 140, 144],
-            47: [144, 144, 144, 144, 144, 148],
-            48: [148, 148, 148, 148, 148, 152],
-            49: [152, 152, 152, 152, 152, 156],
-            50: [156, 156, 156, 156, 156, 160],
-            51: [160, 160, 160, 160, 160, 164],
-            52: [164, 164, 164, 164, 164, 168],
-            53: [168, 168, 168, 168, 168, 172],
-            54: [172, 172, 172, 172, 172, 176],
-            55: [176, 176, 176, 176, 176, 180],
-            56: [180, 180, 180, 180, 180, 184],
-            57: [184, 184, 184, 184, 184, 188],
-            58: [188, 188, 188, 188, 188, 192],
-            59: [192, 192, 192, 192, 192, 196],
-            60: [196, 196, 196, 196, 196, 200]
-        };
+    // ===== ЛЕГЕНДАРНОЕ СНАРЯЖЕНИЕ =====
+    const legendaryCost = {0:1,1:1,2:1,3:2,4:2,5:3,6:3,7:3,8:4,9:5};
 
-        function getTitanCost(currentStar, currentPetal, targetStar) {
-            if (currentStar > targetStar) return 0;
-            if (currentStar === targetStar && currentPetal === 1) return 0;
-            
-            let total = 0;
-            let star = currentStar;
-            let petal = currentPetal;
-            
-            while (star < targetStar) {
-                const data = titanData[star];
-                if (!data) break;
-                for (let p = petal - 1; p < 6; p++) {
-                    total += data[p];
-                }
-                star++;
-                petal = 1;
-            }
-            
-            if (star === targetStar) {
-                for (let p = petal - 1; p < 6; p++) {
-                    const data = titanData[star];
-                    if (data) total += data[p];
-                }
-            }
-            
-            return total;
-        }
+    function calculateLegendary() {
+        const c = Math.max(0, Math.min(10, parseInt(document.getElementById('legendary_current').value) || 0));
+        const t = Math.max(0, Math.min(10, parseInt(document.getElementById('legendary_target').value) || 0));
+        let total = 0;
+        for (let i = c; i < t; i++) total += legendaryCost[i] || 0;
+        document.getElementById('legendaryTotal').textContent = total;
+        document.getElementById('legendaryResult').classList.add('show');
+    }
 
-        function calculateTitan() {
-            const currentStar = parseInt(document.getElementById('titan_current_star').value) || 1;
-            const currentPetal = parseInt(document.getElementById('titan_current_petal').value) || 1;
-            const targetStar = parseInt(document.getElementById('titan_target_star').value) || 1;
-            
-            if (currentStar < 1) document.getElementById('titan_current_star').value = 1;
-            if (currentPetal < 1) document.getElementById('titan_current_petal').value = 1;
-            if (currentPetal > 6) document.getElementById('titan_current_petal').value = 6;
-            if (targetStar < 1) document.getElementById('titan_target_star').value = 1;
-            if (targetStar > 60) document.getElementById('titan_target_star').value = 60;
-            
-            const finalStar = parseInt(document.getElementById('titan_current_star').value);
-            const finalPetal = parseInt(document.getElementById('titan_current_petal').value);
-            const finalTarget = parseInt(document.getElementById('titan_target_star').value);
-            
-            const cost = getTitanCost(finalStar, finalPetal, finalTarget);
-            
-            document.getElementById('titanTotal').textContent = cost;
-            document.getElementById('titanResultBox').classList.add('show');
-        }
+    function resetLegendary() {
+        document.getElementById('legendary_current').value = 0;
+        document.getElementById('legendary_target').value = 10;
+        document.getElementById('legendaryResult').classList.remove('show');
+    }
+</script>
 
-        function resetTitan() {
-            document.getElementById('titanForm').reset();
-            document.getElementById('titanResultBox').classList.remove('show');
-        }
-
-        // ===== ЭКСКЛЮЗИВНОЕ СНАРЯЖЕНИЕ =====
-        const gearCost = {
-            1: 5, 2: 10, 3: 20, 4: 25, 5: 30, 6: 30, 7: 30,
-            8: 30, 9: 30, 10: 30, 11: 30, 12: 40, 13: 40, 14: 40
-        };
-
-        function getGearCost(current, target) {
-            if (current >= target) return 0;
-            let total = 0;
-            for (let level = current; level < target; level++) {
-                total += gearCost[level] || 0;
-            }
-            return total;
-        }
-
-        function calculateGearExclusive() {
-            const current = parseInt(document.getElementById('gear_current').value) || 1;
-            const target = parseInt(document.getElementById('gear_target').value) || 1;
-            
-            if (current < 1) document.getElementById('gear_current').value = 1;
-            if (target < 1) document.getElementById('gear_target').value = 1;
-            if (current > 15) document.getElementById('gear_current').value = 15;
-            if (target > 15) document.getElementById('gear_target').value = 15;
-            
-            const finalCurrent = parseInt(document.getElementById('gear_current').value);
-            const finalTarget = parseInt(document.getElementById('gear_target').value);
-            
-            const cost = getGearCost(finalCurrent, finalTarget);
-            
-            document.getElementById('gear_result').textContent = `Нужно: ${cost} фрагментов`;
-            document.getElementById('gearExclusiveTotal').textContent = cost;
-            document.getElementById('gearExclusiveResultBox').classList.add('show');
-        }
-
-        function resetGearExclusive() {
-            document.getElementById('gearExclusiveForm').reset();
-            document.getElementById('gearExclusiveResultBox').classList.remove('show');
-            document.getElementById('gear_result').textContent = 'Нужно: 0 фрагментов';
-        }
-
-        // ===== ЛЕГЕНДАРНОЕ СНАРЯЖЕНИЕ =====
-        const legendaryCost = {
-            0: 1,  // 0 → 1
-            1: 1,  // 1 → 2
-            2: 1,  // 2 → 3
-            3: 2,  // 3 → 4
-            4: 2,  // 4 → 5
-            5: 3,  // 5 → 6
-            6: 3,  // 6 → 7
-            7: 3,  // 7 → 8
-            8: 4,  // 8 → 9
-            9: 5   // 9 → 10
-        };
-
-        function getLegendaryCost(current, target) {
-            if (current >= target) return 0;
-            let total = 0;
-            for (let star = current; star < target; star++) {
-                total += legendaryCost[star] || 0;
-            }
-            return total;
-        }
-
-        function calculateLegendaryGear() {
-            const current = parseInt(document.getElementById('legendary_current').value) || 0;
-            const target = parseInt(document.getElementById('legendary_target').value) || 0;
-            
-            if (current < 0) document.getElementById('legendary_current').value = 0;
-            if (target < 0) document.getElementById('legendary_target').value = 0;
-            if (current > 10) document.getElementById('legendary_current').value = 10;
-            if (target > 10) document.getElementById('legendary_target').value = 10;
-            
-            const finalCurrent = parseInt(document.getElementById('legendary_current').value);
-            const finalTarget = parseInt(document.getElementById('legendary_target').value);
-            
-            const cost = getLegendaryCost(finalCurrent, finalTarget);
-            
-            document.getElementById('legendaryGearTotal').textContent = cost;
-            document.getElementById('legendaryGearResultBox').classList.add('show');
-        }
-
-        function resetLegendaryGear() {
-            document.getElementById('legendaryGearForm').reset();
-            document.getElementById('legendaryGearResultBox').classList.remove('show');
-        }
-
-        document.querySelectorAll('#heroStarForm input').forEach(input => {
-            input.addEventListener('input', calculateHeroStars);
-        });
-
-        document.querySelectorAll('#skillForm input').forEach(input => {
-            input.addEventListener('input', calculateSkills);
-        });
-
-        document.querySelectorAll('#titanForm input').forEach(input => {
-            input.addEventListener('input', calculateTitan);
-        });
-
-        document.querySelectorAll('#gearExclusiveForm input').forEach(input => {
-            input.addEventListener('input', calculateGearExclusive);
-        });
-
-        document.querySelectorAll('#legendaryGearForm input').forEach(input => {
-            input.addEventListener('input', calculateLegendaryGear);
-        });
-
-        window.addEventListener('DOMContentLoaded', () => {
-            calculateHeroStars();
-            calculateSkills();
-            calculateTitan();
-            calculateGearExclusive();
-            calculateLegendaryGear();
-        });
-    </script>
 </body>
 </html>
