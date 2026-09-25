@@ -61,11 +61,17 @@ def get_counter_value(counter_name):
 
 @app.route('/')
 def index():
+    """Главная страница — только карусель и боковое меню"""
     increment_counter('visits')
-    return redirect(url_for('rating_view', rating_type='duel'))
+    slides = get_all_slides(only_active=True)
+    rating_types = get_all_rating_types()
+    return render_template('index.html',
+                           slides=slides,
+                           rating_types=rating_types)
 
 @app.route('/rating/<rating_type>')
 def rating_view(rating_type):
+    """Страница рейтинга — подиум, загрузка, таблица, админ-панель"""
     increment_counter('visits')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
@@ -75,12 +81,10 @@ def rating_view(rating_type):
     rating_data = get_latest_rating(rating_type)
     leaders = get_all_time_leaders(rating_type)
     display_name = get_rating_display_name(rating_type)
-    slides = get_all_slides(only_active=True)
 
-    return render_template('index.html',
+    return render_template('rating.html',
                            rating=rating_data,
                            leaders=leaders,
-                           slides=slides,
                            rating_type=rating_type,
                            display_name=display_name,
                            rating_types=rating_types)
