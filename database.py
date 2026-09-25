@@ -39,7 +39,6 @@ def init_db():
         )
     """)
     
-    # Только Дуэль (Резервуар удалён)
     rating_types = ['duel']
     for rt in rating_types:
         cursor.execute(f"""
@@ -90,6 +89,15 @@ def init_db():
             position INTEGER DEFAULT 0,
             is_active BOOLEAN DEFAULT TRUE,
             created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reservoir_map (
+            id SERIAL PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL,
+            value TEXT NOT NULL,
             updated_at TEXT NOT NULL
         )
     """)
@@ -316,7 +324,7 @@ def delete_player(rating_type, nickname):
 
 def get_all_rating_types():
     return [
-        {'id': 'duel', 'name': 'Дуэль', 'icon': '⚔️', 'color': '#ff7a1a'}
+        {'id': 'duel', 'name': 'Дуэль', 'icon': '⚔️', 'color': '#ff8a1f'}
     ]
 
 def get_rating_display_name(rating_type):
@@ -432,6 +440,50 @@ def delete_slide(slide_id):
         return True
     except Exception as e:
         print(f"Error deleting slide: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+# ===== КАРТА БОЯ (РЕЗЕРВУАР) =====
+
+def get_all_map_values():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM reservoir_map")
+    data = cursor.fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in data}
+
+def save_map_values(data_dict):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        for key, value in data_dict.items():
+            cursor.execute("""
+                INSERT INTO reservoir_map (key, value, updated_at)
+                VALUES (%s, %s, %s)
+                ON CONFLICT (key) DO UPDATE SET value = %s, updated_at = %s
+            """, (key, value, now, value, now))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error saving map values: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def reset_map_values():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM reservoir_map")
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error resetting map: {e}")
         conn.rollback()
         return False
     finally:
