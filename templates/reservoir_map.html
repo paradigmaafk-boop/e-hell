@@ -73,67 +73,72 @@
             border-radius: 14px;
             overflow: hidden;
             background: #0f0a06;
+            min-height: 700px;
+            aspect-ratio: 16 / 10;
         }
         .map-canvas img {
             display: block;
             width: 100%;
-            height: auto;
+            height: 100%;
+            object-fit: cover;
             user-select: none;
             -webkit-user-drag: none;
         }
 
-        /* ★ ОВЕРЛЕИ — поверх картинки, координаты в % от размеров картинки ★ */
+        /* ★ ОВЕРЛЕИ — поверх картинки ★ */
         .overlay {
             position: absolute;
             transform: translate(-50%, -50%);
-            background: rgba(13, 8, 4, 0.85);
+            background: rgba(13, 8, 4, 0.98);
             border: 1px solid var(--line);
             border-radius: 12px;
-            padding: 0.6rem 0.75rem;
+            padding: 0.75rem 0.9rem;
             backdrop-filter: blur(4px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
             z-index: 3;
-            min-width: 130px;
             color: var(--text);
             font-family: 'Inter', sans-serif;
         }
 
         .overlay-hq {
-            width: 15%;
-            min-width: 140px;
+            width: 17%;
+            min-width: 190px;
+            min-height: 130px;
         }
         .overlay-gbr {
-            width: 22%;
-            min-width: 180px;
+            width: 26%;
+            min-width: 240px;
+            min-height: 95px;
         }
 
         .overlay-title {
-            font-size: 0.7rem;
+            font-size: 0.78rem;
             letter-spacing: 3px;
             text-transform: uppercase;
             color: var(--dim);
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.55rem;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.45rem;
             font-weight: 500;
         }
         .overlay-title .num {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--accent);
             letter-spacing: 0;
         }
 
         .overlay-players {
-            font-size: 0.72rem;
-            line-height: 1.4;
-            margin-bottom: 0.5rem;
+            font-size: 0.82rem;
+            line-height: 1.5;
+            margin-bottom: 0.65rem;
             color: var(--text);
             cursor: text;
             border-radius: 4px;
-            padding: 0.1rem 0.2rem;
+            padding: 0.15rem 0.25rem;
             transition: background 0.15s ease;
+            word-break: break-word;
         }
         .overlay-players:hover { background: rgba(255, 255, 255, 0.04); }
         .overlay-players[contenteditable="true"]:focus {
@@ -145,16 +150,16 @@
         .overlay-stages {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.25rem;
+            gap: 0.35rem;
         }
 
         .stage {
             display: flex; align-items: center;
             justify-content: center;
-            font-size: 0.66rem; padding: 0.28rem 0.4rem;
-            border-radius: 6px; font-weight: 600;
+            font-size: 0.75rem; padding: 0.4rem 0.5rem;
+            border-radius: 8px; font-weight: 600;
             color: #0d0804; cursor: text;
-            min-height: 1.6em;
+            min-height: 1.9em;
             text-align: center;
             white-space: nowrap;
         }
@@ -166,18 +171,18 @@
             outline: 2px solid var(--accent); outline-offset: 1px;
         }
 
-        /* ГБР — в одну строку */
         .overlay-gbr .overlay-stages {
             grid-template-columns: repeat(4, 1fr);
+            gap: 0.3rem;
         }
 
         .overlay-gbr-name {
-            font-size: 0.9rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--text);
             text-align: center;
-            padding: 0.2rem 0.5rem;
-            margin-bottom: 0.4rem;
+            padding: 0.3rem 0.6rem;
+            margin-bottom: 0.55rem;
             border-radius: 6px;
             cursor: text;
         }
@@ -187,17 +192,17 @@
             color: var(--accent-warm);
         }
 
-        /* Резерв */
         .overlay-reserve {
-            width: 26%;
-            min-width: 220px;
+            width: 30%;
+            min-width: 280px;
+            min-height: 95px;
         }
         .overlay-reserve .overlay-players {
             margin-bottom: 0;
             display: flex;
             flex-wrap: wrap;
-            gap: 0.2rem 0.6rem;
-            font-size: 0.68rem;
+            gap: 0.25rem 0.7rem;
+            font-size: 0.78rem;
         }
         .overlay-reserve .overlay-players span {
             cursor: text;
@@ -218,7 +223,7 @@
 
         body.light-theme .map-wrap { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
         body.light-theme .overlay {
-            background: rgba(255, 251, 242, 0.92);
+            background: rgba(255, 251, 242, 0.96);
             border-color: #e8dcc8;
         }
         body.light-theme .overlay-players,
@@ -227,12 +232,13 @@
         }
 
         @media (max-width: 1200px) {
-            .overlay { padding: 0.5rem 0.6rem; border-radius: 10px; }
-            .overlay-hq { min-width: 120px; }
-            .overlay-gbr { min-width: 160px; }
-            .overlay-players { font-size: 0.66rem; }
-            .stage { font-size: 0.6rem; padding: 0.24rem 0.35rem; }
-            .overlay-gbr-name { font-size: 0.8rem; }
+            .overlay { padding: 0.6rem 0.75rem; border-radius: 10px; }
+            .overlay-hq { min-width: 170px; min-height: 115px; }
+            .overlay-gbr { min-width: 220px; min-height: 85px; }
+            .overlay-players { font-size: 0.76rem; }
+            .stage { font-size: 0.7rem; padding: 0.35rem 0.4rem; }
+            .overlay-gbr-name { font-size: 0.95rem; }
+            .overlay-reserve { min-width: 250px; }
         }
 
         @media (max-width: 900px) {
@@ -257,22 +263,22 @@
                 opacity: 0.6;
             }
 
-            /* На мобилке — карта 1400px по ширине, скроллится */
             .map-canvas {
                 min-width: 1400px;
+                min-height: 875px;
             }
 
-            .overlay { padding: 0.6rem 0.7rem; }
-            .overlay-hq { min-width: 150px; }
-            .overlay-gbr { min-width: 200px; }
-            .overlay-players { font-size: 0.72rem; }
-            .stage { font-size: 0.68rem; padding: 0.3rem 0.45rem; }
-            .overlay-gbr-name { font-size: 0.9rem; }
+            .overlay { padding: 0.7rem 0.8rem; }
+            .overlay-hq { min-width: 210px; min-height: 135px; }
+            .overlay-gbr { min-width: 260px; min-height: 100px; }
+            .overlay-players { font-size: 0.82rem; }
+            .stage { font-size: 0.76rem; padding: 0.4rem 0.5rem; }
+            .overlay-gbr-name { font-size: 1.05rem; }
+            .overlay-reserve { min-width: 300px; min-height: 100px; }
         }
     </style>
 </head>
-
-    <body>
+<body>
 
 <div class="page">
 
@@ -421,7 +427,7 @@
                     </div>
                 </div>
 
-                <!-- ★ РЕЗЕРВ — правый нижний угол (между штабом 4 и низом) ★ -->
+                <!-- ★ РЕЗЕРВ — правый нижний угол ★ -->
                 <div class="overlay overlay-reserve" style="left: 72%; top: 95%;">
                     <div class="overlay-title" style="justify-content: center; letter-spacing: 4px;">Резерв</div>
                     <div class="overlay-players">
