@@ -158,32 +158,38 @@
             outline: 2px solid var(--accent); outline-offset: 1px;
         }
 
+        /* ★★★ ПЕСОЧНЫЙ ФОН КАРТЫ ★★★ */
         .field {
             position: relative;
-            background: #0f0a06;
+            background:
+                /* Песчаные барханы — слои */
+                radial-gradient(ellipse 60% 40% at 30% 30%, rgba(230, 200, 140, 0.15), transparent 70%),
+                radial-gradient(ellipse 50% 35% at 75% 60%, rgba(200, 165, 100, 0.12), transparent 70%),
+                radial-gradient(ellipse 70% 45% at 50% 90%, rgba(180, 140, 80, 0.16), transparent 70%),
+                radial-gradient(ellipse 40% 30% at 85% 15%, rgba(210, 175, 110, 0.12), transparent 70%),
+                /* Основной песочный градиент */
+                linear-gradient(180deg, #c9b183 0%, #bda474 25%, #b3986a 50%, #a88c5e 75%, #8f7548 100%);
             border: 1px solid var(--line);
             border-radius: 14px;
             height: 100%;
             overflow: hidden;
             z-index: 1;
         }
-        .field::before {
-            content: "";
-            position: absolute; inset: 0;
-            background:
-                radial-gradient(ellipse 30% 25% at 50% 55%, rgba(180, 130, 80, 0.18), transparent 70%),
-                radial-gradient(ellipse 25% 20% at 20% 15%, rgba(160, 120, 80, 0.10), transparent 70%),
-                radial-gradient(ellipse 25% 20% at 85% 85%, rgba(160, 120, 80, 0.10), transparent 70%);
-            pointer-events: none; z-index: 0;
-        }
+
+        /* Зёрнышки песка */
         .field::after {
             content: "";
             position: absolute; inset: 0;
             background-image:
-                linear-gradient(rgba(217, 199, 163, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(217, 199, 163, 0.02) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none; z-index: 0;
+                radial-gradient(circle at 20% 30%, rgba(80, 60, 30, 0.08) 1px, transparent 1.5px),
+                radial-gradient(circle at 70% 60%, rgba(80, 60, 30, 0.06) 1px, transparent 1.5px),
+                radial-gradient(circle at 40% 80%, rgba(80, 60, 30, 0.07) 1px, transparent 1.5px),
+                radial-gradient(circle at 85% 25%, rgba(80, 60, 30, 0.06) 1px, transparent 1.5px),
+                radial-gradient(circle at 55% 45%, rgba(80, 60, 30, 0.06) 1px, transparent 1.5px);
+            background-size: 40px 40px, 60px 60px, 50px 50px, 70px 70px, 55px 55px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.7;
         }
 
         .point {
@@ -202,7 +208,7 @@
             display: flex; align-items: center; justify-content: center;
             font-size: 1.45rem;
             box-shadow:
-                0 8px 18px rgba(0, 0, 0, 0.7),
+                0 8px 18px rgba(0, 0, 0, 0.5),
                 inset 0 1px 0 rgba(255, 200, 120, 0.12),
                 inset 0 -2px 4px rgba(0, 0, 0, 0.5);
             position: relative;
@@ -219,7 +225,7 @@
             border-color: var(--gold);
             transform: translateY(-3px);
             box-shadow:
-                0 10px 26px rgba(217, 178, 106, 0.3),
+                0 10px 26px rgba(217, 178, 106, 0.4),
                 inset 0 1px 0 rgba(255, 200, 120, 0.2);
         }
 
@@ -284,8 +290,8 @@
             font-size: 2rem;
             border-color: var(--gold);
             box-shadow:
-                0 0 24px rgba(217, 178, 106, 0.25),
-                0 10px 24px rgba(0, 0, 0, 0.8),
+                0 0 24px rgba(217, 178, 106, 0.35),
+                0 10px 24px rgba(0, 0, 0, 0.7),
                 inset 0 1px 0 rgba(255, 200, 120, 0.2);
         }
         .point.water-collector .point-icon {
@@ -339,14 +345,6 @@
 
         body.light-theme .map-wrap { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
         body.light-theme .hq, body.light-theme .gbr-top, body.light-theme .gbr-bottom {
-            background: rgba(255, 251, 242, 0.95);
-        }
-        body.light-theme .field { background: #fffbf2; }
-        body.light-theme .point-icon {
-            background: linear-gradient(180deg, #f0e4d0, #e0d4c0);
-            border-color: #d4b886;
-        }
-        body.light-theme .point-name {
             background: rgba(255, 251, 242, 0.95);
         }
 
@@ -530,7 +528,8 @@
 
                     <div class="field" id="field">
 
-                        <div class="point" style="left: 14%; top: 12%;">
+                        <!-- Солнечная электростанция -->
+                        <div class="point" style="left: 10%; top: 22%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">☀️</div>
                                 <div class="stage-badges">
@@ -541,7 +540,8 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная электростанция') }}</div>
                         </div>
 
-                        <div class="point" style="left: 36%; top: 14%;">
+                        <!-- ВПЗ 3 -->
+                        <div class="point" style="left: 38%; top: 12%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">💧</div>
                                 <div class="stage-badges">
@@ -551,7 +551,8 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'Водоперерабатывающий завод 3') }}</div>
                         </div>
 
-                        <div class="point" style="left: 82%; top: 20%;">
+                        <!-- ВПЗ 2 -->
+                        <div class="point" style="left: 88%; top: 12%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">💧</div>
                                 <div class="stage-badges">
@@ -561,7 +562,8 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'Водоперерабатывающий завод 2') }}</div>
                         </div>
 
-                        <div class="point" style="left: 32%; top: 36%;">
+                        <!-- Комплекс разработки -->
+                        <div class="point" style="left: 28%; top: 32%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🧪</div>
                                 <div class="stage-badges">
@@ -572,6 +574,41 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс разработки') }}</div>
                         </div>
 
+                        <!-- Водосборник верхний -->
+                        <div class="point water-collector" style="left: 48%; top: 32%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s4">1</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <!-- ВОЦ 2 -->
+                        <div class="point" style="left: 68%; top: 32%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🏭</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tr s2">3</span>
+                                    <span class="stage-badge tl gbr2">2Г</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'Водоочистительный центр 2') }}</div>
+                        </div>
+
+                        <!-- Водосборник левый -->
+                        <div class="point water-collector" style="left: 28%; top: 52%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s4">2</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <!-- Центральный резервуар -->
                         <div class="point center-point" style="left: 50%; top: 50%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🏰</div>
@@ -583,7 +620,19 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центральный резервуар') }}</div>
                         </div>
 
-                        <div class="point" style="left: 36%; top: 72%;">
+                        <!-- Водосборник правый -->
+                        <div class="point water-collector" style="left: 72%; top: 52%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tr s4">3</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <!-- ВОЦ 1 -->
+                        <div class="point" style="left: 28%; top: 72%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🏭</div>
                                 <div class="stage-badges">
@@ -591,21 +640,22 @@
                                     <span class="stage-badge tl gbr1">1Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'Водоочистительный центр 2') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'Водоочистительный центр 1') }}</div>
                         </div>
 
-                        <div class="point" style="left: 68%; top: 34%;">
+                        <!-- Водосборник нижний -->
+                        <div class="point water-collector" style="left: 48%; top: 72%;">
                             <div class="point-icon-wrap">
-                                <div class="point-icon">🏭</div>
+                                <div class="point-icon">🛢️</div>
                                 <div class="stage-badges">
-                                    <span class="stage-badge tr s2">3</span>
-                                    <span class="stage-badge tl gbr2">2Г</span>
+                                    <span class="stage-badge bl s4">4</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'Водоочистительный центр 1') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
                         </div>
 
-                        <div class="point" style="left: 66%; top: 66%;">
+                        <!-- Военный завод -->
+                        <div class="point" style="left: 68%; top: 72%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">⚙️</div>
                                 <div class="stage-badges">
@@ -616,18 +666,8 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
                         </div>
 
-                        <div class="point" style="left: 86%; top: 84%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🛬</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge bl s1">3</span>
-                                    <span class="stage-badge tl gbr2">2Г</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Заброшенная вертолётная площадка') }}</div>
-                        </div>
-
-                        <div class="point" style="left: 22%; top: 80%;">
+                        <!-- ВПЗ 1 -->
+                        <div class="point" style="left: 10%; top: 88%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">💧</div>
                                 <div class="stage-badges">
@@ -637,7 +677,8 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'Водоперерабатывающий завод 1') }}</div>
                         </div>
 
-                        <div class="point" style="left: 66%; top: 88%;">
+                        <!-- ВПЗ 4 -->
+                        <div class="point" style="left: 60%; top: 88%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">💧</div>
                                 <div class="stage-badges">
@@ -647,44 +688,16 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'Водоперерабатывающий завод 4') }}</div>
                         </div>
 
-                        <div class="point water-collector" style="left: 46%; top: 28%;">
+                        <!-- Заброшенная вертолётная площадка -->
+                        <div class="point" style="left: 88%; top: 88%;">
                             <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
+                                <div class="point-icon">🛬</div>
                                 <div class="stage-badges">
-                                    <span class="stage-badge tl s4">1</span>
+                                    <span class="stage-badge bl s1">3</span>
+                                    <span class="stage-badge tl gbr2">2Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
-                        </div>
-
-                        <div class="point water-collector" style="left: 32%; top: 56%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge tl s4">2</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
-                        </div>
-
-                        <div class="point water-collector" style="left: 71%; top: 54%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge tr s4">3</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
-                        </div>
-
-                        <div class="point water-collector" style="left: 50%; top: 72%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge bl s4">4</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Заброшенная вертолётная площадка') }}</div>
                         </div>
 
                     </div>
