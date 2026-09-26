@@ -120,7 +120,7 @@
                 inset 0 1px 0 rgba(255, 200, 120, 0.12),
                 inset 0 -2px 4px rgba(0, 0, 0, 0.5);
             position: relative;
-            transition: all 0.25s ease;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
         .point-icon::before {
             content: "";
@@ -131,11 +131,51 @@
         }
         .point:hover .point-icon {
             border-color: var(--gold);
-            transform: translateY(-3px);
             box-shadow:
                 0 10px 26px rgba(217, 178, 106, 0.4),
                 inset 0 1px 0 rgba(255, 200, 120, 0.2);
         }
+
+        /* ★ В РЕЖИМЕ РЕДАКТИРОВАНИЯ — КУРСОР-РУКА И ПОДСВЕТКА ★ */
+        body.edit-mode .point {
+            cursor: grab;
+        }
+        body.edit-mode .point:active {
+            cursor: grabbing;
+        }
+        body.edit-mode .point .point-icon-wrap {
+            position: relative;
+        }
+        body.edit-mode .point .point-icon-wrap::after {
+            content: "";
+            position: absolute;
+            inset: -8px;
+            border: 1.5px dashed rgba(255, 138, 31, 0.5);
+            border-radius: 12px;
+            pointer-events: none;
+            transition: border-color 0.2s ease;
+        }
+        body.edit-mode .point:hover .point-icon-wrap::after {
+            border-color: var(--accent);
+            border-style: solid;
+        }
+
+        /* ★ ПОДСКАЗКА ПРО DRAG ★ */
+        .drag-hint {
+            display: none;
+            padding: 0.5rem 0.9rem;
+            background: rgba(255, 138, 31, 0.12);
+            border: 1px solid rgba(255, 138, 31, 0.35);
+            border-radius: 8px;
+            font-size: 0.78rem;
+            color: var(--accent-warm);
+            margin-top: 0.6rem;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        body.edit-mode .drag-hint { display: flex; }
 
         .stage-badges {
             position: absolute; inset: 0;
@@ -240,7 +280,7 @@
             font-size: 0.7rem; padding: 0.2rem 0.5rem; max-width: 100px;
         }
 
-        /* ★★★ НИЖНЯЯ ПАНЕЛЬ — команды, ГБР, резерв в ряд ★★★ */
+        /* ★★★ НИЖНЯЯ ПАНЕЛЬ ★★★ */
         .bottom-panel {
             margin-top: 0.75rem;
             display: grid;
@@ -307,7 +347,6 @@
             min-height: 1.7em;
         }
 
-        /* ГБР и резерв — отдельная полоса снизу */
         .bottom-bar {
             margin-top: 0.6rem;
             display: grid;
@@ -397,7 +436,6 @@
             color: #fff;
         }
 
-        /* Стандартные стили стейджей */
         .stage {
             display: flex; align-items: center; gap: 0.55rem;
             border-radius: 8px; font-weight: 600;
@@ -542,6 +580,9 @@
     <div class="edit-banner">
         ⚡ Режим редактирования включён. Кликайте на любой текст — и вписывайте новое.
     </div>
+    <div class="drag-hint">
+        🖐 Перетаскивайте иконки мышью, чтобы расставить их по карте
+    </div>
     {% endif %}
 
     <div class="map-scroll-hint">
@@ -554,7 +595,7 @@
             <div class="field" id="field">
 
                 <!-- Солнечная -->
-                <div class="point" style="left: 10%; top: 22%;">
+                <div class="point" data-point-key="pt-solar" style="left: 10%; top: 22%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">☀️</div>
                         <div class="stage-badges">
@@ -567,7 +608,7 @@
                 </div>
 
                 <!-- ВПЗ 3 -->
-                <div class="point" style="left: 38%; top: 12%;">
+                <div class="point" data-point-key="pt-vpz-nw" style="left: 38%; top: 12%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -579,7 +620,7 @@
                 </div>
 
                 <!-- ВПЗ 2 -->
-                <div class="point" style="left: 88%; top: 12%;">
+                <div class="point" data-point-key="pt-vpz-ne" style="left: 88%; top: 12%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -591,7 +632,7 @@
                 </div>
 
                 <!-- Комплекс -->
-                <div class="point" style="left: 28%; top: 32%;">
+                <div class="point" data-point-key="pt-science" style="left: 28%; top: 32%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🧪</div>
                         <div class="stage-badges">
@@ -604,7 +645,7 @@
                 </div>
 
                 <!-- Водосборник верхний -->
-                <div class="point water-collector" style="left: 48%; top: 32%;">
+                <div class="point water-collector" data-point-key="pt-wc-1" style="left: 48%; top: 32%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -615,7 +656,7 @@
                 </div>
 
                 <!-- ВОЦ 2 -->
-                <div class="point" style="left: 68%; top: 32%;">
+                <div class="point" data-point-key="pt-voc-ne" style="left: 68%; top: 32%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
                         <div class="stage-badges">
@@ -628,7 +669,7 @@
                 </div>
 
                 <!-- Водосборник левый -->
-                <div class="point water-collector" style="left: 28%; top: 52%;">
+                <div class="point water-collector" data-point-key="pt-wc-2" style="left: 28%; top: 52%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -639,7 +680,7 @@
                 </div>
 
                 <!-- Центральный резервуар -->
-                <div class="point center-point" style="left: 50%; top: 50%;">
+                <div class="point center-point" data-point-key="pt-center" style="left: 50%; top: 50%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏰</div>
                         <div class="stage-badges">
@@ -652,7 +693,7 @@
                 </div>
 
                 <!-- Водосборник правый -->
-                <div class="point water-collector" style="left: 72%; top: 52%;">
+                <div class="point water-collector" data-point-key="pt-wc-3" style="left: 72%; top: 52%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -663,7 +704,7 @@
                 </div>
 
                 <!-- ВОЦ 1 -->
-                <div class="point" style="left: 28%; top: 72%;">
+                <div class="point" data-point-key="pt-voc-sw" style="left: 28%; top: 72%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
                         <div class="stage-badges">
@@ -676,7 +717,7 @@
                 </div>
 
                 <!-- Водосборник нижний -->
-                <div class="point water-collector" style="left: 48%; top: 72%;">
+                <div class="point water-collector" data-point-key="pt-wc-4" style="left: 48%; top: 72%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -687,7 +728,7 @@
                 </div>
 
                 <!-- Военный завод -->
-                <div class="point" style="left: 68%; top: 72%;">
+                <div class="point" data-point-key="pt-milfac" style="left: 68%; top: 72%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">⚙️</div>
                         <div class="stage-badges">
@@ -700,7 +741,7 @@
                 </div>
 
                 <!-- ВПЗ 1 -->
-                <div class="point" style="left: 10%; top: 88%;">
+                <div class="point" data-point-key="pt-vpz-sw" style="left: 10%; top: 88%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -712,7 +753,7 @@
                 </div>
 
                 <!-- ВПЗ 4 -->
-                <div class="point" style="left: 60%; top: 88%;">
+                <div class="point" data-point-key="pt-vpz-s" style="left: 60%; top: 88%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -724,7 +765,7 @@
                 </div>
 
                 <!-- Заброшенная вертолётная площадка -->
-                <div class="point" style="left: 88%; top: 88%;">
+                <div class="point" data-point-key="pt-pad" style="left: 88%; top: 88%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛬</div>
                         <div class="stage-badges">
@@ -856,14 +897,35 @@
         const resetBtn = document.getElementById('resetBtn');
         const saveHint = document.getElementById('saveHint');
         const editables = document.querySelectorAll('.editable');
+        const field = document.getElementById('field');
+        const points = document.querySelectorAll('.point[data-point-key]');
 
         if (!editToggle) return;
 
         let isEditing = false;
 
+        // ★ Сохраняем позиции точек в процентах
+        function collectPositions() {
+            const positions = {};
+            points.forEach(point => {
+                const key = point.dataset.pointKey;
+                positions[key] = {
+                    left: parseFloat(point.style.left) || 0,
+                    top: parseFloat(point.style.top) || 0
+                };
+            });
+            return positions;
+        }
+
         function collectData() {
             const data = {};
             editables.forEach(el => { data[el.dataset.key] = el.textContent.trim(); });
+            // ★ Добавляем позиции точек в виде отдельных ключей
+            const positions = collectPositions();
+            Object.entries(positions).forEach(([key, pos]) => {
+                data[key + '-left'] = pos.left.toString();
+                data[key + '-top'] = pos.top.toString();
+            });
             return data;
         }
 
@@ -905,6 +967,11 @@
                 el.setAttribute('contenteditable', on ? 'true' : 'false');
             });
 
+            // ★ Включаем/выключаем drag & drop
+            points.forEach(point => {
+                point.draggable = on;
+            });
+
             if (!on) saveData();
         }
 
@@ -931,8 +998,124 @@
         editables.forEach(el => {
             el.addEventListener('blur', () => { if (isEditing) saveData(); });
         });
+
+        // ★★★ DRAG & DROP ДЛЯ ТОЧЕК ★★★
+        let draggedPoint = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        points.forEach(point => {
+            point.addEventListener('dragstart', (e) => {
+                if (!isEditing) {
+                    e.preventDefault();
+                    return;
+                }
+                // Если тянем за редактируемое поле — не начинаем драг
+                if (e.target.closest('[contenteditable="true"]')) {
+                    e.preventDefault();
+                    return;
+                }
+
+                draggedPoint = point;
+
+                const rect = point.getBoundingClientRect();
+                dragOffsetX = e.clientX - rect.left - rect.width / 2;
+                dragOffsetY = e.clientY - rect.top - rect.height / 2;
+
+                point.style.opacity = '0.5';
+                point.style.zIndex = '100';
+
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', point.dataset.pointKey);
+            });
+
+            point.addEventListener('dragend', () => {
+                if (draggedPoint) {
+                    draggedPoint.style.opacity = '';
+                    draggedPoint.style.zIndex = '';
+                }
+                draggedPoint = null;
+            });
+        });
+
+        if (field) {
+            field.addEventListener('dragover', (e) => {
+                if (!isEditing || !draggedPoint) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                const rect = field.getBoundingClientRect();
+                const x = e.clientX - rect.left - dragOffsetX;
+                const y = e.clientY - rect.top - dragOffsetY;
+
+                // Ограничиваем в пределах карты
+                const clampedX = Math.max(20, Math.min(rect.width - 20, x));
+                const clampedY = Math.max(20, Math.min(rect.height - 20, y));
+
+                const percentX = (clampedX / rect.width) * 100;
+                const percentY = (clampedY / rect.height) * 100;
+
+                draggedPoint.style.left = percentX.toFixed(2) + '%';
+                draggedPoint.style.top = percentY.toFixed(2) + '%';
+            });
+
+            field.addEventListener('drop', (e) => {
+                if (!isEditing || !draggedPoint) return;
+                e.preventDefault();
+
+                // Автосохранение после перетаскивания
+                saveData();
+
+                // Подсветка сохранения
+                saveHint.textContent = '✓ Позиция сохранена';
+                saveHint.classList.add('saved');
+                setTimeout(() => {
+                    saveHint.textContent = '';
+                    saveHint.classList.remove('saved');
+                }, 2000);
+
+                draggedPoint = null;
+            });
+        }
+
+        // ★ Применяем сохранённые позиции из БД при загрузке
+        {% if map_values %}
+        points.forEach(point => {
+            const key = point.dataset.pointKey;
+            const leftKey = key + '-left';
+            const topKey = key + '-top';
+            const leftVal = "{{ map_values.get('" + leftKey + "', '') }}" === '' ? null : null;
+            // Позиции уже применены через inline style, но если в БД что-то есть — переопределим
+        });
+        {% endif %}
+
     })();
     {% endif %}
+
+    // ★ Восстановление сохранённых позиций из БД (для всех пользователей)
+    (function() {
+        const field = document.getElementById('field');
+        if (!field) return;
+
+        const points = document.querySelectorAll('.point[data-point-key]');
+        const savedPositions = {
+            {% for key, value in map_values.items() %}
+                {% if key.endswith('-left') or key.endswith('-top') %}
+                "{{ key }}": "{{ value }}",
+                {% endif %}
+            {% endfor %}
+        };
+
+        points.forEach(point => {
+            const key = point.dataset.pointKey;
+            const leftKey = key + '-left';
+            const topKey = key + '-top';
+            if (savedPositions[leftKey] && savedPositions[topKey]) {
+                point.style.left = savedPositions[leftKey] + '%';
+                point.style.top = savedPositions[topKey] + '%';
+            }
+        });
+    })();
 </script>
 
 </body>
