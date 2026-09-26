@@ -96,9 +96,9 @@
 
         .layout {
             display: grid;
-            grid-template-columns: 240px 1fr 240px;
-            grid-template-rows: var(--map-height, 620px);
-            gap: 0 1.25rem;
+            grid-template-columns: 260px 1fr 260px;
+            grid-template-rows: var(--map-height, 800px);
+            gap: 0 1.5rem;
             align-items: stretch;
         }
 
@@ -182,7 +182,7 @@
             background-image:
                 linear-gradient(rgba(217, 199, 163, 0.02) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(217, 199, 163, 0.02) 1px, transparent 1px);
-            background-size: 50px 50px;
+            background-size: 60px 60px;
             pointer-events: none; z-index: 0;
         }
 
@@ -258,18 +258,18 @@
         }
 
         .point-name {
-            font-size: 0.7rem; font-weight: 500;
+            font-size: 0.72rem; font-weight: 500;
             color: var(--text);
             background: rgba(13, 8, 4, 0.92);
-            padding: 0.25rem 0.6rem;
+            padding: 0.28rem 0.65rem;
             border-radius: 6px;
             border: 1px solid var(--line);
-            white-space: normal; text-align: center;
-            line-height: 1.25; max-width: 130px;
+            white-space: nowrap; text-align: center;
+            line-height: 1.3; max-width: 160px;
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
             cursor: text;
             transition: all 0.2s ease;
-            word-break: break-word;
+            word-break: normal;
         }
         .point-name:hover { border-color: var(--gold); color: #fff; }
         .point-name[contenteditable="true"]:focus {
@@ -280,8 +280,8 @@
         }
 
         .point.center-point .point-icon {
-            width: 80px; height: 68px;
-            font-size: 2rem;
+            width: 86px; height: 74px;
+            font-size: 2.1rem;
             border-color: var(--gold);
             box-shadow:
                 0 0 24px rgba(217, 178, 106, 0.25),
@@ -289,12 +289,12 @@
                 inset 0 1px 0 rgba(255, 200, 120, 0.2);
         }
         .point.water-collector .point-icon {
-            width: 44px; height: 38px;
-            font-size: 1.1rem;
+            width: 48px; height: 42px;
+            font-size: 1.15rem;
             border-radius: 7px;
         }
         .point.water-collector .point-name {
-            font-size: 0.64rem; padding: 0.16rem 0.42rem; max-width: 80px;
+            font-size: 0.66rem; padding: 0.2rem 0.5rem; max-width: 100px;
         }
 
         .reserve {
@@ -325,7 +325,7 @@
             --stage-2: #3fbf6a;
             --stage-3: #e8a63a;
             --stage-4: #e84a8c;
-            --map-height: 620px;
+            --map-height: 800px;
         }
 
         .hq-1 { grid-column: 1; grid-row: 1; align-self: start; }
@@ -351,16 +351,16 @@
         }
 
         @media (max-width: 1200px) {
-            :root { --map-height: 560px; }
-            .layout { grid-template-columns: 210px 1fr 210px; gap: 0 0.85rem; }
-            .point-icon { width: 50px; height: 44px; font-size: 1.2rem; }
-            .point.center-point .point-icon { width: 68px; height: 58px; font-size: 1.65rem; }
-            .point-name { font-size: 0.66rem; max-width: 115px; }
-            .point.water-collector .point-icon { width: 38px; height: 34px; font-size: 0.95rem; }
-            .point.water-collector .point-name { font-size: 0.58rem; max-width: 70px; }
-            .hq-players { font-size: 0.8rem; }
-            .stage { font-size: 0.72rem; }
-            .stage-badge { height: 16px; min-width: 16px; font-size: 0.52rem; padding: 0 3px; }
+            :root { --map-height: 700px; }
+            .layout { grid-template-columns: 230px 1fr 230px; gap: 0 1rem; }
+            .point-icon { width: 54px; height: 48px; font-size: 1.35rem; }
+            .point.center-point .point-icon { width: 78px; height: 66px; font-size: 1.9rem; }
+            .point-name { font-size: 0.68rem; max-width: 140px; }
+            .point.water-collector .point-icon { width: 44px; height: 38px; font-size: 1.05rem; }
+            .point.water-collector .point-name { font-size: 0.62rem; max-width: 90px; }
+            .hq-players { font-size: 0.82rem; }
+            .stage { font-size: 0.74rem; }
+            .stage-badge { height: 16px; min-width: 16px; font-size: 0.54rem; padding: 0 3px; }
         }
 
         @media (max-width: 900px) {
@@ -369,15 +369,15 @@
             .map-scroll-hint { display: block; }
 
             .map-scroll {
-                overflow-x: auto;
-                overflow-y: hidden;
+                overflow: auto;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: thin;
                 scrollbar-color: var(--accent) transparent;
                 margin: 0 -0.75rem;
                 padding: 0 0.75rem;
+                max-height: 75vh;
             }
-            .map-scroll::-webkit-scrollbar { height: 6px; }
+            .map-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
             .map-scroll::-webkit-scrollbar-track { background: transparent; }
             .map-scroll::-webkit-scrollbar-thumb {
                 background: var(--accent);
@@ -385,28 +385,33 @@
                 opacity: 0.6;
             }
 
-            .map-inner { min-width: 900px; }
+            /* ★★★ БОЛЬШАЯ КАРТА НА МОБИЛКЕ ★★★ */
+            .map-inner {
+                min-width: 1300px;
+                min-height: 850px;
+            }
 
             .layout {
-                grid-template-columns: 220px 1fr 220px;
-                grid-template-rows: 560px;
-                gap: 0 1rem;
+                grid-template-columns: 260px 1fr 260px;
+                grid-template-rows: 800px;
+                gap: 0 1.5rem;
             }
-            .field { grid-column: 2; grid-row: 1; height: 560px; }
+            .field { grid-column: 2; grid-row: 1; height: 800px; }
             .hq { max-height: calc(50% - 0.5rem); align-self: auto; }
             .hq-1 { grid-column: 1; grid-row: 1; align-self: start; }
             .hq-3 { grid-column: 3; grid-row: 1; align-self: start; }
             .hq-2 { grid-column: 1; grid-row: 1; align-self: end; }
             .hq-4 { grid-column: 3; grid-row: 1; align-self: end; }
 
-            .point-icon { width: 50px; height: 44px; font-size: 1.2rem; }
-            .point.center-point .point-icon { width: 68px; height: 58px; font-size: 1.65rem; }
-            .point-name { font-size: 0.66rem; max-width: 120px; }
-            .point.water-collector .point-icon { width: 38px; height: 34px; font-size: 0.95rem; }
-            .point.water-collector .point-name { font-size: 0.58rem; max-width: 75px; }
-            .stage-badge { height: 16px; min-width: 16px; font-size: 0.52rem; padding: 0 3px; }
-            .hq-players { font-size: 0.8rem; }
-            .stage { font-size: 0.72rem; }
+            /* ★ Увеличенные объекты, чтобы читались на большом поле ★ */
+            .point-icon { width: 62px; height: 54px; font-size: 1.55rem; }
+            .point.center-point .point-icon { width: 92px; height: 78px; font-size: 2.2rem; }
+            .point-name { font-size: 0.78rem; max-width: 165px; padding: 0.3rem 0.7rem; }
+            .point.water-collector .point-icon { width: 52px; height: 44px; font-size: 1.2rem; }
+            .point.water-collector .point-name { font-size: 0.7rem; max-width: 110px; }
+            .stage-badge { height: 20px; min-width: 20px; font-size: 0.62rem; padding: 0 5px; border-width: 2.5px; }
+            .hq-players { font-size: 0.88rem; }
+            .stage { font-size: 0.8rem; padding: 0.35rem 0.75rem; }
 
             .gbr-top, .gbr-bottom {
                 align-self: stretch;
@@ -418,7 +423,8 @@
         }
     </style>
 </head>
-<body>
+
+    <body>
 
 <div class="page">
 
@@ -486,7 +492,7 @@
     {% endif %}
 
     <div class="map-scroll-hint">
-        ↔ Проведите по карте, чтобы увидеть все объекты
+        ↔ Скролльте карту в любую сторону, чтобы увидеть все объекты
     </div>
 
     <div class="map-wrap">
@@ -530,7 +536,8 @@
 
                     <div class="field" id="field">
 
-                        <div class="point" style="left: 14%; top: 12%;">
+                        <!-- Верхний ряд -->
+                        <div class="point" style="left: 10%; top: 10%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">☀️</div>
                                 <div class="stage-badges">
@@ -541,7 +548,7 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная электростанция') }}</div>
                         </div>
 
-                        <div class="point" style="left: 36%; top: 14%;">
+                        <div class="point" style="left: 42%; top: 8%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">💧</div>
                                 <div class="stage-badges">
@@ -551,7 +558,18 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'Водоперерабатывающий завод 3') }}</div>
                         </div>
 
-                        <div class="point" style="left: 32%; top: 36%;">
+                        <div class="point" style="left: 88%; top: 12%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">💧</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tr s2">1</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'Водоперерабатывающий завод 2') }}</div>
+                        </div>
+
+                        <!-- Центр-лево -->
+                        <div class="point" style="left: 22%; top: 34%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🧪</div>
                                 <div class="stage-badges">
@@ -562,6 +580,7 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс разработки') }}</div>
                         </div>
 
+                        <!-- Центр -->
                         <div class="point center-point" style="left: 50%; top: 50%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🏰</div>
@@ -573,18 +592,8 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центральный резервуар') }}</div>
                         </div>
 
-                        <div class="point" style="left: 36%; top: 72%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🏭</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge bl s2">4</span>
-                                    <span class="stage-badge tl gbr1">1Г</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'Водоочистительный центр 2') }}</div>
-                        </div>
-
-                        <div class="point" style="left: 68%; top: 34%;">
+                        <!-- Центр-право -->
+                        <div class="point" style="left: 78%; top: 36%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🏭</div>
                                 <div class="stage-badges">
@@ -595,7 +604,49 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'Водоочистительный центр 1') }}</div>
                         </div>
 
-                        <div class="point" style="left: 66%; top: 66%;">
+                        <!-- Водосборники вокруг центрального -->
+                        <div class="point water-collector" style="left: 42%; top: 26%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s4">1</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <div class="point water-collector" style="left: 26%; top: 58%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s4">2</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <div class="point water-collector" style="left: 74%; top: 56%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tr s4">3</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <div class="point water-collector" style="left: 50%; top: 74%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge bl s4">4</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <!-- Военный завод -->
+                        <div class="point" style="left: 70%; top: 70%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">⚙️</div>
                                 <div class="stage-badges">
@@ -606,28 +657,20 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
                         </div>
 
-                        <div class="point" style="left: 86%; top: 84%;">
+                        <!-- ВОЦ 2 (низ-лево) -->
+                        <div class="point" style="left: 26%; top: 88%;">
                             <div class="point-icon-wrap">
-                                <div class="point-icon">🛬</div>
+                                <div class="point-icon">🏭</div>
                                 <div class="stage-badges">
-                                    <span class="stage-badge bl s1">3</span>
-                                    <span class="stage-badge tl gbr2">2Г</span>
+                                    <span class="stage-badge bl s2">4</span>
+                                    <span class="stage-badge tl gbr1">1Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Заброшенная вертолётная площадка') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'Водоочистительный центр 2') }}</div>
                         </div>
 
-                        <div class="point" style="left: 82%; top: 20%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">💧</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge tr s2">1</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'Водоперерабатывающий завод 2') }}</div>
-                        </div>
-
-                        <div class="point" style="left: 22%; top: 80%;">
+                        <!-- ВПЗ 1 (низ-лево) -->
+                        <div class="point" style="left: 8%; top: 76%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">💧</div>
                                 <div class="stage-badges">
@@ -637,7 +680,8 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'Водоперерабатывающий завод 1') }}</div>
                         </div>
 
-                        <div class="point" style="left: 66%; top: 88%;">
+                        <!-- ВПЗ 4 (низ-центр-право) -->
+                        <div class="point" style="left: 62%; top: 92%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">💧</div>
                                 <div class="stage-badges">
@@ -647,44 +691,16 @@
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'Водоперерабатывающий завод 4') }}</div>
                         </div>
 
-                        <div class="point water-collector" style="left: 46%; top: 28%;">
+                        <!-- Заброшенная вертолётная площадка -->
+                        <div class="point" style="left: 90%; top: 84%;">
                             <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
+                                <div class="point-icon">🛬</div>
                                 <div class="stage-badges">
-                                    <span class="stage-badge tl s4">1</span>
+                                    <span class="stage-badge bl s1">3</span>
+                                    <span class="stage-badge tl gbr2">2Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
-                        </div>
-
-                        <div class="point water-collector" style="left: 32%; top: 56%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge tl s4">2</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
-                        </div>
-
-                        <div class="point water-collector" style="left: 71%; top: 54%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge tr s4">3</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
-                        </div>
-
-                        <div class="point water-collector" style="left: 50%; top: 72%;">
-                            <div class="point-icon-wrap">
-                                <div class="point-icon">🛢️</div>
-                                <div class="stage-badges">
-                                    <span class="stage-badge bl s4">4</span>
-                                </div>
-                            </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Заброшенная вертолётная площадка') }}</div>
                         </div>
 
                     </div>
