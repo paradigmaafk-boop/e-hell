@@ -66,102 +66,89 @@
 
         .map-scroll { overflow: visible; }
 
-        /* ★★★ ГЛАВНЫЙ КОНТЕЙНЕР КАРТЫ ★★★ */
-        .map-canvas {
-            position: relative;
-            width: 100%;
-            border-radius: 14px;
-            overflow: hidden;
-            background: #0f0a06;
-            min-height: 700px;
-            aspect-ratio: 16 / 10;
-        }
-        .map-canvas img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            user-select: none;
-            -webkit-user-drag: none;
-        }
-
-        /* ★ ОВЕРЛЕИ — поверх картинки ★ */
-        .overlay {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            background: rgba(13, 8, 4, 0.98);
+        .gbr-top, .gbr-bottom {
+            background: rgba(20, 14, 8, 0.95);
             border: 1px solid var(--line);
             border-radius: 12px;
-            padding: 0.75rem 0.9rem;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
-            z-index: 3;
-            color: var(--text);
-            font-family: 'Inter', sans-serif;
+            padding: 0.5rem 1rem;
+            display: flex; align-items: center; gap: 0.85rem;
+            align-self: center;
+            justify-content: center;
+            z-index: 5;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
         }
-
-        .overlay-hq {
-            width: 17%;
-            min-width: 190px;
-            min-height: 130px;
+        .gbr-label {
+            font-size: 0.7rem; letter-spacing: 3px;
+            text-transform: uppercase; color: var(--dim);
         }
-        .overlay-gbr {
-            width: 26%;
-            min-width: 240px;
-            min-height: 95px;
+        .gbr-name {
+            font-size: 0.95rem; font-weight: 700; color: var(--text);
+            min-width: 90px; text-align: center;
+            padding: 0.15rem 0.5rem; border-radius: 6px; cursor: text;
         }
-
-        .overlay-title {
-            font-size: 0.78rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--dim);
-            margin-bottom: 0.55rem;
-            display: flex;
-            align-items: center;
-            gap: 0.45rem;
-            font-weight: 500;
-        }
-        .overlay-title .num {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: var(--accent);
-            letter-spacing: 0;
-        }
-
-        .overlay-players {
-            font-size: 0.82rem;
-            line-height: 1.5;
-            margin-bottom: 0.65rem;
-            color: var(--text);
-            cursor: text;
-            border-radius: 4px;
-            padding: 0.15rem 0.25rem;
-            transition: background 0.15s ease;
-            word-break: break-word;
-        }
-        .overlay-players:hover { background: rgba(255, 255, 255, 0.04); }
-        .overlay-players[contenteditable="true"]:focus {
+        .gbr-name[contenteditable="true"]:focus {
             outline: none;
-            background: rgba(255, 138, 31, 0.15);
+            background: rgba(255, 138, 31, 0.12);
+            color: var(--accent-warm);
+        }
+        .gbr-stages { display: flex; gap: 0.3rem; margin-left: 0.4rem; }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 240px 1fr 240px;
+            grid-template-rows: var(--map-height, 620px);
+            gap: 0 1.25rem;
+            align-items: stretch;
+        }
+
+        .hq {
+            background: rgba(20, 14, 8, 0.85);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 0.65rem 0.85rem;
+            backdrop-filter: blur(6px);
+            z-index: 4;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+        .hq-title {
+            font-size: 0.68rem; letter-spacing: 4px; text-transform: uppercase;
+            color: var(--dim); margin-bottom: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
+            flex-shrink: 0;
+        }
+        .hq-title .num { font-size: 0.85rem; font-weight: 700; color: var(--accent); letter-spacing: 0; }
+        .hq-players {
+            font-size: 0.85rem; color: var(--text); line-height: 1.55;
+            margin-bottom: 0.6rem;
+            overflow-y: auto; flex-shrink: 1; min-height: 0;
+            scrollbar-width: thin; scrollbar-color: var(--line) transparent;
+            padding-right: 3px; cursor: text;
+            transition: all 0.15s ease;
+            border-radius: 4px; padding: 0.1rem 0.2rem;
+        }
+        .hq-players::-webkit-scrollbar { width: 4px; }
+        .hq-players::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+        .hq-players:hover { background: rgba(255, 255, 255, 0.02); }
+        .hq-players[contenteditable="true"]:focus {
+            outline: none;
+            background: rgba(255, 138, 31, 0.10);
             color: #fff;
         }
 
-        .overlay-stages {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0.35rem;
+        .stages {
+            display: flex; flex-direction: column; gap: 0.25rem;
+            margin-top: auto; flex-shrink: 0;
         }
-
         .stage {
-            display: flex; align-items: center;
-            justify-content: center;
-            font-size: 0.75rem; padding: 0.4rem 0.5rem;
+            display: flex; align-items: center; gap: 0.55rem;
+            font-size: 0.76rem; padding: 0.3rem 0.65rem;
             border-radius: 8px; font-weight: 600;
-            color: #0d0804; cursor: text;
-            min-height: 1.9em;
-            text-align: center;
-            white-space: nowrap;
+            color: #0d0804; cursor: text; min-height: 1.7em;
         }
         .stage[data-stage="1"] { background: var(--stage-1, #4a9eff); }
         .stage[data-stage="2"] { background: var(--stage-2, #3fbf6a); }
@@ -171,77 +158,166 @@
             outline: 2px solid var(--accent); outline-offset: 1px;
         }
 
-        .overlay-gbr .overlay-stages {
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.3rem;
+        .field {
+            position: relative;
+            background: #0f0a06;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .field::before {
+            content: "";
+            position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 30% 25% at 50% 55%, rgba(180, 130, 80, 0.18), transparent 70%),
+                radial-gradient(ellipse 25% 20% at 20% 15%, rgba(160, 120, 80, 0.10), transparent 70%),
+                radial-gradient(ellipse 25% 20% at 85% 85%, rgba(160, 120, 80, 0.10), transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        .field::after {
+            content: "";
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(217, 199, 163, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(217, 199, 163, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none; z-index: 0;
         }
 
-        .overlay-gbr-name {
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--text);
-            text-align: center;
-            padding: 0.3rem 0.6rem;
-            margin-bottom: 0.55rem;
-            border-radius: 6px;
-            cursor: text;
+        .point {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex; flex-direction: column;
+            align-items: center; gap: 0.3rem;
+            z-index: 3;
         }
-        .overlay-gbr-name[contenteditable="true"]:focus {
+        .point-icon-wrap { position: relative; display: inline-flex; }
+        .point-icon {
+            width: 58px; height: 50px;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #2e2820, #1a150e);
+            border: 1px solid #4a3a2a;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.45rem;
+            box-shadow:
+                0 8px 18px rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 rgba(255, 200, 120, 0.12),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+            position: relative;
+            transition: all 0.25s ease;
+        }
+        .point-icon::before {
+            content: "";
+            position: absolute;
+            top: 4px; left: 20%; right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 200, 120, 0.3), transparent);
+        }
+        .point:hover .point-icon {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow:
+                0 10px 26px rgba(217, 178, 106, 0.3),
+                inset 0 1px 0 rgba(255, 200, 120, 0.2);
+        }
+
+        .stage-badges {
+            position: absolute; inset: 0;
+            pointer-events: none; z-index: 5;
+        }
+        .stage-badge {
+            position: absolute;
+            height: 18px; min-width: 18px; padding: 0 4px;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.58rem; font-weight: 700;
+            color: #0d0804;
+            border: 2px solid #1a1209;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+            font-family: 'Inter', sans-serif;
+            line-height: 1;
+            letter-spacing: -0.3px;
+        }
+        .stage-badge.tl { top: -9px; left: -9px; }
+        .stage-badge.tr { top: -9px; right: -9px; }
+        .stage-badge.bl { bottom: -9px; left: -9px; }
+        .stage-badge.br { bottom: -9px; right: -9px; }
+        .stage-badge.s1 { background: var(--stage-1, #4a9eff); }
+        .stage-badge.s2 { background: var(--stage-2, #3fbf6a); }
+        .stage-badge.s3 { background: var(--stage-3, #e8a63a); }
+        .stage-badge.s4 { background: var(--stage-4, #e84a8c); }
+        .stage-badge.gbr1 {
+            background: linear-gradient(180deg, #ffb04a, #d9661a);
+            color: #1a0e05; font-weight: 800;
+        }
+        .stage-badge.gbr2 {
+            background: linear-gradient(180deg, #b07aff, #6a2fd0);
+            color: #fff8e7; font-weight: 800;
+        }
+
+        .point-name {
+            font-size: 0.7rem; font-weight: 500;
+            color: var(--text);
+            background: rgba(13, 8, 4, 0.92);
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            white-space: normal; text-align: center;
+            line-height: 1.25; max-width: 130px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+            cursor: text;
+            transition: all 0.2s ease;
+            word-break: break-word;
+        }
+        .point-name:hover { border-color: var(--gold); color: #fff; }
+        .point-name[contenteditable="true"]:focus {
+            outline: none;
+            background: rgba(255, 138, 31, 0.15);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .point.center-point .point-icon {
+            width: 80px; height: 68px;
+            font-size: 2rem;
+            border-color: var(--gold);
+            box-shadow:
+                0 0 24px rgba(217, 178, 106, 0.25),
+                0 10px 24px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 200, 120, 0.2);
+        }
+        .point.water-collector .point-icon {
+            width: 44px; height: 38px;
+            font-size: 1.1rem;
+            border-radius: 7px;
+        }
+        .point.water-collector .point-name {
+            font-size: 0.64rem; padding: 0.16rem 0.42rem; max-width: 80px;
+        }
+
+        .reserve {
+            display: flex; align-items: center;
+            gap: 1.5rem; padding-top: 0.75rem;
+            border-top: 1px solid var(--line-soft);
+            flex-wrap: wrap; margin-top: 0.35rem;
+        }
+        .reserve-label {
+            font-size: 0.7rem; letter-spacing: 4px;
+            text-transform: uppercase; color: var(--dim);
+        }
+        .reserve-list { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; flex: 1; }
+        .reserve-item {
+            font-size: 0.86rem; color: var(--text);
+            padding: 0.2rem 0.5rem; border-radius: 5px;
+            cursor: text; min-height: 1.5em;
+            display: inline-flex; align-items: center;
+        }
+        .reserve-item[contenteditable="true"]:focus {
             outline: none;
             background: rgba(255, 138, 31, 0.12);
             color: var(--accent-warm);
-        }
-
-        .overlay-reserve {
-            width: 17%;
-            min-width: 190px;
-            min-height: 130px;
-        }
-        .overlay-reserve .overlay-players {
-            margin-bottom: 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem 0.7rem;
-            font-size: 0.78rem;
-        }
-        .overlay-reserve .overlay-players span {
-            cursor: text;
-        }
-        .overlay-reserve .overlay-players span[contenteditable="true"]:focus {
-            outline: none;
-            background: rgba(255, 138, 31, 0.15);
-            color: #fff;
-            border-radius: 3px;
-        }
-
-        /* ★ Компактные плашки никнеймов поверх чёрных табличек на карте ★ */
-        .overlay-name {
-            background: rgba(13, 8, 4, 0.9);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 0.35rem 0.7rem;
-            min-width: 110px;
-            max-width: 160px;
-            min-height: 26px;
-            text-align: center;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-        }
-        .overlay-name-text {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--accent-warm);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            cursor: text;
-            line-height: 1.3;
-        }
-        .overlay-name-text[contenteditable="true"]:focus {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
-            border-radius: 3px;
-            color: #fff;
         }
 
         :root {
@@ -249,29 +325,42 @@
             --stage-2: #3fbf6a;
             --stage-3: #e8a63a;
             --stage-4: #e84a8c;
+            --map-height: 620px;
         }
 
+        .hq-1 { grid-column: 1; grid-row: 1; align-self: start; }
+        .hq-3 { grid-column: 3; grid-row: 1; align-self: start; }
+        .hq-2 { grid-column: 1; grid-row: 1; align-self: end; }
+        .hq-4 { grid-column: 3; grid-row: 1; align-self: end; }
+        .field { grid-column: 2; grid-row: 1; }
+
+        .hq-1, .hq-3 { max-height: calc(50% - 0.5rem); }
+        .hq-2, .hq-4 { max-height: calc(50% - 0.5rem); }
+
         body.light-theme .map-wrap { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
-        body.light-theme .overlay {
-            background: rgba(255, 251, 242, 0.96);
-            border-color: #e8dcc8;
+        body.light-theme .hq, body.light-theme .gbr-top, body.light-theme .gbr-bottom {
+            background: rgba(255, 251, 242, 0.95);
         }
-        body.light-theme .overlay-players,
-        body.light-theme .overlay-gbr-name {
-            color: #2a1a0a;
+        body.light-theme .field { background: #fffbf2; }
+        body.light-theme .point-icon {
+            background: linear-gradient(180deg, #f0e4d0, #e0d4c0);
+            border-color: #d4b886;
         }
-        body.light-theme .overlay-name {
+        body.light-theme .point-name {
             background: rgba(255, 251, 242, 0.95);
         }
 
         @media (max-width: 1200px) {
-            .overlay { padding: 0.6rem 0.75rem; border-radius: 10px; }
-            .overlay-hq { min-width: 170px; min-height: 115px; }
-            .overlay-gbr { min-width: 220px; min-height: 85px; }
-            .overlay-players { font-size: 0.76rem; }
-            .stage { font-size: 0.7rem; padding: 0.35rem 0.4rem; }
-            .overlay-gbr-name { font-size: 0.95rem; }
-            .overlay-reserve { min-width: 170px; min-height: 115px; }
+            :root { --map-height: 560px; }
+            .layout { grid-template-columns: 210px 1fr 210px; gap: 0 0.85rem; }
+            .point-icon { width: 50px; height: 44px; font-size: 1.2rem; }
+            .point.center-point .point-icon { width: 68px; height: 58px; font-size: 1.65rem; }
+            .point-name { font-size: 0.66rem; max-width: 115px; }
+            .point.water-collector .point-icon { width: 38px; height: 34px; font-size: 0.95rem; }
+            .point.water-collector .point-name { font-size: 0.58rem; max-width: 70px; }
+            .hq-players { font-size: 0.8rem; }
+            .stage { font-size: 0.72rem; }
+            .stage-badge { height: 16px; min-width: 16px; font-size: 0.52rem; padding: 0 3px; }
         }
 
         @media (max-width: 900px) {
@@ -280,15 +369,15 @@
             .map-scroll-hint { display: block; }
 
             .map-scroll {
-                overflow: auto;
+                overflow-x: auto;
+                overflow-y: hidden;
                 -webkit-overflow-scrolling: touch;
                 scrollbar-width: thin;
                 scrollbar-color: var(--accent) transparent;
                 margin: 0 -0.75rem;
                 padding: 0 0.75rem;
-                max-height: 80vh;
             }
-            .map-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+            .map-scroll::-webkit-scrollbar { height: 6px; }
             .map-scroll::-webkit-scrollbar-track { background: transparent; }
             .map-scroll::-webkit-scrollbar-thumb {
                 background: var(--accent);
@@ -296,20 +385,36 @@
                 opacity: 0.6;
             }
 
-            .map-canvas {
-                min-width: 1400px;
-                min-height: 875px;
-            }
+            .map-inner { min-width: 900px; }
 
-            .overlay { padding: 0.7rem 0.8rem; }
-            .overlay-hq { min-width: 210px; min-height: 135px; }
-            .overlay-gbr { min-width: 260px; min-height: 100px; }
-            .overlay-players { font-size: 0.82rem; }
-            .stage { font-size: 0.76rem; padding: 0.4rem 0.5rem; }
-            .overlay-gbr-name { font-size: 1.05rem; }
-            .overlay-reserve { min-width: 210px; min-height: 135px; }
-            .overlay-name { min-width: 120px; max-width: 180px; }
-            .overlay-name-text { font-size: 0.82rem; }
+            .layout {
+                grid-template-columns: 220px 1fr 220px;
+                grid-template-rows: 560px;
+                gap: 0 1rem;
+            }
+            .field { grid-column: 2; grid-row: 1; height: 560px; }
+            .hq { max-height: calc(50% - 0.5rem); align-self: auto; }
+            .hq-1 { grid-column: 1; grid-row: 1; align-self: start; }
+            .hq-3 { grid-column: 3; grid-row: 1; align-self: start; }
+            .hq-2 { grid-column: 1; grid-row: 1; align-self: end; }
+            .hq-4 { grid-column: 3; grid-row: 1; align-self: end; }
+
+            .point-icon { width: 50px; height: 44px; font-size: 1.2rem; }
+            .point.center-point .point-icon { width: 68px; height: 58px; font-size: 1.65rem; }
+            .point-name { font-size: 0.66rem; max-width: 120px; }
+            .point.water-collector .point-icon { width: 38px; height: 34px; font-size: 0.95rem; }
+            .point.water-collector .point-name { font-size: 0.58rem; max-width: 75px; }
+            .stage-badge { height: 16px; min-width: 16px; font-size: 0.52rem; padding: 0 3px; }
+            .hq-players { font-size: 0.8rem; }
+            .stage { font-size: 0.72rem; }
+
+            .gbr-top, .gbr-bottom {
+                align-self: stretch;
+                flex-direction: row;
+                align-items: center;
+                gap: 0.85rem;
+            }
+            .gbr-stages { margin-left: 0.4rem; }
         }
     </style>
 </head>
@@ -376,158 +481,267 @@
 
     {% if session['username'] == 'admin' %}
     <div class="edit-banner">
-        ⚡ Режим редактирования включён. Кликайте на любой текст — и вписывайте новое.
+        ⚡ Режим редактирования включён. Кликайте на список ников или название объекта — и вписывайте новое.
     </div>
     {% endif %}
 
     <div class="map-scroll-hint">
-        ↔ Скролльте карту, чтобы увидеть все объекты
+        ↔ Проведите по карте, чтобы увидеть все объекты
     </div>
 
     <div class="map-wrap">
-        <div class="map-scroll">
-            <div class="map-canvas">
 
-                <img src="{{ url_for('static', filename='reservoir-map.png') }}" alt="Карта резервуара">
-
-                <!-- ★ ШТАБ 1 — верхний левый угол (1) ★ -->
-                <div class="overlay overlay-hq" style="left: 8%; top: 12%;">
-                    <div class="overlay-title"><span class="num">1</span> Штаб</div>
-                    <div class="overlay-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
-                    <div class="overlay-stages">
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ РЕЗЕРВ — слева, между штабами 1 и 2 ★ -->
-                <div class="overlay overlay-reserve" style="left: 8%; top: 42%;">
-                    <div class="overlay-title" style="justify-content: center; letter-spacing: 4px;">Резерв</div>
-                    <div class="overlay-players">
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ ШТАБ 2 — нижний левый угол (2) ★ -->
-                <div class="overlay overlay-hq" style="left: 8%; top: 72%;">
-                    <div class="overlay-title"><span class="num">2</span> Штаб</div>
-                    <div class="overlay-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
-                    <div class="overlay-stages">
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ ШТАБ 3 — верхний правый угол (3) ★ -->
-                <div class="overlay overlay-hq" style="left: 92%; top: 12%;">
-                    <div class="overlay-title"><span class="num">3</span> Штаб</div>
-                    <div class="overlay-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
-                    <div class="overlay-stages">
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ ШТАБ 4 — нижний правый угол (4) ★ -->
-                <div class="overlay overlay-hq" style="left: 92%; top: 72%;">
-                    <div class="overlay-title"><span class="num">4</span> Штаб</div>
-                    <div class="overlay-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
-                    <div class="overlay-stages">
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ ГБР 1 — верхний центр ★ -->
-                <div class="overlay overlay-gbr" style="left: 50%; top: 5%;">
-                    <div class="overlay-title" style="justify-content: center; letter-spacing: 4px;">1 ГБР</div>
-                    <div class="overlay-gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
-                    <div class="overlay-stages">
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ ГБР 2 — нижний центр ★ -->
-                <div class="overlay overlay-gbr" style="left: 50%; top: 95%;">
-                    <div class="overlay-title" style="justify-content: center; letter-spacing: 4px;">2 ГБР</div>
-                    <div class="overlay-gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
-                    <div class="overlay-stages">
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ ТОЧКИ С НИКНЕЙМАМИ — поверх чёрных табличек на карте ★ -->
-
-                <!-- Солнечная электростанция -->
-                <div class="overlay overlay-name" style="left: 15%; top: 27%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-solar">{{ map_values.get('obj-solar', 'Пусто') }}</div>
-                </div>
-
-                <!-- Водоперерабатывающий завод 3 -->
-                <div class="overlay overlay-name" style="left: 43%; top: 27%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-vpz3">{{ map_values.get('obj-vpz3', 'Пусто') }}</div>
-                </div>
-
-                <!-- Водоочистительный центр 2 -->
-                <div class="overlay overlay-name" style="left: 63%; top: 27%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-voc2">{{ map_values.get('obj-voc2', 'Пусто') }}</div>
-                </div>
-
-                <!-- Водоперерабатывающий завод 2 -->
-                <div class="overlay overlay-name" style="left: 82%; top: 27%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-vpz2">{{ map_values.get('obj-vpz2', 'Пусто') }}</div>
-                </div>
-
-                <!-- Комплекс разработки -->
-                <div class="overlay overlay-name" style="left: 43%; top: 44%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-complex">{{ map_values.get('obj-complex', 'Пусто') }}</div>
-                </div>
-
-                <!-- Водоперерабатывающий завод 1 (низ-лево) -->
-                <div class="overlay overlay-name" style="left: 15%; top: 61%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-vpz1">{{ map_values.get('obj-vpz1', 'Пусто') }}</div>
-                </div>
-
-                <!-- Водоочистительный центр 1 (низ-центр) -->
-                <div class="overlay overlay-name" style="left: 43%; top: 68%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-voc1">{{ map_values.get('obj-voc1', 'Пусто') }}</div>
-                </div>
-
-                <!-- Военный завод -->
-                <div class="overlay overlay-name" style="left: 62%; top: 68%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-milfac">{{ map_values.get('obj-milfac', 'Пусто') }}</div>
-                </div>
-
-                <!-- Заброшенная вертолётная площадка -->
-                <div class="overlay overlay-name" style="left: 82%; top: 68%;">
-                    <div class="overlay-name-text {% if session['username'] == 'admin' %}editable{% endif %}" data-key="obj-pad">{{ map_values.get('obj-pad', 'Пусто') }}</div>
-                </div>
-
+        <div class="gbr-top">
+            <span class="gbr-label">1 ГБР</span>
+            <span class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</span>
+            <div class="gbr-stages">
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
             </div>
         </div>
+
+        <div class="map-scroll">
+            <div class="map-inner">
+                <div class="layout">
+
+                    <div class="hq hq-1">
+                        <div class="hq-title"><span class="num">1</span> Штаб</div>
+                        <div class="hq-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
+                        <div class="stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="hq hq-3">
+                        <div class="hq-title"><span class="num">3</span> Штаб</div>
+                        <div class="hq-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
+                        <div class="stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="field" id="field">
+
+                        <div class="point" style="left: 14%; top: 12%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">☀️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge bl s1">4</span>
+                                    <span class="stage-badge tl gbr1">1Г</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная электростанция') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 36%; top: 14%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">💧</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s1">2</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'Водоперерабатывающий завод 3') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 82%; top: 20%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">💧</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tr s2">1</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'Водоперерабатывающий завод 2') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 32%; top: 36%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🧪</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s3">1</span>
+                                    <span class="stage-badge tr s3">3</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс разработки') }}</div>
+                        </div>
+
+                        <div class="point center-point" style="left: 50%; top: 50%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🏰</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl gbr1">1Г</span>
+                                    <span class="stage-badge tr gbr2">2Г</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центральный резервуар') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 36%; top: 72%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🏭</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge bl s2">4</span>
+                                    <span class="stage-badge tl gbr1">1Г</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'Водоочистительный центр 2') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 68%; top: 34%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🏭</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tr s2">3</span>
+                                    <span class="stage-badge tl gbr2">2Г</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'Водоочистительный центр 1') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 66%; top: 66%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">⚙️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s3">2</span>
+                                    <span class="stage-badge tr s3">4</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 86%; top: 84%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛬</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge bl s1">3</span>
+                                    <span class="stage-badge tl gbr2">2Г</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Заброшенная вертолётная площадка') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 22%; top: 80%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">💧</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge bl s1">1</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'Водоперерабатывающий завод 1') }}</div>
+                        </div>
+
+                        <div class="point" style="left: 66%; top: 88%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">💧</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge br s2">2</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'Водоперерабатывающий завод 4') }}</div>
+                        </div>
+
+                        <div class="point water-collector" style="left: 46%; top: 28%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s4">1</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <div class="point water-collector" style="left: 32%; top: 56%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tl s4">2</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <div class="point water-collector" style="left: 71%; top: 54%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge tr s4">3</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
+                        </div>
+
+                        <div class="point water-collector" style="left: 50%; top: 72%;">
+                            <div class="point-icon-wrap">
+                                <div class="point-icon">🛢️</div>
+                                <div class="stage-badges">
+                                    <span class="stage-badge bl s4">4</span>
+                                </div>
+                            </div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
+                        </div>
+
+                    </div>
+
+                    <div class="hq hq-2">
+                        <div class="hq-title"><span class="num">2</span> Штаб</div>
+                        <div class="hq-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
+                        <div class="stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
+                        </div>
+                    </div>
+
+                    <div class="hq hq-4">
+                        <div class="hq-title"><span class="num">4</span> Штаб</div>
+                        <div class="hq-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
+                        <div class="stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="gbr-bottom">
+            <span class="gbr-label">2 ГБР</span>
+            <span class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</span>
+            <div class="gbr-stages">
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
+            </div>
+        </div>
+
+        <div class="reserve">
+            <span class="reserve-label">Резерв</span>
+            <div class="reserve-list">
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
+                <span class="reserve-item {% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
+            </div>
+        </div>
+
     </div>
 
 </div>
