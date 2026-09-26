@@ -121,7 +121,7 @@
 <script>
     (function () {
         const container = document.getElementById('embers');
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 30; i++) {
             const ember = document.createElement('div');
             ember.className = 'ember';
             const size = 2 + Math.random() * 4;
@@ -154,19 +154,6 @@
         toggleBtn.textContent = '☀️';
     }
 
-    const sparkStyle = document.createElement('style');
-    sparkStyle.textContent = '@keyframes sparkBurst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1; } 50% { transform: translate(-50%,-50%) scale(3); opacity: 0.8; } 100% { transform: translate(-50%,-50%) scale(6); opacity: 0; } }';
-    document.head.appendChild(sparkStyle);
-    document.querySelectorAll('.side-btn, .nav a, .link-btn, .btn').forEach(el => {
-        el.addEventListener('click', () => {
-            const rect = el.getBoundingClientRect();
-            const spark = document.createElement('div');
-            spark.style.cssText = `position:fixed;left:${rect.left + rect.width/2}px;top:${rect.top + rect.height/2}px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle, #ffec80, #ff4500 60%, transparent);box-shadow:0 0 20px 4px rgba(255,140,0,0.8);pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);animation:sparkBurst 0.6s ease-out forwards;`;
-            document.body.appendChild(spark);
-            setTimeout(() => spark.remove(), 650);
-        });
-    });
-
     const dates = {{ dates|tojson }};
     const points = {{ points|tojson }};
     const avgPoints = {{ avg_points|tojson }};
@@ -183,7 +170,6 @@
     const gridColor = isLight ? '#e0d3c0' : '#3a1a08';
 
     const ctx = document.getElementById('progressChart').getContext('2d');
-
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, 'rgba(255, 69, 0, 0.35)');
     gradient.addColorStop(1, 'rgba(255, 69, 0, 0)');
@@ -228,9 +214,7 @@
         options: {
             responsive: true,
             plugins: {
-                legend: {
-                    labels: { color: textColor, font: { size: 13 }, padding: 15 }
-                },
+                legend: { labels: { color: textColor, font: { size: 13 }, padding: 15 } },
                 tooltip: {
                     backgroundColor: isLight ? 'rgba(255,251,242,0.95)' : 'rgba(26,13,5,0.95)',
                     titleColor: isLight ? '#2a1a0a' : '#f5e6d3',
@@ -241,15 +225,8 @@
                 }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { color: gridColor },
-                    ticks: { color: textColor }
-                },
-                x: {
-                    grid: { color: gridColor },
-                    ticks: { color: textColor }
-                }
+                y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
+                x: { grid: { color: gridColor }, ticks: { color: textColor } }
             }
         }
     });
