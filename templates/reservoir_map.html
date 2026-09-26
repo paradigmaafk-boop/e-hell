@@ -620,7 +620,7 @@
 
     {% if session['username'] == 'admin' %}
     <div class="edit-banner">
-        ⚡ Режим редактирования включён. Кликайте на текст, перетаскивайте иконки и плашки.
+        ⚡ Режим редактирования включён. Кликайте на текст, перетаскивайте иконки и плашки. Правый клик по стрелке или объекту — удалить.
     </div>
     <div class="drag-hint">
         🖐 Тащите иконки и плашки мышью. Растягивайте плашки за правый нижний угол.
@@ -644,7 +644,7 @@
     </div>
 
     <div class="draw-tip" id="drawTip">
-        <div id="drawTipText">🎯 Кликните по иконке, чтобы начать стрелку от неё.<br>Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.</div>
+        <div id="drawTipText">🎯 Кликните <b>по иконке</b>, чтобы начать стрелку от неё.<br>Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.</div>
     </div>
 
     <div class="map-wrap">
@@ -1253,23 +1253,19 @@
             };
         }
 
-        // Ищем объект под курсором
         function findConnectorAt(clientX, clientY) {
             const el = document.elementFromPoint(clientX, clientY);
             if (!el) return null;
             return el.closest('[data-connector-key]');
         }
 
-        // ★ Функция автовыравнивания точки по осям (гориз/верт)
         function alignPoint(prevPt, targetPt) {
             if (!prevPt) return targetPt;
             const dx = Math.abs(targetPt.x - prevPt.x);
             const dy = Math.abs(targetPt.y - prevPt.y);
             if (dx >= dy) {
-                // Горизонтальное движение: фиксируем Y
                 return { x: targetPt.x, y: prevPt.y };
             } else {
-                // Вертикальное: фиксируем X
                 return { x: prevPt.x, y: targetPt.y };
             }
         }
@@ -1287,7 +1283,6 @@
         function updatePreview(mousePercent) {
             if (!currentPath) return;
             ensurePreviewEls();
-            // ★ Выравниваем курсор относительно последней точки
             const lastPt = currentPath[currentPath.length - 1];
             const aligned = alignPoint(lastPt, mousePercent);
             const points = currentPath.concat([aligned]);
@@ -1442,29 +1437,23 @@
                 : { x: p.x, y: p.y };
 
             if (!currentPath) {
-                // Первый клик — начинаем
                 currentPath = [rawPoint];
                 showStartDot(p);
                 drawInfo.textContent = '✓ Начало установлено. Ведите мышью, кликните для угла.';
                 return;
             }
 
-            // ★ Выравниваем точку по осям относительно последней
             const lastPt = currentPath[currentPath.length - 1];
             const aligned = alignPoint(lastPt, rawPoint);
 
-            // Если выровненная точка совпадает с последней — игнорируем
             if (Math.abs(aligned.x - lastPt.x) < 0.3 && Math.abs(aligned.y - lastPt.y) < 0.3) {
                 return;
             }
 
-            // Финальная точка для добавления: если попали по объекту — привязываем,
-            // но координаты используем выровненные
             const newPoint = connectorKey
                 ? { key: connectorKey, x: aligned.x, y: aligned.y }
                 : { x: aligned.x, y: aligned.y };
 
-            // Двойной клик — завершаем
             if (isDoubleClick) {
                 currentPath.push(newPoint);
 
@@ -1495,13 +1484,11 @@
                 hidePreview();
                 drawInfo.textContent = 'Кликните по объекту для начала новой стрелки';
             } else {
-                // Обычный клик — добавляем точку поворота
                 currentPath.push(newPoint);
                 drawInfo.textContent = '✓ Угол добавлен. Продолжайте вести, двойной клик — завершить.';
             }
         }
 
-        // Движение мыши — превью
         function onFieldMove(e) {
             if (!isDrawing || !currentPath) return;
             const p = clientToPercent(e.clientX, e.clientY);
@@ -1513,22 +1500,81 @@
             field.addEventListener('mousemove', onFieldMove);
         }
 
-        // ★★★ УДАЛЕНИЕ СТРЕЛКИ ★★★
+        // ★★★ УДАЛЕНИЕ СТРЕЛКИ (правый клик по стрелке) ★★★
         if (svgLayer) {
             svgLayer.addEventListener('contextmenu', (e) => {
                 if (!isEditing) return;
-                const path = e.target.closest('path.arrow-path');
+
+                let path = e.target.closest('path.arrow-path');
+                if (!path) {
+                    const el = document.elementFromPoint(e.clientX, e.clientY);
+                    if (el) path = el.closest('path.arrow-path');
+                }
+
                 if (!path) return;
                 e.preventDefault();
+
                 const arrowId = path.dataset.arrowId;
                 if (!arrowId) return;
+
                 if (!confirm('Удалить эту стрелку?')) return;
+
                 arrows = arrows.filter(a => a.id !== arrowId);
                 window.INITIAL_ARROWS = arrows;
                 if (window.renderArrows) window.renderArrows();
                 saveData();
+
+                saveHint.textContent = '✓ Стрелка удалена';
+                saveHint.classList.add('saved');
+                setTimeout(() => {
+                    saveHint.textContent = '';
+                    saveHint.classList.remove('saved');
+                }, 2000);
             });
         }
+
+        // ★★★ УДАЛЕНИЕ СВЯЗАННЫХ СТРЕЛОК (правый клик по объекту) ★★★
+        function onConnectorContextMenu(e) {
+            if (!isEditing || isDrawing) return;
+
+            const el = e.target.closest('[data-connector-key]');
+            if (!el) return;
+
+            const key = el.dataset.connectorKey;
+            if (!key) return;
+
+            const related = arrows.filter(a =>
+                a.points && a.points.some(pt => pt.key === key)
+            );
+
+            if (!related.length) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const msg = 'Удалить ' + related.length + ' стрелк' +
+                (related.length === 1 ? 'у' : (related.length < 5 ? 'и' : '')) +
+                ', привязанны' + (related.length === 1 ? 'ю' : 'е') + ' к этому объекту?';
+            if (!confirm(msg)) return;
+
+            arrows = arrows.filter(a =>
+                !(a.points && a.points.some(pt => pt.key === key))
+            );
+            window.INITIAL_ARROWS = arrows;
+            if (window.renderArrows) window.renderArrows();
+            saveData();
+
+            saveHint.textContent = '✓ Удалено стрелок: ' + related.length;
+            saveHint.classList.add('saved');
+            setTimeout(() => {
+                saveHint.textContent = '';
+                saveHint.classList.remove('saved');
+            }, 2000);
+        }
+
+        document.querySelectorAll('[data-connector-key]').forEach(el => {
+            el.addEventListener('contextmenu', onConnectorContextMenu);
+        });
 
         // ★ DRAG & DROP точек и панелей ★
         points.forEach(point => {
@@ -1625,7 +1671,6 @@
                 }
             });
 
-            // Обновляем стрелки при движении мыши, если тащим точку
             field.addEventListener('mousemove', (e) => {
                 if (draggedPoint) {
                     if (window.renderArrows) window.renderArrows();
