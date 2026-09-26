@@ -2,7 +2,6 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- ★ ОТКЛЮЧАЕМ МОБИЛЬНЫЙ АДАПТИВ — на телефоне та же версия, что на ПК ★ -->
     <meta name="viewport" content="width=1400, initial-scale=1.0, user-scalable=yes">
     <title>Карта боя — Резервуар | [HEL] Ацкое Пламя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -645,7 +644,7 @@
     </div>
 
     <div class="draw-tip" id="drawTip">
-        <div id="drawTipText">🎯 Кликните по иконке или плашке, чтобы начать стрелку от неё.<br>Ведите курсор, кликните для угла. <b>Двойной клик</b> — завершить (привяжет к объекту под курсором).</div>
+        <div id="drawTipText">🎯 Кликните по иконке, чтобы начать стрелку от неё.<br>Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.</div>
     </div>
 
     <div class="map-wrap">
@@ -1084,9 +1083,6 @@
         const svg = document.getElementById('arrowsLayer');
         if (!field || !svg) return;
 
-        // ★★ Возвращает актуальную позицию точки в процентах от field
-        // Если у точки есть fromKey/toKey — берём позицию DOM-элемента
-        // Иначе — сохранённые x/y (для углов ломаной)
         window.getActualPointPercent = function(pt) {
             if (pt.key) {
                 const el = field.querySelector('[data-connector-key="' + pt.key + '"]');
@@ -1113,13 +1109,11 @@
             svg.setAttribute('width', w);
             svg.setAttribute('height', h);
 
-            // Убираем старые стрелки, не трогаем превью
             const old = svg.querySelectorAll('path.arrow-path');
             old.forEach(el => el.remove());
 
             const arrowsArr = window.INITIAL_ARROWS || [];
 
-            // Defs
             let defs = svg.querySelector('defs');
             if (!defs) {
                 defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
@@ -1148,7 +1142,6 @@
                 defs.appendChild(marker);
             });
 
-            // Рисуем стрелки
             arrowsArr.forEach(arrow => {
                 if (!arrow.points || arrow.points.length < 2) return;
 
@@ -1242,9 +1235,7 @@
             }
         }
 
-        function fieldRect() {
-            return field.getBoundingClientRect();
-        }
+        function fieldRect() { return field.getBoundingClientRect(); }
 
         function clientToPercent(clientX, clientY) {
             const r = fieldRect();
@@ -1262,11 +1253,25 @@
             };
         }
 
-        // Ищем объект под курсором (по координатам клика в клиентских пикселях)
+        // Ищем объект под курсором
         function findConnectorAt(clientX, clientY) {
             const el = document.elementFromPoint(clientX, clientY);
             if (!el) return null;
             return el.closest('[data-connector-key]');
+        }
+
+        // ★ Функция автовыравнивания точки по осям (гориз/верт)
+        function alignPoint(prevPt, targetPt) {
+            if (!prevPt) return targetPt;
+            const dx = Math.abs(targetPt.x - prevPt.x);
+            const dy = Math.abs(targetPt.y - prevPt.y);
+            if (dx >= dy) {
+                // Горизонтальное движение: фиксируем Y
+                return { x: targetPt.x, y: prevPt.y };
+            } else {
+                // Вертикальное: фиксируем X
+                return { x: prevPt.x, y: targetPt.y };
+            }
         }
 
         function buildPathD(pointsPercent) {
@@ -1282,7 +1287,10 @@
         function updatePreview(mousePercent) {
             if (!currentPath) return;
             ensurePreviewEls();
-            const points = currentPath.concat([mousePercent]);
+            // ★ Выравниваем курсор относительно последней точки
+            const lastPt = currentPath[currentPath.length - 1];
+            const aligned = alignPoint(lastPt, mousePercent);
+            const points = currentPath.concat([aligned]);
             previewPathEl.setAttribute('d', buildPathD(points));
             previewPathEl.setAttribute('stroke', currentColor);
             previewPathEl.style.display = '';
@@ -1383,7 +1391,7 @@
             hidePreview();
             drawInfo.textContent = on ? 'Кликните по объекту, чтобы начать' : '';
             drawTipText.innerHTML = on
-                ? '🎯 Кликните <b>по иконке или плашке</b>, чтобы начать стрелку от неё.<br>Ведите курсор, кликните для угла. <b>Двойной клик</b> по объекту — завершить.'
+                ? '🎯 Кликните <b>по иконке</b>, чтобы начать стрелку от неё.<br>Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.'
                 : '';
         }
 
@@ -1426,69 +1434,74 @@
             lastClickTime = now;
 
             const p = clientToPercent(e.clientX, e.clientY);
-
-            // ★ Ищем объект под курсором
             const connector = findConnectorAt(e.clientX, e.clientY);
             const connectorKey = connector ? connector.dataset.connectorKey : null;
 
+            const rawPoint = connectorKey
+                ? { key: connectorKey, x: p.x, y: p.y }
+                : { x: p.x, y: p.y };
+
             if (!currentPath) {
-                // Первый клик — начинаем. Привязываем к объекту, если он есть.
-                const firstPoint = connectorKey
-                    ? { key: connectorKey, x: p.x, y: p.y }
-                    : { x: p.x, y: p.y };
-
-                currentPath = [firstPoint];
+                // Первый клик — начинаем
+                currentPath = [rawPoint];
                 showStartDot(p);
-                drawInfo.textContent = '✓ Начало установлено. Кликайте для углов, двойной клик — завершить.';
-            } else {
-                // ★ Добавляем точку. Если попали по объекту — привязываем.
-                const newPoint = connectorKey
-                    ? { key: connectorKey, x: p.x, y: p.y }
-                    : { x: p.x, y: p.y };
+                drawInfo.textContent = '✓ Начало установлено. Ведите мышью, кликните для угла.';
+                return;
+            }
 
-                // Проверяем дубликат для двойного клика
-                if (isDoubleClick && currentPath.length >= 1) {
-                    const last = currentPath[currentPath.length - 1];
-                    if (Math.abs(last.x - p.x) < 0.3 && Math.abs(last.y - p.y) < 0.3) {
-                        // Просто завершаем без добавления
-                    } else {
-                        currentPath.push(newPoint);
-                    }
+            // ★ Выравниваем точку по осям относительно последней
+            const lastPt = currentPath[currentPath.length - 1];
+            const aligned = alignPoint(lastPt, rawPoint);
 
-                    if (currentPath.length >= 2) {
-                        const newArrow = {
-                            id: 'arrow-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-                            points: currentPath.map(pt => {
-                                const obj = { x: +pt.x.toFixed(2), y: +pt.y.toFixed(2) };
-                                if (pt.key) obj.key = pt.key;
-                                return obj;
-                            }),
-                            color: currentColor
-                        };
-                        arrows.push(newArrow);
-                        window.INITIAL_ARROWS = arrows;
-                        if (window.renderArrows) window.renderArrows();
-                        saveData();
+            // Если выровненная точка совпадает с последней — игнорируем
+            if (Math.abs(aligned.x - lastPt.x) < 0.3 && Math.abs(aligned.y - lastPt.y) < 0.3) {
+                return;
+            }
 
-                        saveHint.textContent = '✓ Стрелка добавлена';
-                        saveHint.classList.add('saved');
-                        setTimeout(() => {
-                            saveHint.textContent = '';
-                            saveHint.classList.remove('saved');
-                        }, 2000);
-                    }
+            // Финальная точка для добавления: если попали по объекту — привязываем,
+            // но координаты используем выровненные
+            const newPoint = connectorKey
+                ? { key: connectorKey, x: aligned.x, y: aligned.y }
+                : { x: aligned.x, y: aligned.y };
 
-                    currentPath = null;
-                    hidePreview();
-                    drawInfo.textContent = 'Кликните по объекту для начала новой стрелки';
-                } else {
-                    currentPath.push(newPoint);
-                    drawInfo.textContent = '✓ Точка добавлена. Кликайте дальше, двойной клик — завершить.';
+            // Двойной клик — завершаем
+            if (isDoubleClick) {
+                currentPath.push(newPoint);
+
+                if (currentPath.length >= 2) {
+                    const newArrow = {
+                        id: 'arrow-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                        points: currentPath.map(pt => {
+                            const obj = { x: +pt.x.toFixed(2), y: +pt.y.toFixed(2) };
+                            if (pt.key) obj.key = pt.key;
+                            return obj;
+                        }),
+                        color: currentColor
+                    };
+                    arrows.push(newArrow);
+                    window.INITIAL_ARROWS = arrows;
+                    if (window.renderArrows) window.renderArrows();
+                    saveData();
+
+                    saveHint.textContent = '✓ Стрелка добавлена';
+                    saveHint.classList.add('saved');
+                    setTimeout(() => {
+                        saveHint.textContent = '';
+                        saveHint.classList.remove('saved');
+                    }, 2000);
                 }
+
+                currentPath = null;
+                hidePreview();
+                drawInfo.textContent = 'Кликните по объекту для начала новой стрелки';
+            } else {
+                // Обычный клик — добавляем точку поворота
+                currentPath.push(newPoint);
+                drawInfo.textContent = '✓ Угол добавлен. Продолжайте вести, двойной клик — завершить.';
             }
         }
 
-        // ★★ ДВИЖЕНИЕ МЫШИ — РИСУЕМ ПРЕВЬЮ ★★
+        // Движение мыши — превью
         function onFieldMove(e) {
             if (!isDrawing || !currentPath) return;
             const p = clientToPercent(e.clientX, e.clientY);
@@ -1576,6 +1589,7 @@
                 if (draggedPoint) {
                     draggedPoint.style.left = percentX.toFixed(2) + '%';
                     draggedPoint.style.top = percentY.toFixed(2) + '%';
+                    if (window.renderArrows) window.renderArrows();
                 } else if (draggedPanel) {
                     draggedPanel.style.left = percentX.toFixed(2) + '%';
                     draggedPanel.style.top = percentY.toFixed(2) + '%';
@@ -1598,6 +1612,7 @@
                     draggedPanel.style.left = percentX.toFixed(2) + '%';
                     draggedPanel.style.top = percentY.toFixed(2) + '%';
                     draggedPanel.style.opacity = '';
+                    if (window.renderArrows) window.renderArrows();
                     saveData();
                     draggedPanel = null;
                     return;
@@ -1605,26 +1620,15 @@
                 if (draggedPoint) {
                     e.preventDefault();
                     saveData();
-                    // ★ Перерисовываем стрелки, чтобы обновить их позиции
                     if (window.renderArrows) window.renderArrows();
                     draggedPoint = null;
                 }
             });
 
-            // ★ Перетаскивание мышью (не через HTML5 drag) — обновляем стрелки в реальном времени
+            // Обновляем стрелки при движении мыши, если тащим точку
             field.addEventListener('mousemove', (e) => {
                 if (draggedPoint) {
-                    // Просто перерисуем стрелки в реальном времени
                     if (window.renderArrows) window.renderArrows();
-                }
-            });
-
-            // Отпускаем мышь — сохраняем и обновляем
-            document.addEventListener('mouseup', () => {
-                if (draggedPoint) {
-                    // Обновим позиции стрелок
-                    if (window.renderArrows) window.renderArrows();
-                    saveData();
                 }
             });
         }
@@ -1659,6 +1663,7 @@
                 panel.style.top = '';
                 panel.style.width = '';
                 panel.style.height = '';
+                if (window.renderArrows) window.renderArrows();
                 saveData();
             });
         });
