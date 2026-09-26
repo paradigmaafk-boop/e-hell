@@ -2,7 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ★ ОТКЛЮЧАЕМ МОБИЛЬНЫЙ АДАПТИВ — на телефоне та же версия, что на ПК ★ -->
+    <meta name="viewport" content="width=1400, initial-scale=1.0, user-scalable=yes">
     <title>Карта боя — Резервуар | [HEL] Ацкое Пламя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,6 +16,7 @@
             padding: 1.25rem 2rem 2rem;
             position: relative;
             z-index: 1;
+            min-width: 1200px;
         }
         .admin-bar {
             display: flex; justify-content: space-between; align-items: center;
@@ -41,18 +43,6 @@
         }
         body.edit-mode .edit-banner { display: flex; }
 
-        .map-scroll-hint {
-            display: none;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 138, 31, 0.08);
-            border: 1px solid rgba(255, 138, 31, 0.25);
-            border-radius: 10px;
-            font-size: 0.8rem;
-            color: var(--accent-warm);
-            text-align: center;
-            margin-top: 0.75rem;
-        }
-
         .map-wrap {
             margin-top: 0.75rem;
             background: linear-gradient(180deg, #14100a, #0f0b07);
@@ -64,8 +54,6 @@
             gap: 0.5rem;
         }
 
-        .map-scroll { overflow: visible; }
-
         .field {
             position: relative;
             background:
@@ -76,8 +64,7 @@
                 linear-gradient(180deg, #c9b183 0%, #bda474 25%, #b3986a 50%, #a88c5e 75%, #8f7548 100%);
             border: 1px solid var(--line);
             border-radius: 14px;
-            height: 75vh;
-            min-height: 620px;
+            height: 820px;
             overflow: hidden;
             z-index: 1;
             width: 100%;
@@ -122,7 +109,6 @@
             pointer-events: none !important;
         }
 
-        /* ★ ПРЕВЬЮ РИСУЕМОЙ СТРЕЛКИ ★ */
         .arrows-layer .draw-preview {
             stroke-dasharray: 6 4;
             opacity: 0.9;
@@ -225,15 +211,12 @@
             flex-wrap: wrap;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
         }
-        body.drawing-mode .draw-toolbar {
-            display: flex;
-        }
+        body.drawing-mode .draw-toolbar { display: flex; }
 
         .draw-label {
             font-size: 0.78rem;
             color: var(--muted);
             font-weight: 500;
-            letter-spacing: 0.3px;
             white-space: nowrap;
         }
 
@@ -251,11 +234,8 @@
             cursor: pointer;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
             padding: 0;
-            position: relative;
         }
-        .color-swatch:hover {
-            transform: scale(1.15);
-        }
+        .color-swatch:hover { transform: scale(1.15); }
         .color-swatch.active {
             box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.6);
             transform: scale(1.15);
@@ -297,7 +277,6 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
             font-family: 'Inter', sans-serif;
             line-height: 1;
-            letter-spacing: -0.3px;
         }
         .stage-badge.tl { top: -10px; left: -10px; }
         .stage-badge.tr { top: -10px; right: -10px; }
@@ -405,16 +384,10 @@
             overflow: hidden;
             resize: both;
         }
-        body.edit-mode:not(.drawing-mode) .draggable-panel.on-map {
-            resize: both;
-        }
+        body.edit-mode:not(.drawing-mode) .draggable-panel.on-map { resize: both; }
         body:not(.edit-mode) .draggable-panel.on-map,
-        body.drawing-mode .draggable-panel.on-map {
-            resize: none;
-        }
-        .draggable-panel.on-map:active {
-            cursor: grabbing;
-        }
+        body.drawing-mode .draggable-panel.on-map { resize: none; }
+        .draggable-panel.on-map:active { cursor: grabbing; }
         .draggable-panel.on-map::after {
             content: "";
             position: absolute;
@@ -422,11 +395,8 @@
             border: 1.5px dashed rgba(255, 138, 31, 0.5);
             border-radius: 12px;
             pointer-events: none;
-            transition: border-color 0.2s ease;
         }
-        body.edit-mode .draggable-panel.on-map::after {
-            border-color: var(--accent);
-        }
+        body.edit-mode .draggable-panel.on-map::after { border-color: var(--accent); }
 
         body.edit-mode:not(.drawing-mode) .draggable-panel:not(.on-map) {
             cursor: grab;
@@ -450,21 +420,15 @@
             color: #fff;
             font-size: 0.8rem;
             font-weight: 700;
-            line-height: 1;
             cursor: pointer;
             display: none;
             align-items: center;
             justify-content: center;
             padding: 0;
             z-index: 20;
-            transition: transform 0.15s ease;
         }
-        .reset-pos-btn:hover {
-            transform: scale(1.15);
-        }
-        body.edit-mode .draggable-panel.on-map .reset-pos-btn {
-            display: flex;
-        }
+        .reset-pos-btn:hover { transform: scale(1.15); }
+        body.edit-mode .draggable-panel.on-map .reset-pos-btn { display: flex; }
 
         .draggable-panel .panel-title {
             font-size: 0.68rem;
@@ -490,12 +454,8 @@
             cursor: text;
             border-radius: 4px;
             padding: 0.15rem 0.25rem;
-            transition: background 0.15s ease;
             word-break: break-word;
             margin-bottom: 0.4rem;
-        }
-        .draggable-panel .panel-players:hover {
-            background: rgba(255, 255, 255, 0.03);
         }
         .draggable-panel .panel-players[contenteditable="true"]:focus {
             outline: none;
@@ -547,9 +507,6 @@
             padding: 0.05rem 0.25rem;
             border-radius: 3px;
         }
-        .draggable-panel.reserve-panel .panel-players span:hover {
-            background: rgba(255, 255, 255, 0.04);
-        }
         .draggable-panel.reserve-panel .panel-players span[contenteditable="true"]:focus {
             outline: none;
             background: rgba(255, 138, 31, 0.15);
@@ -597,52 +554,6 @@
         body.light-theme .draggable-panel {
             background: rgba(255, 251, 242, 0.96);
             border-color: #e8dcc8;
-        }
-        body.light-theme .draggable-panel .panel-players,
-        body.light-theme .draggable-panel .gbr-name {
-            color: #2a1a0a;
-        }
-
-        @media (max-width: 1400px) {
-            .bottom-panel { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
-            .draggable-panel .panel-players { font-size: 0.74rem; }
-            .draggable-panel .panel-stages .stage { font-size: 0.66rem; }
-        }
-
-        @media (max-width: 1100px) {
-            .bottom-panel { grid-template-columns: repeat(2, 1fr); }
-            .bottom-bar { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 900px) {
-            .page { padding: 1rem 1rem 1.5rem; }
-            .map-wrap { padding: 0.5rem; }
-            .map-scroll-hint { display: block; }
-
-            .map-scroll {
-                overflow: auto;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: thin;
-                scrollbar-color: var(--accent) transparent;
-                margin: 0 -0.5rem;
-                padding: 0 0.5rem;
-                max-height: 75vh;
-            }
-            .map-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-            .map-scroll::-webkit-scrollbar-track { background: transparent; }
-            .map-scroll::-webkit-scrollbar-thumb {
-                background: var(--accent);
-                border-radius: 3px;
-                opacity: 0.6;
-            }
-
-            .field {
-                min-width: 1200px;
-                height: 850px;
-            }
-
-            .bottom-panel { grid-template-columns: 1fr; }
-            .bottom-bar { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -734,11 +645,7 @@
     </div>
 
     <div class="draw-tip" id="drawTip">
-        <div id="drawTipText">🎯 Кликните в любом месте карты, чтобы начать стрелку.<br>Ведите курсор, кликните для угла. <b>Двойной клик</b> — завершить.</div>
-    </div>
-
-    <div class="map-scroll-hint">
-        ↔ Скролльте карту, чтобы увидеть все объекты
+        <div id="drawTipText">🎯 Кликните по иконке или плашке, чтобы начать стрелку от неё.<br>Ведите курсор, кликните для угла. <b>Двойной клик</b> — завершить (привяжет к объекту под курсором).</div>
     </div>
 
     <div class="map-wrap">
@@ -756,7 +663,7 @@
                         {% set h_val = map_values.get('panel-' + pk + '-h', '') %}
 
                         {% if pk == 'hq1' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq1" data-panel-type="team" id="panel-hq1"
+                        <div class="draggable-panel on-map" data-panel-key="hq1" data-panel-type="team" data-connector-key="hq1" id="panel-hq1"
                              style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                             <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
                             <div class="panel-title"><span class="num">1</span> Команда</div>
@@ -771,7 +678,7 @@
                         {% endif %}
 
                         {% if pk == 'hq2' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq2" data-panel-type="team" id="panel-hq2"
+                        <div class="draggable-panel on-map" data-panel-key="hq2" data-panel-type="team" data-connector-key="hq2" id="panel-hq2"
                              style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                             <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
                             <div class="panel-title"><span class="num">2</span> Команда</div>
@@ -786,7 +693,7 @@
                         {% endif %}
 
                         {% if pk == 'hq3' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq3" data-panel-type="team" id="panel-hq3"
+                        <div class="draggable-panel on-map" data-panel-key="hq3" data-panel-type="team" data-connector-key="hq3" id="panel-hq3"
                              style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                             <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
                             <div class="panel-title"><span class="num">3</span> Команда</div>
@@ -801,7 +708,7 @@
                         {% endif %}
 
                         {% if pk == 'hq4' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq4" data-panel-type="team" id="panel-hq4"
+                        <div class="draggable-panel on-map" data-panel-key="hq4" data-panel-type="team" data-connector-key="hq4" id="panel-hq4"
                              style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                             <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
                             <div class="panel-title"><span class="num">4</span> Команда</div>
@@ -816,7 +723,7 @@
                         {% endif %}
 
                         {% if pk == 'gbr1' %}
-                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr1" data-panel-type="gbr" id="panel-gbr1"
+                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr1" data-panel-type="gbr" data-connector-key="gbr1" id="panel-gbr1"
                              style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                             <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
                             <div class="panel-title">1 ГБР</div>
@@ -831,7 +738,7 @@
                         {% endif %}
 
                         {% if pk == 'gbr2' %}
-                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr2" data-panel-type="gbr" id="panel-gbr2"
+                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr2" data-panel-type="gbr" data-connector-key="gbr2" id="panel-gbr2"
                              style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                             <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
                             <div class="panel-title">2 ГБР</div>
@@ -846,7 +753,7 @@
                         {% endif %}
 
                         {% if pk == 'reserve' %}
-                        <div class="draggable-panel reserve-panel on-map" data-panel-key="reserve" data-panel-type="reserve" id="panel-reserve"
+                        <div class="draggable-panel reserve-panel on-map" data-panel-key="reserve" data-panel-type="reserve" data-connector-key="reserve" id="panel-reserve"
                              style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                             <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
                             <div class="panel-title">Резерв</div>
@@ -869,7 +776,7 @@
 
                 <!-- ★ ТОЧКИ ★ -->
 
-                <div class="point" data-point-key="pt-solar" style="left: {{ map_values.get('pt-solar-left', '10') }}%; top: {{ map_values.get('pt-solar-top', '22') }}%;">
+                <div class="point" data-point-key="pt-solar" data-connector-key="pt-solar" style="left: {{ map_values.get('pt-solar-left', '10') }}%; top: {{ map_values.get('pt-solar-top', '22') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">☀️</div>
                         <div class="stage-badges">
@@ -881,7 +788,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-owner">{{ map_values.get('pt-solar-owner', '—') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-vpz-nw" style="left: {{ map_values.get('pt-vpz-nw-left', '38') }}%; top: {{ map_values.get('pt-vpz-nw-top', '12') }}%;">
+                <div class="point" data-point-key="pt-vpz-nw" data-connector-key="pt-vpz-nw" style="left: {{ map_values.get('pt-vpz-nw-left', '38') }}%; top: {{ map_values.get('pt-vpz-nw-top', '12') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -892,7 +799,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-owner">{{ map_values.get('pt-vpz-nw-owner', '—') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-vpz-ne" style="left: {{ map_values.get('pt-vpz-ne-left', '88') }}%; top: {{ map_values.get('pt-vpz-ne-top', '12') }}%;">
+                <div class="point" data-point-key="pt-vpz-ne" data-connector-key="pt-vpz-ne" style="left: {{ map_values.get('pt-vpz-ne-left', '88') }}%; top: {{ map_values.get('pt-vpz-ne-top', '12') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -903,7 +810,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-owner">{{ map_values.get('pt-vpz-ne-owner', '—') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-science" style="left: {{ map_values.get('pt-science-left', '28') }}%; top: {{ map_values.get('pt-science-top', '32') }}%;">
+                <div class="point" data-point-key="pt-science" data-connector-key="pt-science" style="left: {{ map_values.get('pt-science-left', '28') }}%; top: {{ map_values.get('pt-science-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🧪</div>
                         <div class="stage-badges">
@@ -915,7 +822,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-owner">{{ map_values.get('pt-science-owner', '—') }}</div>
                 </div>
 
-                <div class="point water-collector" data-point-key="pt-wc-1" style="left: {{ map_values.get('pt-wc-1-left', '48') }}%; top: {{ map_values.get('pt-wc-1-top', '32') }}%;">
+                <div class="point water-collector" data-point-key="pt-wc-1" data-connector-key="pt-wc-1" style="left: {{ map_values.get('pt-wc-1-left', '48') }}%; top: {{ map_values.get('pt-wc-1-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -925,7 +832,7 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-voc-ne" style="left: {{ map_values.get('pt-voc-ne-left', '68') }}%; top: {{ map_values.get('pt-voc-ne-top', '32') }}%;">
+                <div class="point" data-point-key="pt-voc-ne" data-connector-key="pt-voc-ne" style="left: {{ map_values.get('pt-voc-ne-left', '68') }}%; top: {{ map_values.get('pt-voc-ne-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
                         <div class="stage-badges">
@@ -937,7 +844,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-owner">{{ map_values.get('pt-voc-ne-owner', '—') }}</div>
                 </div>
 
-                <div class="point water-collector" data-point-key="pt-wc-2" style="left: {{ map_values.get('pt-wc-2-left', '28') }}%; top: {{ map_values.get('pt-wc-2-top', '52') }}%;">
+                <div class="point water-collector" data-point-key="pt-wc-2" data-connector-key="pt-wc-2" style="left: {{ map_values.get('pt-wc-2-left', '28') }}%; top: {{ map_values.get('pt-wc-2-top', '52') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -947,7 +854,7 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
                 </div>
 
-                <div class="point center-point" data-point-key="pt-center" style="left: {{ map_values.get('pt-center-left', '50') }}%; top: {{ map_values.get('pt-center-top', '50') }}%;">
+                <div class="point center-point" data-point-key="pt-center" data-connector-key="pt-center" style="left: {{ map_values.get('pt-center-left', '50') }}%; top: {{ map_values.get('pt-center-top', '50') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏰</div>
                         <div class="stage-badges">
@@ -959,7 +866,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-owner">{{ map_values.get('pt-center-owner', '—') }}</div>
                 </div>
 
-                <div class="point water-collector" data-point-key="pt-wc-3" style="left: {{ map_values.get('pt-wc-3-left', '72') }}%; top: {{ map_values.get('pt-wc-3-top', '52') }}%;">
+                <div class="point water-collector" data-point-key="pt-wc-3" data-connector-key="pt-wc-3" style="left: {{ map_values.get('pt-wc-3-left', '72') }}%; top: {{ map_values.get('pt-wc-3-top', '52') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -969,7 +876,7 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-voc-sw" style="left: {{ map_values.get('pt-voc-sw-left', '28') }}%; top: {{ map_values.get('pt-voc-sw-top', '72') }}%;">
+                <div class="point" data-point-key="pt-voc-sw" data-connector-key="pt-voc-sw" style="left: {{ map_values.get('pt-voc-sw-left', '28') }}%; top: {{ map_values.get('pt-voc-sw-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
                         <div class="stage-badges">
@@ -981,7 +888,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-owner">{{ map_values.get('pt-voc-sw-owner', '—') }}</div>
                 </div>
 
-                <div class="point water-collector" data-point-key="pt-wc-4" style="left: {{ map_values.get('pt-wc-4-left', '48') }}%; top: {{ map_values.get('pt-wc-4-top', '72') }}%;">
+                <div class="point water-collector" data-point-key="pt-wc-4" data-connector-key="pt-wc-4" style="left: {{ map_values.get('pt-wc-4-left', '48') }}%; top: {{ map_values.get('pt-wc-4-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -991,7 +898,7 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-milfac" style="left: {{ map_values.get('pt-milfac-left', '68') }}%; top: {{ map_values.get('pt-milfac-top', '72') }}%;">
+                <div class="point" data-point-key="pt-milfac" data-connector-key="pt-milfac" style="left: {{ map_values.get('pt-milfac-left', '68') }}%; top: {{ map_values.get('pt-milfac-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">⚙️</div>
                         <div class="stage-badges">
@@ -1003,7 +910,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-owner">{{ map_values.get('pt-milfac-owner', '—') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-vpz-sw" style="left: {{ map_values.get('pt-vpz-sw-left', '10') }}%; top: {{ map_values.get('pt-vpz-sw-top', '88') }}%;">
+                <div class="point" data-point-key="pt-vpz-sw" data-connector-key="pt-vpz-sw" style="left: {{ map_values.get('pt-vpz-sw-left', '10') }}%; top: {{ map_values.get('pt-vpz-sw-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -1014,7 +921,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-owner">{{ map_values.get('pt-vpz-sw-owner', '—') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-vpz-s" style="left: {{ map_values.get('pt-vpz-s-left', '60') }}%; top: {{ map_values.get('pt-vpz-s-top', '88') }}%;">
+                <div class="point" data-point-key="pt-vpz-s" data-connector-key="pt-vpz-s" style="left: {{ map_values.get('pt-vpz-s-left', '60') }}%; top: {{ map_values.get('pt-vpz-s-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -1025,7 +932,7 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-owner">{{ map_values.get('pt-vpz-s-owner', '—') }}</div>
                 </div>
 
-                <div class="point" data-point-key="pt-pad" style="left: {{ map_values.get('pt-pad-left', '88') }}%; top: {{ map_values.get('pt-pad-top', '88') }}%;">
+                <div class="point" data-point-key="pt-pad" data-connector-key="pt-pad" style="left: {{ map_values.get('pt-pad-left', '88') }}%; top: {{ map_values.get('pt-pad-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛬</div>
                         <div class="stage-badges">
@@ -1044,7 +951,7 @@
     <div class="bottom-panel">
 
         {% if map_values.get('panel-hq1-onmap') != '1' %}
-        <div class="draggable-panel" data-panel-key="hq1" data-panel-type="team" id="panel-hq1">
+        <div class="draggable-panel" data-panel-key="hq1" data-panel-type="team" data-connector-key="hq1" id="panel-hq1">
             <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">1</span> Команда</div>
             <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
@@ -1058,7 +965,7 @@
         {% endif %}
 
         {% if map_values.get('panel-hq2-onmap') != '1' %}
-        <div class="draggable-panel" data-panel-key="hq2" data-panel-type="team" id="panel-hq2">
+        <div class="draggable-panel" data-panel-key="hq2" data-panel-type="team" data-connector-key="hq2" id="panel-hq2">
             <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">2</span> Команда</div>
             <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
@@ -1072,7 +979,7 @@
         {% endif %}
 
         {% if map_values.get('panel-hq3-onmap') != '1' %}
-        <div class="draggable-panel" data-panel-key="hq3" data-panel-type="team" id="panel-hq3">
+        <div class="draggable-panel" data-panel-key="hq3" data-panel-type="team" data-connector-key="hq3" id="panel-hq3">
             <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">3</span> Команда</div>
             <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
@@ -1086,7 +993,7 @@
         {% endif %}
 
         {% if map_values.get('panel-hq4-onmap') != '1' %}
-        <div class="draggable-panel" data-panel-key="hq4" data-panel-type="team" id="panel-hq4">
+        <div class="draggable-panel" data-panel-key="hq4" data-panel-type="team" data-connector-key="hq4" id="panel-hq4">
             <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">4</span> Команда</div>
             <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
@@ -1104,7 +1011,7 @@
     <div class="bottom-bar">
 
         {% if map_values.get('panel-gbr1-onmap') != '1' %}
-        <div class="draggable-panel gbr-panel" data-panel-key="gbr1" data-panel-type="gbr" id="panel-gbr1">
+        <div class="draggable-panel gbr-panel" data-panel-key="gbr1" data-panel-type="gbr" data-connector-key="gbr1" id="panel-gbr1">
             <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
             <div class="panel-title">1 ГБР</div>
             <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
@@ -1118,7 +1025,7 @@
         {% endif %}
 
         {% if map_values.get('panel-gbr2-onmap') != '1' %}
-        <div class="draggable-panel gbr-panel" data-panel-key="gbr2" data-panel-type="gbr" id="panel-gbr2">
+        <div class="draggable-panel gbr-panel" data-panel-key="gbr2" data-panel-type="gbr" data-connector-key="gbr2" id="panel-gbr2">
             <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
             <div class="panel-title">2 ГБР</div>
             <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
@@ -1132,7 +1039,7 @@
         {% endif %}
 
         {% if map_values.get('panel-reserve-onmap') != '1' %}
-        <div class="draggable-panel reserve-panel" data-panel-key="reserve" data-panel-type="reserve" id="panel-reserve">
+        <div class="draggable-panel reserve-panel" data-panel-key="reserve" data-panel-type="reserve" data-connector-key="reserve" id="panel-reserve">
             <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
             <div class="panel-title">Резерв</div>
             <div class="panel-players">
@@ -1171,11 +1078,31 @@
         toggleBtn.textContent = '☀️';
     }
 
-    // ★★★ ОТРИСОВКА СТРЕЛОК (ДЛЯ ВСЕХ) ★★★
+    // ★★★ ОТРИСОВКА СТРЕЛОК С ПРИВЯЗКОЙ К ОБЪЕКТАМ ★★★
     (function() {
         const field = document.getElementById('field');
         const svg = document.getElementById('arrowsLayer');
         if (!field || !svg) return;
+
+        // ★★ Возвращает актуальную позицию точки в процентах от field
+        // Если у точки есть fromKey/toKey — берём позицию DOM-элемента
+        // Иначе — сохранённые x/y (для углов ломаной)
+        window.getActualPointPercent = function(pt) {
+            if (pt.key) {
+                const el = field.querySelector('[data-connector-key="' + pt.key + '"]');
+                if (el) {
+                    const fieldRect = field.getBoundingClientRect();
+                    const rect = el.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height / 2;
+                    return {
+                        x: ((cx - fieldRect.left) / fieldRect.width) * 100,
+                        y: ((cy - fieldRect.top) / fieldRect.height) * 100
+                    };
+                }
+            }
+            return { x: pt.x, y: pt.y };
+        };
 
         window.renderArrows = function() {
             const rect = field.getBoundingClientRect();
@@ -1186,8 +1113,8 @@
             svg.setAttribute('width', w);
             svg.setAttribute('height', h);
 
-            // Убираем только старые стрелки, не трогаем превью
-            const old = svg.querySelectorAll('path.arrow-path, g.arrow-markers');
+            // Убираем старые стрелки, не трогаем превью
+            const old = svg.querySelectorAll('path.arrow-path');
             old.forEach(el => el.remove());
 
             const arrowsArr = window.INITIAL_ARROWS || [];
@@ -1221,18 +1148,22 @@
                 defs.appendChild(marker);
             });
 
-            // Рисуем стрелки-полилинии
+            // Рисуем стрелки
             arrowsArr.forEach(arrow => {
                 if (!arrow.points || arrow.points.length < 2) return;
 
-                // Точки хранятся в процентах
-                const pts = arrow.points.map(p => {
-                    const x = (p.x / 100) * w;
-                    const y = (p.y / 100) * h;
-                    return x + ' ' + y;
-                }).join(' L ');
+                const px = arrow.points.map(pt => {
+                    const ap = window.getActualPointPercent(pt);
+                    return {
+                        x: (ap.x / 100) * w,
+                        y: (ap.y / 100) * h
+                    };
+                });
 
-                const d = 'M ' + pts;
+                let d = 'M ' + px[0].x + ' ' + px[0].y;
+                for (let i = 1; i < px.length; i++) {
+                    d += ' L ' + px[i].x + ' ' + px[i].y;
+                }
 
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', d);
@@ -1276,7 +1207,7 @@
         let isEditing = false;
         let isDrawing = false;
         let currentColor = '#4a9eff';
-        let currentPath = null; // массив точек {x, y} в процентах
+        let currentPath = null;
         let previewPathEl = null;
         let startDotEl = null;
         let lastClickTime = 0;
@@ -1290,7 +1221,6 @@
             arrows = JSON.parse(window.INITIAL_ARROWS || '[]');
         } catch (e) { arrows = []; }
 
-        // Создаём превью-элементы в SVG (они всегда в DOM, но скрыты)
         function ensurePreviewEls() {
             if (!svgLayer) return;
             if (!previewPathEl) {
@@ -1332,9 +1262,16 @@
             };
         }
 
-        function buildPathD(points) {
-            if (!points.length) return '';
-            const px = points.map(percentToPx);
+        // Ищем объект под курсором (по координатам клика в клиентских пикселях)
+        function findConnectorAt(clientX, clientY) {
+            const el = document.elementFromPoint(clientX, clientY);
+            if (!el) return null;
+            return el.closest('[data-connector-key]');
+        }
+
+        function buildPathD(pointsPercent) {
+            if (!pointsPercent.length) return '';
+            const px = pointsPercent.map(percentToPx);
             let d = 'M ' + px[0].x + ' ' + px[0].y;
             for (let i = 1; i < px.length; i++) {
                 d += ' L ' + px[i].x + ' ' + px[i].y;
@@ -1442,12 +1379,11 @@
             drawToggle.classList.toggle('active', on);
             drawToggle.textContent = on ? '✏ Выйти из рисования' : '✏ Стрелки';
 
-            // Сброс текущего рисования
             currentPath = null;
             hidePreview();
-            drawInfo.textContent = on ? 'Кликните для начала стрелки' : '';
+            drawInfo.textContent = on ? 'Кликните по объекту, чтобы начать' : '';
             drawTipText.innerHTML = on
-                ? '🎯 Кликните в любом месте карты, чтобы начать стрелку.<br>Ведите курсор, кликните для угла. <b>Двойной клик</b> — завершить.'
+                ? '🎯 Кликните <b>по иконке или плашке</b>, чтобы начать стрелку от неё.<br>Ведите курсор, кликните для угла. <b>Двойной клик</b> по объекту — завершить.'
                 : '';
         }
 
@@ -1480,8 +1416,6 @@
         function onFieldClick(e) {
             if (!isDrawing) return;
             if (e.target.closest('.reset-pos-btn')) return;
-
-            // Игнорируем клики по существующим стрелкам
             if (e.target.closest('path.arrow-path')) return;
 
             e.preventDefault();
@@ -1493,30 +1427,42 @@
 
             const p = clientToPercent(e.clientX, e.clientY);
 
+            // ★ Ищем объект под курсором
+            const connector = findConnectorAt(e.clientX, e.clientY);
+            const connectorKey = connector ? connector.dataset.connectorKey : null;
+
             if (!currentPath) {
-                // Первый клик — начинаем
-                currentPath = [p];
+                // Первый клик — начинаем. Привязываем к объекту, если он есть.
+                const firstPoint = connectorKey
+                    ? { key: connectorKey, x: p.x, y: p.y }
+                    : { x: p.x, y: p.y };
+
+                currentPath = [firstPoint];
                 showStartDot(p);
                 drawInfo.textContent = '✓ Начало установлено. Кликайте для углов, двойной клик — завершить.';
             } else {
-                // Добавляем точку
-                currentPath.push(p);
+                // ★ Добавляем точку. Если попали по объекту — привязываем.
+                const newPoint = connectorKey
+                    ? { key: connectorKey, x: p.x, y: p.y }
+                    : { x: p.x, y: p.y };
 
-                if (isDoubleClick && currentPath.length >= 2) {
-                    // Двойной клик — завершаем стрелку
-                    // Убираем последнюю точку, если она дублирует предпоследнюю
-                    if (currentPath.length >= 2) {
-                        const last = currentPath[currentPath.length - 1];
-                        const prev = currentPath[currentPath.length - 2];
-                        if (Math.abs(last.x - prev.x) < 0.3 && Math.abs(last.y - prev.y) < 0.3) {
-                            currentPath.pop();
-                        }
+                // Проверяем дубликат для двойного клика
+                if (isDoubleClick && currentPath.length >= 1) {
+                    const last = currentPath[currentPath.length - 1];
+                    if (Math.abs(last.x - p.x) < 0.3 && Math.abs(last.y - p.y) < 0.3) {
+                        // Просто завершаем без добавления
+                    } else {
+                        currentPath.push(newPoint);
                     }
 
                     if (currentPath.length >= 2) {
                         const newArrow = {
                             id: 'arrow-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
-                            points: currentPath.map(pt => ({ x: +pt.x.toFixed(2), y: +pt.y.toFixed(2) })),
+                            points: currentPath.map(pt => {
+                                const obj = { x: +pt.x.toFixed(2), y: +pt.y.toFixed(2) };
+                                if (pt.key) obj.key = pt.key;
+                                return obj;
+                            }),
                             color: currentColor
                         };
                         arrows.push(newArrow);
@@ -1534,14 +1480,15 @@
 
                     currentPath = null;
                     hidePreview();
-                    drawInfo.textContent = 'Кликните для начала новой стрелки';
+                    drawInfo.textContent = 'Кликните по объекту для начала новой стрелки';
                 } else {
+                    currentPath.push(newPoint);
                     drawInfo.textContent = '✓ Точка добавлена. Кликайте дальше, двойной клик — завершить.';
                 }
             }
         }
 
-        // ★★★ ДВИЖЕНИЕ МЫШИ — РИСУЕМ ПРЕВЬЮ ★★★
+        // ★★ ДВИЖЕНИЕ МЫШИ — РИСУЕМ ПРЕВЬЮ ★★
         function onFieldMove(e) {
             if (!isDrawing || !currentPath) return;
             const p = clientToPercent(e.clientX, e.clientY);
@@ -1553,7 +1500,7 @@
             field.addEventListener('mousemove', onFieldMove);
         }
 
-        // ★★★ КЛИК ПО СТРЕЛКЕ — УДАЛЕНИЕ (правый клик) ★★★
+        // ★★★ УДАЛЕНИЕ СТРЕЛКИ ★★★
         if (svgLayer) {
             svgLayer.addEventListener('contextmenu', (e) => {
                 if (!isEditing) return;
@@ -1658,7 +1605,26 @@
                 if (draggedPoint) {
                     e.preventDefault();
                     saveData();
+                    // ★ Перерисовываем стрелки, чтобы обновить их позиции
+                    if (window.renderArrows) window.renderArrows();
                     draggedPoint = null;
+                }
+            });
+
+            // ★ Перетаскивание мышью (не через HTML5 drag) — обновляем стрелки в реальном времени
+            field.addEventListener('mousemove', (e) => {
+                if (draggedPoint) {
+                    // Просто перерисуем стрелки в реальном времени
+                    if (window.renderArrows) window.renderArrows();
+                }
+            });
+
+            // Отпускаем мышь — сохраняем и обновляем
+            document.addEventListener('mouseup', () => {
+                if (draggedPoint) {
+                    // Обновим позиции стрелок
+                    if (window.renderArrows) window.renderArrows();
+                    saveData();
                 }
             });
         }
