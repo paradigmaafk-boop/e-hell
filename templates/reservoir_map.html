@@ -66,7 +66,7 @@
 
         .map-scroll { overflow: visible; }
 
-        /* ★★★ ПЕСОЧНЫЙ ФОН КАРТЫ ★★★ */
+        /* ★ ПЕСОЧНЫЙ ФОН КАРТЫ ★ */
         .field {
             position: relative;
             background:
@@ -144,10 +144,6 @@
             border: 1.5px dashed rgba(255, 138, 31, 0.5);
             border-radius: 12px;
             pointer-events: none;
-        }
-        body.edit-mode .point:hover .point-icon-wrap::after {
-            border-color: var(--accent);
-            border-style: solid;
         }
 
         .drag-hint {
@@ -269,7 +265,7 @@
             font-size: 0.7rem; padding: 0.2rem 0.5rem; max-width: 100px;
         }
 
-        /* ★★★ КОМАНДЫ / ГБР / РЕЗЕРВ — ПЛАВАЮЩИЕ ПЛАШКИ НА КАРТЕ ★★★ */
+        /* ★★★ ПЛАВАЮЩИЕ ПЛАШКИ КОМАНД / ГБР / РЕЗЕРВА ★★★ */
         .draggable-panel {
             background: rgba(20, 14, 8, 0.95);
             border: 1px solid var(--line);
@@ -277,16 +273,19 @@
             padding: 0.7rem 0.85rem;
             backdrop-filter: blur(6px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            position: relative;
         }
 
-        /* Когда плашка на карте — она становится absolute-оверлеем */
+        /* Когда плашка на карте — она absolute-оверлей */
         .draggable-panel.on-map {
-            position: absolute;
+            position: absolute !important;
             transform: translate(-50%, -50%);
             z-index: 10;
-            min-width: 220px;
-            max-width: 280px;
+            min-width: 200px;
+            max-width: 400px;
             cursor: grab;
+            overflow: hidden;
+            resize: both;
         }
         .draggable-panel.on-map:active {
             cursor: grabbing;
@@ -294,14 +293,22 @@
         .draggable-panel.on-map::after {
             content: "";
             position: absolute;
-            inset: -6px;
+            inset: 0;
             border: 1.5px dashed rgba(255, 138, 31, 0.5);
-            border-radius: 16px;
+            border-radius: 12px;
             pointer-events: none;
+            transition: border-color 0.2s ease;
         }
-        .draggable-panel.on-map:hover::after {
+        body.edit-mode .draggable-panel.on-map::after {
             border-color: var(--accent);
-            border-style: solid;
+        }
+
+        /* ★ RESIZE РУЧКА ★ */
+        body.edit-mode .draggable-panel.on-map {
+            resize: both;
+        }
+        body:not(.edit-mode) .draggable-panel.on-map {
+            resize: none;
         }
 
         body.edit-mode .draggable-panel:not(.on-map) {
@@ -314,18 +321,18 @@
             border-style: solid;
         }
 
-        /* Кнопка «Сбросить на панель» */
+        /* Кнопка «Вернуть на панель» */
         .reset-pos-btn {
             position: absolute;
-            top: -10px;
-            right: -10px;
-            width: 24px;
-            height: 24px;
+            top: 6px;
+            right: 6px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             background: linear-gradient(180deg, #ff6a1a, #c94a00);
             border: 2px solid #1a1209;
             color: #fff;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             line-height: 1;
             cursor: pointer;
@@ -333,7 +340,7 @@
             align-items: center;
             justify-content: center;
             padding: 0;
-            z-index: 11;
+            z-index: 20;
             transition: transform 0.15s ease;
         }
         .reset-pos-btn:hover {
@@ -392,7 +399,6 @@
             min-height: 1.7em;
         }
 
-        /* ГБР плашки — ГБР 1 / ГБР 2 / Резерв */
         .draggable-panel.gbr-panel .panel-stages,
         .draggable-panel.gbr-panel .gbr-stages {
             grid-template-columns: repeat(4, 1fr);
@@ -486,7 +492,6 @@
             .bottom-panel { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
             .draggable-panel .panel-players { font-size: 0.74rem; }
             .draggable-panel .panel-stages .stage { font-size: 0.66rem; }
-            .draggable-panel.gbr-panel .gbr-stages .stage { font-size: 0.66rem; }
         }
 
         @media (max-width: 1100px) {
@@ -526,8 +531,7 @@
         }
     </style>
 </head>
-
-    <body>
+<body>
 
 <div class="page">
 
@@ -590,10 +594,10 @@
 
     {% if session['username'] == 'admin' %}
     <div class="edit-banner">
-        ⚡ Режим редактирования включён. Кликайте на любой текст — и вписывайте новое.
+        ⚡ Режим редактирования включён. Кликайте на любой текст, перетаскивайте иконки и плашки команд.
     </div>
     <div class="drag-hint">
-        🖐 Перетаскивайте иконки и плашки команд на карту, чтобы расставить их
+        🖐 Перетаскивайте иконки и плашки команд на карту. Растягивайте плашки за правый нижний угол.
     </div>
     {% endif %}
 
@@ -606,11 +610,130 @@
         <div class="map-scroll">
             <div class="field" id="field">
 
-                <!-- ★ ПЛАШКИ КОМАНД / ГБР / РЕЗЕРВА, ПЕРЕНЕСЁННЫЕ НА КАРТУ, БУДУТ ЗДЕСЬ ★ -->
-                <!-- (JS сам вставляет их сюда при перетаскивании) -->
+                {% set panel_keys = ['hq1', 'hq2', 'hq3', 'hq4', 'gbr1', 'gbr2', 'reserve'] %}
+                {% for pk in panel_keys %}
+                    {% if map_values.get('panel-' + pk + '-onmap') == '1' %}
+                        {% set left_val = map_values.get('panel-' + pk + '-left', '50') %}
+                        {% set top_val = map_values.get('panel-' + pk + '-top', '50') %}
+                        {% set w_val = map_values.get('panel-' + pk + '-w', '') %}
+                        {% set h_val = map_values.get('panel-' + pk + '-h', '') %}
+
+                        {% if pk == 'hq1' %}
+                        <div class="draggable-panel on-map" data-panel-key="hq1" data-panel-type="team" id="panel-hq1"
+                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                            <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
+                            <div class="panel-title"><span class="num">1</span> Команда</div>
+                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
+                            <div class="panel-stages">
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if pk == 'hq2' %}
+                        <div class="draggable-panel on-map" data-panel-key="hq2" data-panel-type="team" id="panel-hq2"
+                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                            <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
+                            <div class="panel-title"><span class="num">2</span> Команда</div>
+                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
+                            <div class="panel-stages">
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if pk == 'hq3' %}
+                        <div class="draggable-panel on-map" data-panel-key="hq3" data-panel-type="team" id="panel-hq3"
+                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                            <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
+                            <div class="panel-title"><span class="num">3</span> Команда</div>
+                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
+                            <div class="panel-stages">
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if pk == 'hq4' %}
+                        <div class="draggable-panel on-map" data-panel-key="hq4" data-panel-type="team" id="panel-hq4"
+                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                            <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
+                            <div class="panel-title"><span class="num">4</span> Команда</div>
+                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
+                            <div class="panel-stages">
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if pk == 'gbr1' %}
+                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr1" data-panel-type="gbr" id="panel-gbr1"
+                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                            <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
+                            <div class="panel-title">1 ГБР</div>
+                            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
+                            <div class="gbr-stages">
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if pk == 'gbr2' %}
+                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr2" data-panel-type="gbr" id="panel-gbr2"
+                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                            <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
+                            <div class="panel-title">2 ГБР</div>
+                            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
+                            <div class="gbr-stages">
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
+                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if pk == 'reserve' %}
+                        <div class="draggable-panel reserve-panel on-map" data-panel-key="reserve" data-panel-type="reserve" id="panel-reserve"
+                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                            <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
+                            <div class="panel-title">Резерв</div>
+                            <div class="panel-players">
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
+                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                <!-- ★★★ ТОЧКИ КАРТЫ ★★★ -->
 
                 <!-- Солнечная -->
-                <div class="point" data-point-key="pt-solar" style="left: 10%; top: 22%;">
+                <div class="point" data-point-key="pt-solar" style="left: {{ map_values.get('pt-solar-left', '10') }}%; top: {{ map_values.get('pt-solar-top', '22') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">☀️</div>
                         <div class="stage-badges">
@@ -623,7 +746,7 @@
                 </div>
 
                 <!-- ВПЗ 3 -->
-                <div class="point" data-point-key="pt-vpz-nw" style="left: 38%; top: 12%;">
+                <div class="point" data-point-key="pt-vpz-nw" style="left: {{ map_values.get('pt-vpz-nw-left', '38') }}%; top: {{ map_values.get('pt-vpz-nw-top', '12') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -635,7 +758,7 @@
                 </div>
 
                 <!-- ВПЗ 2 -->
-                <div class="point" data-point-key="pt-vpz-ne" style="left: 88%; top: 12%;">
+                <div class="point" data-point-key="pt-vpz-ne" style="left: {{ map_values.get('pt-vpz-ne-left', '88') }}%; top: {{ map_values.get('pt-vpz-ne-top', '12') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -647,7 +770,7 @@
                 </div>
 
                 <!-- Комплекс -->
-                <div class="point" data-point-key="pt-science" style="left: 28%; top: 32%;">
+                <div class="point" data-point-key="pt-science" style="left: {{ map_values.get('pt-science-left', '28') }}%; top: {{ map_values.get('pt-science-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🧪</div>
                         <div class="stage-badges">
@@ -660,7 +783,7 @@
                 </div>
 
                 <!-- Водосборник верхний -->
-                <div class="point water-collector" data-point-key="pt-wc-1" style="left: 48%; top: 32%;">
+                <div class="point water-collector" data-point-key="pt-wc-1" style="left: {{ map_values.get('pt-wc-1-left', '48') }}%; top: {{ map_values.get('pt-wc-1-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -671,7 +794,7 @@
                 </div>
 
                 <!-- ВОЦ 2 -->
-                <div class="point" data-point-key="pt-voc-ne" style="left: 68%; top: 32%;">
+                <div class="point" data-point-key="pt-voc-ne" style="left: {{ map_values.get('pt-voc-ne-left', '68') }}%; top: {{ map_values.get('pt-voc-ne-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
                         <div class="stage-badges">
@@ -684,7 +807,7 @@
                 </div>
 
                 <!-- Водосборник левый -->
-                <div class="point water-collector" data-point-key="pt-wc-2" style="left: 28%; top: 52%;">
+                <div class="point water-collector" data-point-key="pt-wc-2" style="left: {{ map_values.get('pt-wc-2-left', '28') }}%; top: {{ map_values.get('pt-wc-2-top', '52') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -695,7 +818,7 @@
                 </div>
 
                 <!-- Центральный резервуар -->
-                <div class="point center-point" data-point-key="pt-center" style="left: 50%; top: 50%;">
+                <div class="point center-point" data-point-key="pt-center" style="left: {{ map_values.get('pt-center-left', '50') }}%; top: {{ map_values.get('pt-center-top', '50') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏰</div>
                         <div class="stage-badges">
@@ -708,7 +831,7 @@
                 </div>
 
                 <!-- Водосборник правый -->
-                <div class="point water-collector" data-point-key="pt-wc-3" style="left: 72%; top: 52%;">
+                <div class="point water-collector" data-point-key="pt-wc-3" style="left: {{ map_values.get('pt-wc-3-left', '72') }}%; top: {{ map_values.get('pt-wc-3-top', '52') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -719,7 +842,7 @@
                 </div>
 
                 <!-- ВОЦ 1 -->
-                <div class="point" data-point-key="pt-voc-sw" style="left: 28%; top: 72%;">
+                <div class="point" data-point-key="pt-voc-sw" style="left: {{ map_values.get('pt-voc-sw-left', '28') }}%; top: {{ map_values.get('pt-voc-sw-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
                         <div class="stage-badges">
@@ -732,7 +855,7 @@
                 </div>
 
                 <!-- Водосборник нижний -->
-                <div class="point water-collector" data-point-key="pt-wc-4" style="left: 48%; top: 72%;">
+                <div class="point water-collector" data-point-key="pt-wc-4" style="left: {{ map_values.get('pt-wc-4-left', '48') }}%; top: {{ map_values.get('pt-wc-4-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
                         <div class="stage-badges">
@@ -743,7 +866,7 @@
                 </div>
 
                 <!-- Военный завод -->
-                <div class="point" data-point-key="pt-milfac" style="left: 68%; top: 72%;">
+                <div class="point" data-point-key="pt-milfac" style="left: {{ map_values.get('pt-milfac-left', '68') }}%; top: {{ map_values.get('pt-milfac-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">⚙️</div>
                         <div class="stage-badges">
@@ -756,7 +879,7 @@
                 </div>
 
                 <!-- ВПЗ 1 -->
-                <div class="point" data-point-key="pt-vpz-sw" style="left: 10%; top: 88%;">
+                <div class="point" data-point-key="pt-vpz-sw" style="left: {{ map_values.get('pt-vpz-sw-left', '10') }}%; top: {{ map_values.get('pt-vpz-sw-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -768,7 +891,7 @@
                 </div>
 
                 <!-- ВПЗ 4 -->
-                <div class="point" data-point-key="pt-vpz-s" style="left: 60%; top: 88%;">
+                <div class="point" data-point-key="pt-vpz-s" style="left: {{ map_values.get('pt-vpz-s-left', '60') }}%; top: {{ map_values.get('pt-vpz-s-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
                         <div class="stage-badges">
@@ -780,7 +903,7 @@
                 </div>
 
                 <!-- Заброшенная вертолётная площадка -->
-                <div class="point" data-point-key="pt-pad" style="left: 88%; top: 88%;">
+                <div class="point" data-point-key="pt-pad" style="left: {{ map_values.get('pt-pad-left', '88') }}%; top: {{ map_values.get('pt-pad-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛬</div>
                         <div class="stage-badges">
@@ -796,9 +919,10 @@
         </div>
     </div>
 
-    <!-- ★★★ НИЖНЯЯ ПАНЕЛЬ: 4 КОМАНДЫ + ГБР + РЕЗЕРВ ★★★ -->
+    <!-- ★★★ НИЖНЯЯ ПАНЕЛЬ ★★★ -->
     <div class="bottom-panel">
 
+        {% if map_values.get('panel-hq1-onmap') != '1' %}
         <div class="draggable-panel" data-panel-key="hq1" data-panel-type="team" id="panel-hq1">
             <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">1</span> Команда</div>
@@ -810,7 +934,9 @@
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
             </div>
         </div>
+        {% endif %}
 
+        {% if map_values.get('panel-hq2-onmap') != '1' %}
         <div class="draggable-panel" data-panel-key="hq2" data-panel-type="team" id="panel-hq2">
             <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">2</span> Команда</div>
@@ -822,7 +948,9 @@
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
             </div>
         </div>
+        {% endif %}
 
+        {% if map_values.get('panel-hq3-onmap') != '1' %}
         <div class="draggable-panel" data-panel-key="hq3" data-panel-type="team" id="panel-hq3">
             <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">3</span> Команда</div>
@@ -834,7 +962,9 @@
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
             </div>
         </div>
+        {% endif %}
 
+        {% if map_values.get('panel-hq4-onmap') != '1' %}
         <div class="draggable-panel" data-panel-key="hq4" data-panel-type="team" id="panel-hq4">
             <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">4</span> Команда</div>
@@ -846,11 +976,13 @@
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
             </div>
         </div>
+        {% endif %}
 
     </div>
 
     <div class="bottom-bar">
 
+        {% if map_values.get('panel-gbr1-onmap') != '1' %}
         <div class="draggable-panel gbr-panel" data-panel-key="gbr1" data-panel-type="gbr" id="panel-gbr1">
             <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
             <div class="panel-title">1 ГБР</div>
@@ -862,7 +994,9 @@
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
             </div>
         </div>
+        {% endif %}
 
+        {% if map_values.get('panel-gbr2-onmap') != '1' %}
         <div class="draggable-panel gbr-panel" data-panel-key="gbr2" data-panel-type="gbr" id="panel-gbr2">
             <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
             <div class="panel-title">2 ГБР</div>
@@ -874,7 +1008,9 @@
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
             </div>
         </div>
+        {% endif %}
 
+        {% if map_values.get('panel-reserve-onmap') != '1' %}
         <div class="draggable-panel reserve-panel" data-panel-key="reserve" data-panel-type="reserve" id="panel-reserve">
             <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
             <div class="panel-title">Резерв</div>
@@ -891,6 +1027,7 @@
                 <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
             </div>
         </div>
+        {% endif %}
 
     </div>
 
@@ -921,7 +1058,6 @@
         const field = document.getElementById('field');
         const points = document.querySelectorAll('.point[data-point-key]');
         const panels = document.querySelectorAll('.draggable-panel[data-panel-key]');
-        const mapWrap = document.querySelector('.map-wrap');
 
         if (!editToggle) return;
 
@@ -935,22 +1071,28 @@
             const data = {};
             editables.forEach(el => { data[el.dataset.key] = el.textContent.trim(); });
 
-            // Позиции точек
             points.forEach(point => {
                 const key = point.dataset.pointKey;
                 data[key + '-left'] = parseFloat(point.style.left) || 0;
                 data[key + '-top'] = parseFloat(point.style.top) || 0;
             });
 
-            // Позиции панелей
             panels.forEach(panel => {
                 const key = panel.dataset.panelKey;
                 if (panel.classList.contains('on-map')) {
                     data['panel-' + key + '-left'] = parseFloat(panel.style.left) || 0;
                     data['panel-' + key + '-top'] = parseFloat(panel.style.top) || 0;
                     data['panel-' + key + '-onmap'] = '1';
+
+                    // ★ Сохранение размеров
+                    const w = panel.offsetWidth;
+                    const h = panel.offsetHeight;
+                    data['panel-' + key + '-w'] = w;
+                    data['panel-' + key + '-h'] = h;
                 } else {
                     data['panel-' + key + '-onmap'] = '0';
+                    data['panel-' + key + '-w'] = '';
+                    data['panel-' + key + '-h'] = '';
                 }
             });
 
@@ -1025,7 +1167,7 @@
             el.addEventListener('blur', () => { if (isEditing) saveData(); });
         });
 
-        // ★★★ DRAG ТОЧЕК ★★★
+        // ★ DRAG ТОЧЕК ★
         points.forEach(point => {
             point.addEventListener('dragstart', (e) => {
                 if (!isEditing || e.target.closest('[contenteditable="true"]')) {
@@ -1051,7 +1193,7 @@
             });
         });
 
-        // ★★★ DRAG ПАНЕЛЕЙ (команд, ГБР, резерва) ★★★
+        // ★ DRAG ПАНЕЛЕЙ ★
         panels.forEach(panel => {
             panel.addEventListener('dragstart', (e) => {
                 if (!isEditing || e.target.closest('[contenteditable="true"]') || e.target.closest('.reset-pos-btn')) {
@@ -1073,7 +1215,7 @@
             });
         });
 
-        // ★★★ DROP НА КАРТУ ★★★
+        // ★ DROP НА КАРТУ ★
         if (field) {
             field.addEventListener('dragover', (e) => {
                 if (!isEditing) return;
@@ -1103,11 +1245,9 @@
             field.addEventListener('drop', (e) => {
                 if (!isEditing) return;
 
-                // Если перетаскиваем панель — переносим её в field
                 if (draggedPanel) {
                     e.preventDefault();
 
-                    // Ставим абсолютные координаты относительно field
                     const rect = field.getBoundingClientRect();
                     const x = e.clientX - rect.left - dragOffsetX;
                     const y = e.clientY - rect.top - dragOffsetY;
@@ -1118,7 +1258,6 @@
                     const percentX = (clampedX / rect.width) * 100;
                     const percentY = (clampedY / rect.height) * 100;
 
-                    // Перемещаем DOM-элемент внутрь field
                     field.appendChild(draggedPanel);
                     draggedPanel.classList.add('on-map');
                     draggedPanel.style.left = percentX.toFixed(2) + '%';
@@ -1152,7 +1291,23 @@
             });
         }
 
-        // ★★★ КНОПКА "ВЕРНУТЬ НА ПАНЕЛЬ" ★★★
+        // ★ RESIZE — сохранение размеров ★
+        panels.forEach(panel => {
+            if (typeof ResizeObserver !== 'undefined') {
+                const ro = new ResizeObserver(() => {
+                    if (isEditing && panel.classList.contains('on-map')) {
+                        // Сохраняем размеры при остановке изменения
+                        clearTimeout(panel._resizeTimer);
+                        panel._resizeTimer = setTimeout(() => {
+                            saveData();
+                        }, 400);
+                    }
+                });
+                ro.observe(panel);
+            }
+        });
+
+        // ★ КНОПКА ВЕРНУТЬ НА ПАНЕЛЬ ★
         document.querySelectorAll('.reset-pos-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1162,7 +1317,6 @@
                 const panel = document.querySelector('.draggable-panel[data-panel-key="' + key + '"]');
                 if (!panel) return;
 
-                // Перемещаем обратно в bottom-panel или bottom-bar
                 const isGbr = panel.dataset.panelType === 'gbr';
                 const isReserve = panel.dataset.panelType === 'reserve';
 
@@ -1180,6 +1334,8 @@
                 panel.classList.remove('on-map');
                 panel.style.left = '';
                 panel.style.top = '';
+                panel.style.width = '';
+                panel.style.height = '';
 
                 saveData();
                 saveHint.textContent = '✓ Вернули на панель';
@@ -1191,44 +1347,8 @@
             });
         });
 
-        // ★★★ ПРИМЕНЯЕМ СОХРАНЁННЫЕ ПОЗИЦИИ ★★★
-        {% if map_values %}
-        // Позиции точек
-        points.forEach(point => {
-            const key = point.dataset.pointKey;
-            const leftVal = "{{ map_values.get('" + key + "-left', '') }}";
-            const topVal = "{{ map_values.get('" + key + "-top', '') }}";
-            if (leftVal !== '' && topVal !== '') {
-                point.style.left = leftVal + '%';
-                point.style.top = topVal + '%';
-            }
-        });
-        {% endif %}
-
     })();
     {% endif %}
-
-    // ★ Восстанавливаем панели, которые были перенесены на карту ★
-    (function() {
-        const field = document.getElementById('field');
-        if (!field) return;
-
-        const panels = document.querySelectorAll('.draggable-panel[data-panel-key]');
-
-        panels.forEach(panel => {
-            const key = panel.dataset.panelKey;
-            const onMap = "{{ map_values.get('panel-" + key + "-onmap', '0') }}";
-            const leftVal = "{{ map_values.get('panel-" + key + "-left', '') }}";
-            const topVal = "{{ map_values.get('panel-" + key + "-top', '') }}";
-
-            if (onMap === '1' && leftVal !== '' && topVal !== '') {
-                field.appendChild(panel);
-                panel.classList.add('on-map');
-                panel.style.left = leftVal + '%';
-                panel.style.top = topVal + '%';
-            }
-        });
-    })();
 </script>
 
 </body>
