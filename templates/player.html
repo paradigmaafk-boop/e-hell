@@ -11,17 +11,52 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="embers" id="embers"></div>
+
 <div class="wrap">
 
     <header class="header">
         <a href="/" class="brand">
             <div class="brand-emblem">
-                <svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
-                    <path class="flame-outline" d="M 20 4 C 20 4, 12 14, 12 22 C 12 28, 15 33, 20 33 C 25 33, 28 28, 28 22 C 28 14, 20 4, 20 4 Z" />
-                    <path class="flame-inner" d="M 20 14 C 20 14, 16 20, 16 25 C 16 28, 18 30, 20 30 C 22 30, 24 28, 24 25 C 24 20, 20 14, 20 14 Z" />
-                    <circle class="flame-dot" cx="20" cy="2" r="1.2" />
-                    <line class="flame-base" x1="10" y1="40" x2="30" y2="40" />
-                    <circle class="flame-dot" cx="20" cy="45" r="1.2" />
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
                 </svg>
             </div>
             <div class="brand-text">
@@ -75,7 +110,7 @@
 
     <section class="section">
         <div class="section-title">Динамика</div>
-        <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 1.5rem;">
+        <div style="background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95)); border: 1px solid var(--line); border-radius: 12px; padding: 1.5rem;">
             <canvas id="progressChart"></canvas>
         </div>
     </section>
@@ -85,19 +120,53 @@
 </div>
 
 <script>
+    (function () {
+        const container = document.getElementById('embers');
+        for (let i = 0; i < 25; i++) {
+            const ember = document.createElement('div');
+            ember.className = 'ember';
+            const size = 2 + Math.random() * 4;
+            const left = Math.random() * 100;
+            const duration = 6 + Math.random() * 10;
+            const delay = Math.random() * 12;
+            const drift = (Math.random() - 0.5) * 200;
+            ember.style.left = left + '%';
+            ember.style.width = size + 'px';
+            ember.style.height = size + 'px';
+            ember.style.animationDuration = duration + 's';
+            ember.style.animationDelay = delay + 's';
+            ember.style.setProperty('--drift', drift + 'px');
+            const hue = 15 + Math.random() * 30;
+            ember.style.background = `radial-gradient(circle, hsl(${hue + 20}, 100%, 70%), hsl(${hue}, 100%, 50%) 60%, transparent 100%)`;
+            ember.style.boxShadow = `0 0 8px 1px hsla(${hue}, 100%, 55%, 0.8)`;
+            container.appendChild(ember);
+        }
+    })();
+
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
-
     toggleBtn.addEventListener('click', () => {
         body.classList.toggle('light-theme');
         toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
         localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
     });
-
     if (localStorage.getItem('theme') === 'light') {
         body.classList.add('light-theme');
         toggleBtn.textContent = '☀️';
     }
+
+    const sparkStyle = document.createElement('style');
+    sparkStyle.textContent = '@keyframes sparkBurst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1; } 50% { transform: translate(-50%,-50%) scale(3); opacity: 0.8; } 100% { transform: translate(-50%,-50%) scale(6); opacity: 0; } }';
+    document.head.appendChild(sparkStyle);
+    document.querySelectorAll('.side-btn, .nav a, .link-btn, .btn').forEach(el => {
+        el.addEventListener('click', () => {
+            const rect = el.getBoundingClientRect();
+            const spark = document.createElement('div');
+            spark.style.cssText = `position:fixed;left:${rect.left + rect.width/2}px;top:${rect.top + rect.height/2}px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle, #ffec80, #ff4500 60%, transparent);box-shadow:0 0 20px 4px rgba(255,140,0,0.8);pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);animation:sparkBurst 0.6s ease-out forwards;`;
+            document.body.appendChild(spark);
+            setTimeout(() => spark.remove(), 650);
+        });
+    });
 
     const dates = {{ dates|tojson }};
     const points = {{ points|tojson }};
@@ -111,10 +180,14 @@
     });
 
     const isLight = document.body.classList.contains('light-theme');
-    const textColor = isLight ? '#2a1a0a' : '#8a7d6b';
-    const gridColor = isLight ? '#e0d3c0' : '#241d18';
+    const textColor = isLight ? '#2a1a0a' : '#8a5a3a';
+    const gridColor = isLight ? '#e0d3c0' : '#3a1a08';
 
     const ctx = document.getElementById('progressChart').getContext('2d');
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, 'rgba(255, 69, 0, 0.35)');
+    gradient.addColorStop(1, 'rgba(255, 69, 0, 0)');
 
     new Chart(ctx, {
         type: 'line',
@@ -124,11 +197,11 @@
                 {
                     label: '{{ nickname }}',
                     data: points,
-                    borderColor: '#ff7a1a',
-                    backgroundColor: 'rgba(255, 122, 26, 0.08)',
+                    borderColor: '#ff4500',
+                    backgroundColor: gradient,
                     borderWidth: 2.5,
-                    pointBackgroundColor: '#ff7a1a',
-                    pointBorderColor: isLight ? '#fff' : '#0d0a08',
+                    pointBackgroundColor: '#ffb800',
+                    pointBorderColor: isLight ? '#fff' : '#0a0503',
                     pointBorderWidth: 2,
                     pointRadius: 4,
                     pointHoverRadius: 7,
@@ -138,12 +211,12 @@
                 {
                     label: 'Среднее по союзу',
                     data: avgPoints,
-                    borderColor: '#4caf50',
+                    borderColor: '#ffb800',
                     backgroundColor: 'transparent',
                     borderWidth: 1.5,
                     borderDash: [6, 4],
-                    pointBackgroundColor: '#4caf50',
-                    pointBorderColor: '#4caf50',
+                    pointBackgroundColor: '#ffb800',
+                    pointBorderColor: '#ffb800',
                     pointBorderWidth: 1,
                     pointRadius: 3,
                     pointHoverRadius: 6,
@@ -160,10 +233,10 @@
                     labels: { color: textColor, font: { size: 13 }, padding: 15 }
                 },
                 tooltip: {
-                    backgroundColor: isLight ? 'rgba(255,251,245,0.95)' : 'rgba(19,16,16,0.95)',
-                    titleColor: isLight ? '#2a1a0a' : '#ebe3d6',
-                    bodyColor: isLight ? '#2a1a0a' : '#ebe3d6',
-                    borderColor: '#ff7a1a',
+                    backgroundColor: isLight ? 'rgba(255,251,242,0.95)' : 'rgba(26,13,5,0.95)',
+                    titleColor: isLight ? '#2a1a0a' : '#f5e6d3',
+                    bodyColor: isLight ? '#2a1a0a' : '#f5e6d3',
+                    borderColor: '#ff4500',
                     borderWidth: 1,
                     padding: 12
                 }
