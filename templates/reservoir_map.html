@@ -193,9 +193,9 @@
         }
 
         .overlay-reserve {
-            width: 30%;
-            min-width: 280px;
-            min-height: 95px;
+            width: 17%;
+            min-width: 190px;
+            min-height: 130px;
         }
         .overlay-reserve .overlay-players {
             margin-bottom: 0;
@@ -238,7 +238,7 @@
             .overlay-players { font-size: 0.76rem; }
             .stage { font-size: 0.7rem; padding: 0.35rem 0.4rem; }
             .overlay-gbr-name { font-size: 0.95rem; }
-            .overlay-reserve { min-width: 250px; }
+            .overlay-reserve { min-width: 170px; min-height: 115px; }
         }
 
         @media (max-width: 900px) {
@@ -274,7 +274,7 @@
             .overlay-players { font-size: 0.82rem; }
             .stage { font-size: 0.76rem; padding: 0.4rem 0.5rem; }
             .overlay-gbr-name { font-size: 1.05rem; }
-            .overlay-reserve { min-width: 300px; min-height: 100px; }
+            .overlay-reserve { min-width: 210px; min-height: 135px; }
         }
     </style>
 </head>
@@ -367,15 +367,20 @@
                     </div>
                 </div>
 
-                <!-- ★ ШТАБ 3 — верхний правый угол (3) ★ -->
-                <div class="overlay overlay-hq" style="left: 92%; top: 12%;">
-                    <div class="overlay-title"><span class="num">3</span> Штаб</div>
-                    <div class="overlay-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
-                    <div class="overlay-stages">
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
-                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
+                <!-- ★ РЕЗЕРВ — слева, между штабами 1 и 2 ★ -->
+                <div class="overlay overlay-reserve" style="left: 8%; top: 42%;">
+                    <div class="overlay-title" style="justify-content: center; letter-spacing: 4px;">Резерв</div>
+                    <div class="overlay-players">
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
+                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
                     </div>
                 </div>
 
@@ -388,6 +393,18 @@
                         <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
                         <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
                         <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
+                    </div>
+                </div>
+
+                <!-- ★ ШТАБ 3 — верхний правый угол (3) ★ -->
+                <div class="overlay overlay-hq" style="left: 92%; top: 12%;">
+                    <div class="overlay-title"><span class="num">3</span> Штаб</div>
+                    <div class="overlay-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
+                    <div class="overlay-stages">
+                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
+                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
+                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
+                        <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
                     </div>
                 </div>
 
@@ -424,23 +441,6 @@
                         <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
                         <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
                         <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
-                    </div>
-                </div>
-
-                <!-- ★ РЕЗЕРВ — правый нижний угол ★ -->
-                <div class="overlay overlay-reserve" style="left: 72%; top: 95%;">
-                    <div class="overlay-title" style="justify-content: center; letter-spacing: 4px;">Резерв</div>
-                    <div class="overlay-players">
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
-                        <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
                     </div>
                 </div>
 
