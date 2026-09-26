@@ -932,4 +932,328 @@ td.points-cell {
     font-size: 0.65rem;
     letter-spacing: 2.5px;
     text-transform: uppercase;
-    color: var
+    color: var(--dim);
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+    font-weight: 600;
+}
+.podium-item.winner .podium-badge {
+    color: var(--accent);
+    border-top-color: #3a1a08;
+}
+
+/* ============================================================
+   СТАТ-КАРТОЧКИ
+   ============================================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+.stat-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(255,69,0,0.3);
+    transform: translateY(-3px);
+}
+.stat-card .number {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--accent-warm);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.4rem;
+    line-height: 1.1;
+    text-shadow: 0 0 20px rgba(255,184,0,0.5);
+}
+.stat-card .label {
+    font-size: 0.72rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* ============================================================
+   FLASH
+   ============================================================ */
+.flash-message, .flash-error {
+    padding: 0.9rem 1.2rem;
+    border-left: 3px solid var(--accent);
+    background: rgba(255,69,0,0.06);
+    color: var(--accent-warm);
+    font-size: 0.88rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 20px rgba(255,69,0,0.15);
+}
+.flash-error {
+    border-left-color: var(--danger);
+    background: rgba(224,57,43,0.06);
+    color: #ff8877;
+    box-shadow: 0 0 20px rgba(224,57,43,0.2);
+}
+
+/* ============================================================
+   BACK LINK
+   ============================================================ */
+.back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+}
+.back-link:hover {
+    color: var(--accent-warm);
+    text-shadow: 0 0 10px rgba(255,184,0,0.5);
+}
+
+/* ============================================================
+   ЛОГИН
+   ============================================================ */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: linear-gradient(180deg, rgba(26,13,5,0.95), rgba(10,5,3,0.98));
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 40px rgba(255,69,0,0.2);
+    position: relative;
+}
+.login-card::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 22px;
+    padding: 2px;
+    background: linear-gradient(90deg, transparent 0%, #ff2200 20%, #ffcc00 50%, #ff2200 80%, transparent 100%);
+    background-size: 300% 100%;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: fireBorderFlow 5s linear infinite;
+    pointer-events: none;
+    opacity: 0.8;
+}
+@keyframes fireBorderFlow {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
+.login-card h1 {
+    font-family: 'Forum', serif;
+    font-size: 1.8rem;
+    letter-spacing: 4px;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: fireTextFlow 6s linear infinite;
+}
+.login-card .sub {
+    color: var(--muted);
+    font-size: 0.88rem;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+.input-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+}
+.input-field label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+.input-field input {
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+.input-field input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255,69,0,0.15), 0 0 20px rgba(255,69,0,0.3);
+}
+.login-card .btn { width: 100%; }
+
+/* ============================================================
+   АДМИН-ПАНЕЛЬ
+   ============================================================ */
+.admin-panel {
+    margin-top: 3rem;
+    padding: 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
+}
+.admin-panel h3 {
+    font-size: 0.7rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+}
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+.admin-grid .btn { width: 100%; text-align: center; }
+.danger-zone {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #2a1414;
+}
+.danger-zone h4 {
+    font-size: 0.7rem;
+    color: #b8443a;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+.danger-zone .btn-danger {
+    width: 100%;
+    padding: 0.9rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-width: 1.5px;
+}
+
+/* ============================================================
+   ПОДПИСЬ КАРУСЕЛИ
+   ============================================================ */
+.carousel-caption {
+    flex: 0 0 auto;
+    padding: 1.5rem 2rem 1.75rem;
+    text-align: center;
+    background: linear-gradient(180deg, #1a0d05, #0a0503);
+    border-top: 1px solid var(--line);
+    position: relative;
+}
+.carousel-caption::before {
+    content: "";
+    position: absolute;
+    top: -1px; left: 0;
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: captionSweep 5s ease-in-out infinite;
+}
+@keyframes captionSweep {
+    0%, 100% { opacity: 0.3; }
+    50%      { opacity: 1; }
+}
+.caption-title {
+    font-family: 'Forum', serif;
+    font-size: 1.55rem;
+    font-weight: 400;
+    letter-spacing: 3px;
+    line-height: 1.2;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    background: linear-gradient(
+        90deg,
+        #ff4500 0%,
+        #ffb800 30%,
+        #ffec80 50%,
+        #ffb800 70%,
+        #ff4500 100%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: fireTextFlow 8s linear infinite;
+    filter: drop-shadow(0 0 14px rgba(255,69,0,0.5));
+}
+.caption-text {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: left;
+    word-wrap: break-word;
+}
+
+/* ============================================================
+   СВЕТЛАЯ ТЕМА
+   ============================================================ */
+body.light-theme {
+    --bg: #fbf5ea;
+    --line: #e8dcc8;
+    --line-soft: #f0e8db;
+    --text: #2a1a0a;
+    --muted: #7a6a54;
+    --dim: #a89880;
+    --panel: #fffbf2;
+    background: #fbf5ea;
+}
+body.light-theme .fire-blob { opacity: 0.3; }
+body.light-theme .podium-item,
+body.light-theme .admin-panel,
+body.light-theme .stat-card,
+body.light-theme .login-card,
+body.light-theme .accordion,
+body.light-theme .carousel-caption {
+    background: linear-gradient(180deg, #fffbf2, #fdf7ec);
+}
+
+/* ============================================================
+   АДАПТИВ
+   ============================================================ */
+@media (max-width: 780px) {
+    .wrap { padding: 1rem 1.25rem 3rem; }
+    .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    .brand-emblem { width: 46px; height: 46px; }
+    .brand-name { font-size: 1.25rem; letter-spacing: 2px; }
+    .header-right { gap: 1.25rem; }
+    .nav { gap: 1.75rem; }
+    .page-title { font-size: 1.5rem; }
+    .podium { grid-template-columns: 1fr; gap: 1rem; }
+    .podium-item.winner { transform: none; order: -1; }
+    .admin-grid { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .caption-title { font-size: 1.2rem; letter-spacing: 2px; padding: 0 0.75rem; }
+    .caption-text { font-size: 0.85rem; padding: 0 0.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
