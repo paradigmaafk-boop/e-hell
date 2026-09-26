@@ -94,7 +94,6 @@
         }
         .gbr-stages { display: flex; gap: 0.3rem; margin-left: 0.4rem; }
 
-        /* ★ НОВАЯ РАСКЛАДКА: слeва колонка штабов, справа карта ★ */
         .layout {
             display: grid;
             grid-template-columns: 280px 1fr;
@@ -103,7 +102,6 @@
             align-items: stretch;
         }
 
-        /* Левая колонка — столбик из 4 штабов */
         .hq-stack {
             display: flex;
             flex-direction: column;
@@ -389,7 +387,6 @@
                 opacity: 0.6;
             }
 
-            /* ★ На мобилке — карта 1300×850, а штабы идут под картой списком ★ */
             .map-inner {
                 min-width: 1300px;
                 min-height: auto;
@@ -427,8 +424,6 @@
         }
     </style>
 </head>
-
-
 <body>
 
 <div class="page">
@@ -517,7 +512,6 @@
             <div class="map-inner">
                 <div class="layout">
 
-                    <!-- ★ ЛЕВАЯ КОЛОНКА: 4 штаба столбиком ★ -->
                     <div class="hq-stack">
 
                         <div class="hq hq-1">
@@ -566,7 +560,6 @@
 
                     </div>
 
-                    <!-- ★ ПРАВАЯ ЧАСТЬ: карта ★ -->
                     <div class="field" id="field">
 
                         <div class="point" style="left: 10%; top: 10%;">
@@ -736,8 +729,12 @@
             <span class="gbr-label">2 ГБР</span>
             <span class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</span>
             <div class="gbr-stages">
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif
-
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
+                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
+            </div>
+        </div>
 
         <div class="reserve">
             <span class="reserve-label">Резерв</span>
@@ -861,13 +858,4 @@
 </script>
 
 </body>
-</html>я
-
-
-
-
-
-
-                    
-
-    
+</html>
