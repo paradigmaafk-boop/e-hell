@@ -18,6 +18,7 @@ from database import (
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = 'your_secret_key_here_change_it_to_something_secret'
 
 UPLOAD_FOLDER = 'uploads'
