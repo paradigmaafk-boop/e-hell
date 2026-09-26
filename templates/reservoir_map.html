@@ -162,12 +162,10 @@
         .field {
             position: relative;
             background:
-                /* Песчаные барханы — слои */
                 radial-gradient(ellipse 60% 40% at 30% 30%, rgba(230, 200, 140, 0.15), transparent 70%),
                 radial-gradient(ellipse 50% 35% at 75% 60%, rgba(200, 165, 100, 0.12), transparent 70%),
                 radial-gradient(ellipse 70% 45% at 50% 90%, rgba(180, 140, 80, 0.16), transparent 70%),
                 radial-gradient(ellipse 40% 30% at 85% 15%, rgba(210, 175, 110, 0.12), transparent 70%),
-                /* Основной песочный градиент */
                 linear-gradient(180deg, #c9b183 0%, #bda474 25%, #b3986a 50%, #a88c5e 75%, #8f7548 100%);
             border: 1px solid var(--line);
             border-radius: 14px;
@@ -176,7 +174,6 @@
             z-index: 1;
         }
 
-        /* Зёрнышки песка */
         .field::after {
             content: "";
             position: absolute; inset: 0;
@@ -285,6 +282,36 @@
             color: #fff;
         }
 
+        /* ★ ПЛАШКА С НИКНЕЙМОМ ОТВЕТСТВЕННОГО ★ */
+        .point-owner {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--accent-warm);
+            background: rgba(13, 8, 4, 0.92);
+            padding: 0.18rem 0.5rem;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 138, 31, 0.3);
+            white-space: nowrap;
+            text-align: center;
+            line-height: 1.2;
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: text;
+            transition: all 0.2s ease;
+            margin-top: 0.15rem;
+        }
+        .point-owner:hover {
+            border-color: var(--gold);
+            color: #fff;
+        }
+        .point-owner[contenteditable="true"]:focus {
+            outline: none;
+            background: rgba(255, 138, 31, 0.15);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
         .point.center-point .point-icon {
             width: 80px; height: 68px;
             font-size: 2rem;
@@ -354,6 +381,7 @@
             .point-icon { width: 50px; height: 44px; font-size: 1.2rem; }
             .point.center-point .point-icon { width: 68px; height: 58px; font-size: 1.65rem; }
             .point-name { font-size: 0.66rem; max-width: 115px; }
+            .point-owner { font-size: 0.62rem; max-width: 115px; }
             .point.water-collector .point-icon { width: 38px; height: 34px; font-size: 0.95rem; }
             .point.water-collector .point-name { font-size: 0.58rem; max-width: 70px; }
             .hq-players { font-size: 0.8rem; }
@@ -400,6 +428,7 @@
             .point-icon { width: 50px; height: 44px; font-size: 1.2rem; }
             .point.center-point .point-icon { width: 68px; height: 58px; font-size: 1.65rem; }
             .point-name { font-size: 0.66rem; max-width: 120px; }
+            .point-owner { font-size: 0.66rem; max-width: 120px; }
             .point.water-collector .point-icon { width: 38px; height: 34px; font-size: 0.95rem; }
             .point.water-collector .point-name { font-size: 0.58rem; max-width: 75px; }
             .stage-badge { height: 16px; min-width: 16px; font-size: 0.52rem; padding: 0 3px; }
@@ -479,7 +508,7 @@
 
     {% if session['username'] == 'admin' %}
     <div class="edit-banner">
-        ⚡ Режим редактирования включён. Кликайте на список ников или название объекта — и вписывайте новое.
+        ⚡ Режим редактирования включён. Кликайте на любой текст — и вписывайте новое.
     </div>
     {% endif %}
 
@@ -528,7 +557,7 @@
 
                     <div class="field" id="field">
 
-                        <!-- Солнечная электростанция -->
+                        <!-- Солнечная -->
                         <div class="point" style="left: 10%; top: 22%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">☀️</div>
@@ -537,7 +566,8 @@
                                     <span class="stage-badge tl gbr1">1Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная электростанция') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-owner">{{ map_values.get('pt-solar-owner', '—') }}</div>
                         </div>
 
                         <!-- ВПЗ 3 -->
@@ -548,7 +578,8 @@
                                     <span class="stage-badge tl s1">2</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'Водоперерабатывающий завод 3') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'ВПЗ 3') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-owner">{{ map_values.get('pt-vpz-nw-owner', '—') }}</div>
                         </div>
 
                         <!-- ВПЗ 2 -->
@@ -559,10 +590,11 @@
                                     <span class="stage-badge tr s2">1</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'Водоперерабатывающий завод 2') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'ВПЗ 2') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-owner">{{ map_values.get('pt-vpz-ne-owner', '—') }}</div>
                         </div>
 
-                        <!-- Комплекс разработки -->
+                        <!-- Комплекс -->
                         <div class="point" style="left: 28%; top: 32%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🧪</div>
@@ -571,10 +603,11 @@
                                     <span class="stage-badge tr s3">3</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс разработки') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-owner">{{ map_values.get('pt-science-owner', '—') }}</div>
                         </div>
 
-                        <!-- Водосборник верхний -->
+                        <!-- Водосборник верхний (без ответственного) -->
                         <div class="point water-collector" style="left: 48%; top: 32%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🛢️</div>
@@ -594,10 +627,11 @@
                                     <span class="stage-badge tl gbr2">2Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'Водоочистительный центр 2') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'ВОЦ 2') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-owner">{{ map_values.get('pt-voc-ne-owner', '—') }}</div>
                         </div>
 
-                        <!-- Водосборник левый -->
+                        <!-- Водосборник левый (без ответственного) -->
                         <div class="point water-collector" style="left: 28%; top: 52%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🛢️</div>
@@ -617,10 +651,11 @@
                                     <span class="stage-badge tr gbr2">2Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центральный резервуар') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центр. резервуар') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-owner">{{ map_values.get('pt-center-owner', '—') }}</div>
                         </div>
 
-                        <!-- Водосборник правый -->
+                        <!-- Водосборник правый (без ответственного) -->
                         <div class="point water-collector" style="left: 72%; top: 52%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🛢️</div>
@@ -640,10 +675,11 @@
                                     <span class="stage-badge tl gbr1">1Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'Водоочистительный центр 1') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'ВОЦ 1') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-owner">{{ map_values.get('pt-voc-sw-owner', '—') }}</div>
                         </div>
 
-                        <!-- Водосборник нижний -->
+                        <!-- Водосборник нижний (без ответственного) -->
                         <div class="point water-collector" style="left: 48%; top: 72%;">
                             <div class="point-icon-wrap">
                                 <div class="point-icon">🛢️</div>
@@ -664,6 +700,7 @@
                                 </div>
                             </div>
                             <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-owner">{{ map_values.get('pt-milfac-owner', '—') }}</div>
                         </div>
 
                         <!-- ВПЗ 1 -->
@@ -674,7 +711,8 @@
                                     <span class="stage-badge bl s1">1</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'Водоперерабатывающий завод 1') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'ВПЗ 1') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-owner">{{ map_values.get('pt-vpz-sw-owner', '—') }}</div>
                         </div>
 
                         <!-- ВПЗ 4 -->
@@ -685,7 +723,8 @@
                                     <span class="stage-badge br s2">2</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'Водоперерабатывающий завод 4') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'ВПЗ 4') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-owner">{{ map_values.get('pt-vpz-s-owner', '—') }}</div>
                         </div>
 
                         <!-- Заброшенная вертолётная площадка -->
@@ -697,7 +736,8 @@
                                     <span class="stage-badge tl gbr2">2Г</span>
                                 </div>
                             </div>
-                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Заброшенная вертолётная площадка') }}</div>
+                            <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Вертолётная площадка') }}</div>
+                            <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-owner">{{ map_values.get('pt-pad-owner', '—') }}</div>
                         </div>
 
                     </div>
