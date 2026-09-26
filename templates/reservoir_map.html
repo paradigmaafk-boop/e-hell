@@ -53,7 +53,6 @@
             margin-top: 0.75rem;
         }
 
-        /* ★★★ КОНТЕЙНЕР КАРТЫ ★★★ */
         .map-wrap {
             margin-top: 0.75rem;
             background: linear-gradient(180deg, #14100a, #0f0b07);
@@ -67,7 +66,7 @@
 
         .map-scroll { overflow: visible; }
 
-        /* ★★★ ПЕСОЧНЫЙ ФОН КАРТЫ — на весь экран ★★★ */
+        /* ★★★ ПЕСОЧНЫЙ ФОН КАРТЫ ★★★ */
         .field {
             position: relative;
             background:
@@ -136,16 +135,8 @@
                 inset 0 1px 0 rgba(255, 200, 120, 0.2);
         }
 
-        /* ★ В РЕЖИМЕ РЕДАКТИРОВАНИЯ — КУРСОР-РУКА И ПОДСВЕТКА ★ */
-        body.edit-mode .point {
-            cursor: grab;
-        }
-        body.edit-mode .point:active {
-            cursor: grabbing;
-        }
-        body.edit-mode .point .point-icon-wrap {
-            position: relative;
-        }
+        body.edit-mode .point { cursor: grab; }
+        body.edit-mode .point:active { cursor: grabbing; }
         body.edit-mode .point .point-icon-wrap::after {
             content: "";
             position: absolute;
@@ -153,14 +144,12 @@
             border: 1.5px dashed rgba(255, 138, 31, 0.5);
             border-radius: 12px;
             pointer-events: none;
-            transition: border-color 0.2s ease;
         }
         body.edit-mode .point:hover .point-icon-wrap::after {
             border-color: var(--accent);
             border-style: solid;
         }
 
-        /* ★ ПОДСКАЗКА ПРО DRAG ★ */
         .drag-hint {
             display: none;
             padding: 0.5rem 0.9rem;
@@ -280,26 +269,81 @@
             font-size: 0.7rem; padding: 0.2rem 0.5rem; max-width: 100px;
         }
 
-        /* ★★★ НИЖНЯЯ ПАНЕЛЬ ★★★ */
-        .bottom-panel {
-            margin-top: 0.75rem;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.6rem;
-        }
-
-        .bottom-card {
-            background: rgba(20, 14, 8, 0.85);
+        /* ★★★ КОМАНДЫ / ГБР / РЕЗЕРВ — ПЛАВАЮЩИЕ ПЛАШКИ НА КАРТЕ ★★★ */
+        .draggable-panel {
+            background: rgba(20, 14, 8, 0.95);
             border: 1px solid var(--line);
             border-radius: 12px;
-            padding: 0.6rem 0.75rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            min-height: 0;
+            padding: 0.7rem 0.85rem;
+            backdrop-filter: blur(6px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
         }
 
-        .bottom-title {
+        /* Когда плашка на карте — она становится absolute-оверлеем */
+        .draggable-panel.on-map {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            min-width: 220px;
+            max-width: 280px;
+            cursor: grab;
+        }
+        .draggable-panel.on-map:active {
+            cursor: grabbing;
+        }
+        .draggable-panel.on-map::after {
+            content: "";
+            position: absolute;
+            inset: -6px;
+            border: 1.5px dashed rgba(255, 138, 31, 0.5);
+            border-radius: 16px;
+            pointer-events: none;
+        }
+        .draggable-panel.on-map:hover::after {
+            border-color: var(--accent);
+            border-style: solid;
+        }
+
+        body.edit-mode .draggable-panel:not(.on-map) {
+            cursor: grab;
+            border-color: rgba(255, 138, 31, 0.4);
+            border-style: dashed;
+        }
+        body.edit-mode .draggable-panel:not(.on-map):hover {
+            border-color: var(--accent);
+            border-style: solid;
+        }
+
+        /* Кнопка «Сбросить на панель» */
+        .reset-pos-btn {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #ff6a1a, #c94a00);
+            border: 2px solid #1a1209;
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            z-index: 11;
+            transition: transform 0.15s ease;
+        }
+        .reset-pos-btn:hover {
+            transform: scale(1.15);
+        }
+        body.edit-mode .draggable-panel.on-map .reset-pos-btn {
+            display: flex;
+        }
+
+        .draggable-panel .panel-title {
             font-size: 0.68rem;
             letter-spacing: 3px;
             text-transform: uppercase;
@@ -308,15 +352,15 @@
             align-items: center;
             gap: 0.4rem;
             font-weight: 500;
+            margin-bottom: 0.4rem;
         }
-        .bottom-title .num {
+        .draggable-panel .panel-title .num {
             font-size: 0.85rem;
             font-weight: 700;
             color: var(--accent);
             letter-spacing: 0;
         }
-
-        .bottom-players {
+        .draggable-panel .panel-players {
             font-size: 0.78rem;
             color: var(--text);
             line-height: 1.45;
@@ -325,115 +369,85 @@
             padding: 0.15rem 0.25rem;
             transition: background 0.15s ease;
             word-break: break-word;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.4rem;
         }
-        .bottom-players:hover { background: rgba(255, 255, 255, 0.03); }
-        .bottom-players[contenteditable="true"]:focus {
+        .draggable-panel .panel-players:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .draggable-panel .panel-players[contenteditable="true"]:focus {
             outline: none;
             background: rgba(255, 138, 31, 0.12);
             color: #fff;
         }
-
-        .bottom-stages {
+        .draggable-panel .panel-stages {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.3rem;
             margin-top: auto;
         }
-        .bottom-stages .stage {
+        .draggable-panel .panel-stages .stage {
             font-size: 0.7rem;
             padding: 0.32rem 0.4rem;
             border-radius: 6px;
             min-height: 1.7em;
         }
 
-        .bottom-bar {
-            margin-top: 0.6rem;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            gap: 0.6rem;
-            align-items: stretch;
+        /* ГБР плашки — ГБР 1 / ГБР 2 / Резерв */
+        .draggable-panel.gbr-panel .panel-stages,
+        .draggable-panel.gbr-panel .gbr-stages {
+            grid-template-columns: repeat(4, 1fr);
         }
-
-        .gbr-card {
-            background: rgba(20, 14, 8, 0.85);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 0.55rem 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            flex-wrap: wrap;
-        }
-        .gbr-card .gbr-label {
-            font-size: 0.68rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--dim);
-        }
-        .gbr-card .gbr-name {
-            font-size: 0.9rem;
+        .draggable-panel.gbr-panel .gbr-name {
+            font-size: 0.92rem;
             font-weight: 700;
             color: var(--text);
             padding: 0.15rem 0.5rem;
             border-radius: 6px;
             cursor: text;
+            text-align: center;
+            margin-bottom: 0.4rem;
         }
-        .gbr-card .gbr-name[contenteditable="true"]:focus {
+        .draggable-panel.gbr-panel .gbr-name[contenteditable="true"]:focus {
             outline: none;
             background: rgba(255, 138, 31, 0.12);
             color: var(--accent-warm);
         }
-        .gbr-card .gbr-stages {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0.3rem;
-            margin-left: auto;
-        }
-        .gbr-card .gbr-stages .stage {
-            font-size: 0.7rem;
-            padding: 0.28rem 0.5rem;
-            border-radius: 6px;
-            min-height: 1.6em;
-        }
 
-        .reserve-card {
-            background: rgba(20, 14, 8, 0.85);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 0.55rem 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-        }
-        .reserve-card .reserve-label {
-            font-size: 0.68rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--dim);
-            flex-shrink: 0;
-        }
-        .reserve-card .reserve-list {
+        .draggable-panel.reserve-panel .panel-players {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.25rem 0.65rem;
+            gap: 0.2rem 0.6rem;
             font-size: 0.76rem;
-            color: var(--text);
+            margin-bottom: 0;
         }
-        .reserve-card .reserve-list span {
+        .draggable-panel.reserve-panel .panel-players span {
             cursor: text;
-            padding: 0.1rem 0.3rem;
+            padding: 0.05rem 0.25rem;
             border-radius: 3px;
-            transition: background 0.15s ease;
         }
-        .reserve-card .reserve-list span:hover {
+        .draggable-panel.reserve-panel .panel-players span:hover {
             background: rgba(255, 255, 255, 0.04);
         }
-        .reserve-card .reserve-list span[contenteditable="true"]:focus {
+        .draggable-panel.reserve-panel .panel-players span[contenteditable="true"]:focus {
             outline: none;
             background: rgba(255, 138, 31, 0.15);
             color: #fff;
+        }
+
+        /* ★★★ НИЖНЯЯ ПАНЕЛЬ ★★★ */
+        .bottom-panel {
+            margin-top: 0.75rem;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.6rem;
+        }
+
+        .bottom-bar {
+            margin-top: 0.6rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.6rem;
+            align-items: stretch;
         }
 
         .stage {
@@ -459,22 +473,20 @@
         }
 
         body.light-theme .map-wrap { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
-        body.light-theme .bottom-card,
-        body.light-theme .gbr-card,
-        body.light-theme .reserve-card {
-            background: rgba(255, 251, 242, 0.95);
+        body.light-theme .draggable-panel {
+            background: rgba(255, 251, 242, 0.96);
+            border-color: #e8dcc8;
         }
-        body.light-theme .bottom-players,
-        body.light-theme .gbr-card .gbr-name,
-        body.light-theme .reserve-card .reserve-list {
+        body.light-theme .draggable-panel .panel-players,
+        body.light-theme .draggable-panel .gbr-name {
             color: #2a1a0a;
         }
 
         @media (max-width: 1400px) {
             .bottom-panel { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
-            .bottom-players { font-size: 0.74rem; }
-            .bottom-stages .stage { font-size: 0.66rem; }
-            .gbr-card .gbr-stages .stage { font-size: 0.66rem; }
+            .draggable-panel .panel-players { font-size: 0.74rem; }
+            .draggable-panel .panel-stages .stage { font-size: 0.66rem; }
+            .draggable-panel.gbr-panel .gbr-stages .stage { font-size: 0.66rem; }
         }
 
         @media (max-width: 1100px) {
@@ -511,11 +523,11 @@
 
             .bottom-panel { grid-template-columns: 1fr; }
             .bottom-bar { grid-template-columns: 1fr; }
-            .gbr-card .gbr-stages { grid-template-columns: repeat(4, 1fr); margin-left: 0; width: 100%; }
         }
     </style>
 </head>
-<body>
+
+    <body>
 
 <div class="page">
 
@@ -581,7 +593,7 @@
         ⚡ Режим редактирования включён. Кликайте на любой текст — и вписывайте новое.
     </div>
     <div class="drag-hint">
-        🖐 Перетаскивайте иконки мышью, чтобы расставить их по карте
+        🖐 Перетаскивайте иконки и плашки команд на карту, чтобы расставить их
     </div>
     {% endif %}
 
@@ -589,10 +601,13 @@
         ↔ Скролльте карту, чтобы увидеть все объекты
     </div>
 
-    <!-- ★★★ КАРТА — НА ВЕСЬ ЭКРАН ★★★ -->
+    <!-- ★★★ КАРТА ★★★ -->
     <div class="map-wrap">
         <div class="map-scroll">
             <div class="field" id="field">
+
+                <!-- ★ ПЛАШКИ КОМАНД / ГБР / РЕЗЕРВА, ПЕРЕНЕСЁННЫЕ НА КАРТУ, БУДУТ ЗДЕСЬ ★ -->
+                <!-- (JS сам вставляет их сюда при перетаскивании) -->
 
                 <!-- Солнечная -->
                 <div class="point" data-point-key="pt-solar" style="left: 10%; top: 22%;">
@@ -781,13 +796,14 @@
         </div>
     </div>
 
-    <!-- ★★★ НИЖНЯЯ ПАНЕЛЬ: 4 КОМАНДЫ ★★★ -->
+    <!-- ★★★ НИЖНЯЯ ПАНЕЛЬ: 4 КОМАНДЫ + ГБР + РЕЗЕРВ ★★★ -->
     <div class="bottom-panel">
 
-        <div class="bottom-card">
-            <div class="bottom-title"><span class="num">1</span> Команда</div>
-            <div class="bottom-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
-            <div class="bottom-stages">
+        <div class="draggable-panel" data-panel-key="hq1" data-panel-type="team" id="panel-hq1">
+            <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
+            <div class="panel-title"><span class="num">1</span> Команда</div>
+            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
+            <div class="panel-stages">
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
@@ -795,10 +811,11 @@
             </div>
         </div>
 
-        <div class="bottom-card">
-            <div class="bottom-title"><span class="num">2</span> Команда</div>
-            <div class="bottom-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
-            <div class="bottom-stages">
+        <div class="draggable-panel" data-panel-key="hq2" data-panel-type="team" id="panel-hq2">
+            <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
+            <div class="panel-title"><span class="num">2</span> Команда</div>
+            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
+            <div class="panel-stages">
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
@@ -806,10 +823,11 @@
             </div>
         </div>
 
-        <div class="bottom-card">
-            <div class="bottom-title"><span class="num">3</span> Команда</div>
-            <div class="bottom-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
-            <div class="bottom-stages">
+        <div class="draggable-panel" data-panel-key="hq3" data-panel-type="team" id="panel-hq3">
+            <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
+            <div class="panel-title"><span class="num">3</span> Команда</div>
+            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
+            <div class="panel-stages">
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
@@ -817,10 +835,11 @@
             </div>
         </div>
 
-        <div class="bottom-card">
-            <div class="bottom-title"><span class="num">4</span> Команда</div>
-            <div class="bottom-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
-            <div class="bottom-stages">
+        <div class="draggable-panel" data-panel-key="hq4" data-panel-type="team" id="panel-hq4">
+            <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
+            <div class="panel-title"><span class="num">4</span> Команда</div>
+            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
+            <div class="panel-stages">
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
@@ -830,12 +849,12 @@
 
     </div>
 
-    <!-- ★★★ НИЖНЯЯ ПОЛОСА: ГБР 1, ГБР 2, резерв ★★★ -->
     <div class="bottom-bar">
 
-        <div class="gbr-card">
-            <span class="gbr-label">1 ГБР</span>
-            <span class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</span>
+        <div class="draggable-panel gbr-panel" data-panel-key="gbr1" data-panel-type="gbr" id="panel-gbr1">
+            <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
+            <div class="panel-title">1 ГБР</div>
+            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
             <div class="gbr-stages">
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
@@ -844,9 +863,10 @@
             </div>
         </div>
 
-        <div class="gbr-card">
-            <span class="gbr-label">2 ГБР</span>
-            <span class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</span>
+        <div class="draggable-panel gbr-panel" data-panel-key="gbr2" data-panel-type="gbr" id="panel-gbr2">
+            <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
+            <div class="panel-title">2 ГБР</div>
+            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
             <div class="gbr-stages">
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
                 <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
@@ -855,9 +875,10 @@
             </div>
         </div>
 
-        <div class="reserve-card">
-            <span class="reserve-label">Резерв</span>
-            <div class="reserve-list">
+        <div class="draggable-panel reserve-panel" data-panel-key="reserve" data-panel-type="reserve" id="panel-reserve">
+            <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
+            <div class="panel-title">Резерв</div>
+            <div class="panel-players">
                 <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
                 <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
                 <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
@@ -899,33 +920,40 @@
         const editables = document.querySelectorAll('.editable');
         const field = document.getElementById('field');
         const points = document.querySelectorAll('.point[data-point-key]');
+        const panels = document.querySelectorAll('.draggable-panel[data-panel-key]');
+        const mapWrap = document.querySelector('.map-wrap');
 
         if (!editToggle) return;
 
         let isEditing = false;
-
-        // ★ Сохраняем позиции точек в процентах
-        function collectPositions() {
-            const positions = {};
-            points.forEach(point => {
-                const key = point.dataset.pointKey;
-                positions[key] = {
-                    left: parseFloat(point.style.left) || 0,
-                    top: parseFloat(point.style.top) || 0
-                };
-            });
-            return positions;
-        }
+        let draggedPoint = null;
+        let draggedPanel = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
 
         function collectData() {
             const data = {};
             editables.forEach(el => { data[el.dataset.key] = el.textContent.trim(); });
-            // ★ Добавляем позиции точек в виде отдельных ключей
-            const positions = collectPositions();
-            Object.entries(positions).forEach(([key, pos]) => {
-                data[key + '-left'] = pos.left.toString();
-                data[key + '-top'] = pos.top.toString();
+
+            // Позиции точек
+            points.forEach(point => {
+                const key = point.dataset.pointKey;
+                data[key + '-left'] = parseFloat(point.style.left) || 0;
+                data[key + '-top'] = parseFloat(point.style.top) || 0;
             });
+
+            // Позиции панелей
+            panels.forEach(panel => {
+                const key = panel.dataset.panelKey;
+                if (panel.classList.contains('on-map')) {
+                    data['panel-' + key + '-left'] = parseFloat(panel.style.left) || 0;
+                    data['panel-' + key + '-top'] = parseFloat(panel.style.top) || 0;
+                    data['panel-' + key + '-onmap'] = '1';
+                } else {
+                    data['panel-' + key + '-onmap'] = '0';
+                }
+            });
+
             return data;
         }
 
@@ -967,10 +995,8 @@
                 el.setAttribute('contenteditable', on ? 'true' : 'false');
             });
 
-            // ★ Включаем/выключаем drag & drop
-            points.forEach(point => {
-                point.draggable = on;
-            });
+            points.forEach(point => { point.draggable = on; });
+            panels.forEach(panel => { panel.draggable = on; });
 
             if (!on) saveData();
         }
@@ -999,34 +1025,21 @@
             el.addEventListener('blur', () => { if (isEditing) saveData(); });
         });
 
-        // ★★★ DRAG & DROP ДЛЯ ТОЧЕК ★★★
-        let draggedPoint = null;
-        let dragOffsetX = 0;
-        let dragOffsetY = 0;
-
+        // ★★★ DRAG ТОЧЕК ★★★
         points.forEach(point => {
             point.addEventListener('dragstart', (e) => {
-                if (!isEditing) {
+                if (!isEditing || e.target.closest('[contenteditable="true"]')) {
                     e.preventDefault();
                     return;
                 }
-                // Если тянем за редактируемое поле — не начинаем драг
-                if (e.target.closest('[contenteditable="true"]')) {
-                    e.preventDefault();
-                    return;
-                }
-
                 draggedPoint = point;
-
                 const rect = point.getBoundingClientRect();
                 dragOffsetX = e.clientX - rect.left - rect.width / 2;
                 dragOffsetY = e.clientY - rect.top - rect.height / 2;
-
                 point.style.opacity = '0.5';
                 point.style.zIndex = '100';
-
                 e.dataTransfer.effectAllowed = 'move';
-                e.dataTransfer.setData('text/plain', point.dataset.pointKey);
+                e.dataTransfer.setData('text/plain', 'point');
             });
 
             point.addEventListener('dragend', () => {
@@ -1038,9 +1051,33 @@
             });
         });
 
+        // ★★★ DRAG ПАНЕЛЕЙ (команд, ГБР, резерва) ★★★
+        panels.forEach(panel => {
+            panel.addEventListener('dragstart', (e) => {
+                if (!isEditing || e.target.closest('[contenteditable="true"]') || e.target.closest('.reset-pos-btn')) {
+                    e.preventDefault();
+                    return;
+                }
+                draggedPanel = panel;
+                const rect = panel.getBoundingClientRect();
+                dragOffsetX = e.clientX - rect.left - rect.width / 2;
+                dragOffsetY = e.clientY - rect.top - rect.height / 2;
+                panel.style.opacity = '0.4';
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', 'panel');
+            });
+
+            panel.addEventListener('dragend', () => {
+                if (draggedPanel) draggedPanel.style.opacity = '';
+                draggedPanel = null;
+            });
+        });
+
+        // ★★★ DROP НА КАРТУ ★★★
         if (field) {
             field.addEventListener('dragover', (e) => {
-                if (!isEditing || !draggedPoint) return;
+                if (!isEditing) return;
+                if (!draggedPoint && !draggedPanel) return;
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
 
@@ -1048,71 +1085,147 @@
                 const x = e.clientX - rect.left - dragOffsetX;
                 const y = e.clientY - rect.top - dragOffsetY;
 
-                // Ограничиваем в пределах карты
-                const clampedX = Math.max(20, Math.min(rect.width - 20, x));
-                const clampedY = Math.max(20, Math.min(rect.height - 20, y));
+                const clampedX = Math.max(30, Math.min(rect.width - 30, x));
+                const clampedY = Math.max(30, Math.min(rect.height - 30, y));
 
                 const percentX = (clampedX / rect.width) * 100;
                 const percentY = (clampedY / rect.height) * 100;
 
-                draggedPoint.style.left = percentX.toFixed(2) + '%';
-                draggedPoint.style.top = percentY.toFixed(2) + '%';
+                if (draggedPoint) {
+                    draggedPoint.style.left = percentX.toFixed(2) + '%';
+                    draggedPoint.style.top = percentY.toFixed(2) + '%';
+                } else if (draggedPanel) {
+                    draggedPanel.style.left = percentX.toFixed(2) + '%';
+                    draggedPanel.style.top = percentY.toFixed(2) + '%';
+                }
             });
 
             field.addEventListener('drop', (e) => {
-                if (!isEditing || !draggedPoint) return;
-                e.preventDefault();
+                if (!isEditing) return;
 
-                // Автосохранение после перетаскивания
+                // Если перетаскиваем панель — переносим её в field
+                if (draggedPanel) {
+                    e.preventDefault();
+
+                    // Ставим абсолютные координаты относительно field
+                    const rect = field.getBoundingClientRect();
+                    const x = e.clientX - rect.left - dragOffsetX;
+                    const y = e.clientY - rect.top - dragOffsetY;
+
+                    const clampedX = Math.max(30, Math.min(rect.width - 30, x));
+                    const clampedY = Math.max(30, Math.min(rect.height - 30, y));
+
+                    const percentX = (clampedX / rect.width) * 100;
+                    const percentY = (clampedY / rect.height) * 100;
+
+                    // Перемещаем DOM-элемент внутрь field
+                    field.appendChild(draggedPanel);
+                    draggedPanel.classList.add('on-map');
+                    draggedPanel.style.left = percentX.toFixed(2) + '%';
+                    draggedPanel.style.top = percentY.toFixed(2) + '%';
+
+                    draggedPanel.style.opacity = '';
+
+                    saveData();
+                    saveHint.textContent = '✓ Плашка перенесена на карту';
+                    saveHint.classList.add('saved');
+                    setTimeout(() => {
+                        saveHint.textContent = '';
+                        saveHint.classList.remove('saved');
+                    }, 2000);
+
+                    draggedPanel = null;
+                    return;
+                }
+
+                if (draggedPoint) {
+                    e.preventDefault();
+                    saveData();
+                    saveHint.textContent = '✓ Позиция сохранена';
+                    saveHint.classList.add('saved');
+                    setTimeout(() => {
+                        saveHint.textContent = '';
+                        saveHint.classList.remove('saved');
+                    }, 2000);
+                    draggedPoint = null;
+                }
+            });
+        }
+
+        // ★★★ КНОПКА "ВЕРНУТЬ НА ПАНЕЛЬ" ★★★
+        document.querySelectorAll('.reset-pos-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!isEditing) return;
+
+                const key = btn.dataset.reset;
+                const panel = document.querySelector('.draggable-panel[data-panel-key="' + key + '"]');
+                if (!panel) return;
+
+                // Перемещаем обратно в bottom-panel или bottom-bar
+                const isGbr = panel.dataset.panelType === 'gbr';
+                const isReserve = panel.dataset.panelType === 'reserve';
+
+                let targetContainer;
+                if (isGbr || isReserve) {
+                    targetContainer = document.querySelector('.bottom-bar');
+                } else {
+                    targetContainer = document.querySelector('.bottom-panel');
+                }
+
+                if (targetContainer) {
+                    targetContainer.appendChild(panel);
+                }
+
+                panel.classList.remove('on-map');
+                panel.style.left = '';
+                panel.style.top = '';
+
                 saveData();
-
-                // Подсветка сохранения
-                saveHint.textContent = '✓ Позиция сохранена';
+                saveHint.textContent = '✓ Вернули на панель';
                 saveHint.classList.add('saved');
                 setTimeout(() => {
                     saveHint.textContent = '';
                     saveHint.classList.remove('saved');
                 }, 2000);
-
-                draggedPoint = null;
             });
-        }
+        });
 
-        // ★ Применяем сохранённые позиции из БД при загрузке
+        // ★★★ ПРИМЕНЯЕМ СОХРАНЁННЫЕ ПОЗИЦИИ ★★★
         {% if map_values %}
+        // Позиции точек
         points.forEach(point => {
             const key = point.dataset.pointKey;
-            const leftKey = key + '-left';
-            const topKey = key + '-top';
-            const leftVal = "{{ map_values.get('" + leftKey + "', '') }}" === '' ? null : null;
-            // Позиции уже применены через inline style, но если в БД что-то есть — переопределим
+            const leftVal = "{{ map_values.get('" + key + "-left', '') }}";
+            const topVal = "{{ map_values.get('" + key + "-top', '') }}";
+            if (leftVal !== '' && topVal !== '') {
+                point.style.left = leftVal + '%';
+                point.style.top = topVal + '%';
+            }
         });
         {% endif %}
 
     })();
     {% endif %}
 
-    // ★ Восстановление сохранённых позиций из БД (для всех пользователей)
+    // ★ Восстанавливаем панели, которые были перенесены на карту ★
     (function() {
         const field = document.getElementById('field');
         if (!field) return;
 
-        const points = document.querySelectorAll('.point[data-point-key]');
-        const savedPositions = {
-            {% for key, value in map_values.items() %}
-                {% if key.endswith('-left') or key.endswith('-top') %}
-                "{{ key }}": "{{ value }}",
-                {% endif %}
-            {% endfor %}
-        };
+        const panels = document.querySelectorAll('.draggable-panel[data-panel-key]');
 
-        points.forEach(point => {
-            const key = point.dataset.pointKey;
-            const leftKey = key + '-left';
-            const topKey = key + '-top';
-            if (savedPositions[leftKey] && savedPositions[topKey]) {
-                point.style.left = savedPositions[leftKey] + '%';
-                point.style.top = savedPositions[topKey] + '%';
+        panels.forEach(panel => {
+            const key = panel.dataset.panelKey;
+            const onMap = "{{ map_values.get('panel-" + key + "-onmap', '0') }}";
+            const leftVal = "{{ map_values.get('panel-" + key + "-left', '') }}";
+            const topVal = "{{ map_values.get('panel-" + key + "-top', '') }}";
+
+            if (onMap === '1' && leftVal !== '' && topVal !== '') {
+                field.appendChild(panel);
+                panel.classList.add('on-map');
+                panel.style.left = leftVal + '%';
+                panel.style.top = topVal + '%';
             }
         });
     })();
