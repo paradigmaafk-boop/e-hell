@@ -9,13 +9,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        /* Только то, что специфично для главной */
         html, body { height: 100vh; overflow: hidden; }
         .page {
             position: relative;
             z-index: 1;
             height: 100vh;
             display: grid;
-            grid-template-rows: auto 1fr;
+            grid-template-rows: auto auto 1fr;
             padding: 1.25rem 2rem 1.5rem;
             max-width: 1440px;
             margin: 0 auto;
@@ -34,78 +35,16 @@
             gap: 0.4rem;
             min-height: 0;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--line) transparent;
             padding-right: 4px;
         }
-        .side-nav::-webkit-scrollbar { width: 4px; }
-        .side-nav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
-        .side-title {
-            font-size: 0.65rem;
-            font-weight: 500;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            color: var(--dim);
-            margin-bottom: 0.6rem;
-            padding-left: 0.25rem;
-        }
         .side-title.danger { color: #b8443a; }
-        .side-btn {
-            background: transparent;
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            color: var(--muted);
-            font: inherit;
-            font-size: 0.9rem;
-            text-align: left;
-            padding: 0.7rem 1rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 0.75rem;
-            flex-shrink: 0;
-            text-decoration: none;
-            width: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-        .side-btn::before {
-            content: "";
-            position: absolute;
-            top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,140,0,0.15), transparent);
-            transition: left 0.5s ease;
-        }
-        .side-btn:hover::before { left: 100%; }
-        .side-btn:hover {
-            color: var(--text);
-            border-color: var(--accent);
-            background: rgba(255,69,0,0.06);
-            box-shadow: 0 0 20px rgba(255,69,0,0.25), inset 0 0 20px rgba(255,69,0,0.05);
-        }
-        .side-btn.active {
-            border-color: var(--accent);
-            background: linear-gradient(180deg, rgba(255,69,0,0.15), rgba(255,184,0,0.05));
-            color: var(--accent-warm);
-            box-shadow: 0 0 25px rgba(255,69,0,0.3), inset 0 0 20px rgba(255,69,0,0.08);
-        }
         .side-btn.danger { border-color: #3a1e1e; color: #d65446; }
         .side-btn.danger:hover {
-            border-color: var(--danger);
+            border-color: #e0392b;
             color: #ff8877;
             background: rgba(224,57,43,0.08);
             box-shadow: 0 0 20px rgba(224,57,43,0.3);
         }
-        .side-btn .arrow {
-            color: var(--dim);
-            font-size: 0.95rem;
-            transition: all 0.3s ease;
-        }
-        .side-btn:hover .arrow { color: var(--accent); transform: translateX(4px); }
-
         .carousel {
             background: var(--panel);
             border-radius: 20px;
@@ -142,18 +81,9 @@
             inset: -2px;
             border-radius: 22px;
             padding: 2px;
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                #ff2200 20%,
-                #ffcc00 50%,
-                #ff2200 80%,
-                transparent 100%
-            );
+            background: linear-gradient(90deg, transparent 0%, #ff2200 20%, #ffcc00 50%, #ff2200 80%, transparent 100%);
             background-size: 300% 100%;
-            -webkit-mask:
-                linear-gradient(#000 0 0) content-box,
-                linear-gradient(#000 0 0);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
             -webkit-mask-composite: xor;
             mask-composite: exclude;
             animation: fireBorderFlow 5s linear infinite;
@@ -182,18 +112,12 @@
             justify-content: center;
         }
         .slide.active { opacity: 1; }
-        .slide img, .slide video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+        .slide img, .slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
         .nav-arrow {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             border-radius: 50%;
             background: rgba(10,5,3,0.75);
             border: 1px solid rgba(255,69,0,0.5);
@@ -225,8 +149,7 @@
             z-index: 6;
         }
         .dot {
-            width: 7px;
-            height: 7px;
+            width: 7px; height: 7px;
             border-radius: 50%;
             background: rgba(255,69,0,0.3);
             cursor: pointer;
@@ -296,7 +219,6 @@
 </head>
 <body>
 
-<!-- ★ SVG-градиенты для компаса ★ -->
 <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
     <defs>
         <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
@@ -318,7 +240,6 @@
     </defs>
 </svg>
 
-<!-- ★ Угольки ★ -->
 <div class="embers" id="embers"></div>
 
 {% with messages = get_flashed_messages() %}
@@ -365,6 +286,13 @@
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
+
+    <nav class="nav">
+        <a href="/rating/duel" class="active">Дуэль</a>
+        <a href="/reservoir-map">Резервуар</a>
+        <a href="/turtle-calculator">Черепашка</a>
+        <a href="/hero-calculator">Прокачка</a>
+    </nav>
 
     <div class="main-grid">
 
@@ -487,12 +415,9 @@
 </div>
 
 <script>
-    // ============================================================
-    // Угольки
-    // ============================================================
-    (function () {
+    (function generateEmbers() {
         const container = document.getElementById('embers');
-        for (let i = 0; i < 25; i++) {
+        for (let i = 0; i < 30; i++) {
             const ember = document.createElement('div');
             ember.className = 'ember';
             const size = 2 + Math.random() * 4;
@@ -513,9 +438,6 @@
         }
     })();
 
-    // ============================================================
-    // Тема
-    // ============================================================
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     toggleBtn.addEventListener('click', () => {
@@ -528,13 +450,10 @@
         toggleBtn.textContent = '☀️';
     }
 
-    // ============================================================
-    // Искры на клик
-    // ============================================================
     const sparkStyle = document.createElement('style');
     sparkStyle.textContent = '@keyframes sparkBurst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1; } 50% { transform: translate(-50%,-50%) scale(3); opacity: 0.8; } 100% { transform: translate(-50%,-50%) scale(6); opacity: 0; } }';
     document.head.appendChild(sparkStyle);
-    document.querySelectorAll('.side-btn, .nav a, .link-btn, .btn').forEach(el => {
+    document.querySelectorAll('.side-btn, .nav a, .link-btn, .btn, .nav-arrow, .dot').forEach(el => {
         el.addEventListener('click', () => {
             const rect = el.getBoundingClientRect();
             const spark = document.createElement('div');
@@ -553,18 +472,14 @@
         }, 4000);
     }
 
-    // ============================================================
-    // Карусель
-    // ============================================================
-    (function() {
+    (function carousel() {
         const slides = document.querySelectorAll('.carousel .slide');
         const dotsContainer = document.getElementById('dots');
         const captionTitle = document.getElementById('captionTitle');
         const captionText = document.getElementById('captionText');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-
-        if (!slides.length || !dotsContainer) return;
+        if (!slides.length) return;
 
         const slideData = [
             {% for slide in slides %}
@@ -576,47 +491,43 @@
         ];
 
         let current = 0;
-        let autoTimer = null;
+        let timer = null;
+        let dots = [];
 
-        slides.forEach((_, i) => {
-            const dot = document.createElement('button');
-            dot.className = 'dot' + (i === 0 ? ' active' : '');
-            dot.setAttribute('aria-label', 'Слайд ' + (i + 1));
-            dot.addEventListener('click', () => goTo(i));
-            dotsContainer.appendChild(dot);
-        });
+        if (dotsContainer) {
+            slides.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(dot);
+            });
+            dots = dotsContainer.querySelectorAll('.dot');
+        }
 
-        const dots = dotsContainer.querySelectorAll('.dot');
-
-        function goTo(index) {
-            current = (index + slides.length) % slides.length;
-            slides.forEach((s, i) => s.classList.toggle('active', i === current));
-            dots.forEach((d, i) => d.classList.toggle('active', i === current));
-
-            if (slideData[current]) {
+        function goTo(i) {
+            current = (i + slides.length) % slides.length;
+            slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
+            dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+            if (slideData[current] && captionTitle && captionText) {
                 captionTitle.textContent = slideData[current].title || ' ';
                 captionText.textContent = slideData[current].text || '';
             }
-
-            resetAuto();
+            resetTimer();
         }
-
         function next() { goTo(current + 1); }
         function prev() { goTo(current - 1); }
-
-        function startAuto() { autoTimer = setInterval(next, 9000); }
-        function resetAuto() { clearInterval(autoTimer); startAuto(); }
+        function startTimer() { timer = setInterval(next, 6000); }
+        function resetTimer() { clearInterval(timer); startTimer(); }
 
         if (nextBtn) nextBtn.addEventListener('click', next);
         if (prevBtn) prevBtn.addEventListener('click', prev);
 
-        const carousel = document.querySelector('.carousel');
-        if (carousel) {
-            carousel.addEventListener('mouseenter', () => clearInterval(autoTimer));
-            carousel.addEventListener('mouseleave', startAuto);
+        const stage = document.querySelector('.carousel');
+        if (stage) {
+            stage.addEventListener('mouseenter', () => clearInterval(timer));
+            stage.addEventListener('mouseleave', startTimer);
         }
-
-        startAuto();
+        if (slides.length > 1) startTimer();
     })();
 </script>
 
