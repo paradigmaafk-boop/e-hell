@@ -52,6 +52,12 @@ body { position: relative; }
     filter: blur(80px);
     opacity: 0.9;
     will-change: transform, opacity;
+    display: none;   /* по умолчанию скрыто */
+}
+
+/* Показываем только внутри контейнера .fire-bg */
+.fire-bg .fire-blob {
+    display: block;
 }
 
 .fire-blob-1 {
