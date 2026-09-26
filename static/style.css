@@ -31,6 +31,12 @@ html, body {
 
 body { position: relative; }
 
+/* Скрыть любые висячие .ember / .embers на всякий случай */
+.embers,
+.ember {
+    display: none !important;
+}
+
 /* ============================================================
    ОБЁРТКА
    ============================================================ */
@@ -569,7 +575,7 @@ button.side-btn.danger:hover,
 }
 
 /* ============================================================
-   КНОПКИ ОБЩИЕ
+   КНОПКИ
    ============================================================ */
 .btn {
     display: inline-flex;
@@ -598,9 +604,7 @@ button.side-btn.danger:hover,
     color: #1a0f05;
     font-weight: 700;
 }
-.btn-primary:hover {
-    color: #1a0f05;
-}
+.btn-primary:hover { color: #1a0f05; }
 .btn-small {
     padding: 0.35rem 0.9rem;
     font-size: 0.78rem;
@@ -653,9 +657,7 @@ td.name-cell a {
     font-weight: 500;
     transition: color 0.2s ease;
 }
-td.name-cell a:hover {
-    color: var(--accent-warm);
-}
+td.name-cell a:hover { color: var(--accent-warm); }
 td.points-cell {
     color: var(--accent-warm);
     font-weight: 700;
