@@ -9,7 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .page {
+        /* Только карта — спец. стили для поля, точек и панелей */
+        .map-page {
             max-width: 1800px;
             margin: 0 auto;
             padding: 1.25rem 2rem 2rem;
@@ -23,7 +24,6 @@
         }
         .page-title-block h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.1rem; }
         .page-title-block p { font-size: 0.82rem; color: var(--muted); }
-
         .admin-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
         .btn.active {
             background: rgba(255, 69, 0, 0.15);
@@ -55,7 +55,6 @@
             gap: 0.5rem;
             box-shadow: 0 0 40px rgba(255,69,0,0.15), inset 0 0 30px rgba(255,69,0,0.05);
         }
-
         .field {
             position: relative;
             background:
@@ -72,7 +71,6 @@
             width: 100%;
             box-shadow: inset 0 0 60px rgba(255,69,0,0.15);
         }
-
         .field::after {
             content: "";
             position: absolute; inset: 0;
@@ -87,7 +85,6 @@
             z-index: 0;
             opacity: 0.7;
         }
-
         .arrows-layer {
             position: absolute;
             inset: 0;
@@ -97,32 +94,13 @@
             z-index: 2;
             overflow: visible;
         }
-        body.edit-mode:not(.drawing-mode) .arrows-layer {
-            pointer-events: auto;
-        }
-        body.edit-mode:not(.drawing-mode) .arrows-layer path {
-            pointer-events: stroke;
-            cursor: pointer;
-        }
-        body.edit-mode:not(.drawing-mode) .arrows-layer path:hover {
-            opacity: 1 !important;
-            stroke-width: 4 !important;
-        }
-        body.drawing-mode .arrows-layer path {
-            pointer-events: none !important;
-        }
+        body.edit-mode:not(.drawing-mode) .arrows-layer { pointer-events: auto; }
+        body.edit-mode:not(.drawing-mode) .arrows-layer path { pointer-events: stroke; cursor: pointer; }
+        body.edit-mode:not(.drawing-mode) .arrows-layer path:hover { opacity: 1 !important; stroke-width: 4 !important; }
+        body.drawing-mode .arrows-layer path { pointer-events: none !important; }
 
-        .arrows-layer .draw-preview {
-            stroke-dasharray: 6 4;
-            opacity: 0.9;
-            pointer-events: none;
-        }
-        .arrows-layer .draw-start-dot {
-            fill: #fff;
-            stroke: #1a1209;
-            stroke-width: 2;
-            pointer-events: none;
-        }
+        .arrows-layer .draw-preview { stroke-dasharray: 6 4; opacity: 0.9; pointer-events: none; }
+        .arrows-layer .draw-start-dot { fill: #fff; stroke: #1a1209; stroke-width: 2; pointer-events: none; }
 
         .point {
             position: absolute;
@@ -161,7 +139,6 @@
                 inset 0 1px 0 rgba(255, 200, 120, 0.25),
                 0 0 24px rgba(255, 69, 0, 0.5);
         }
-
         body.edit-mode:not(.drawing-mode) .point { cursor: grab; }
         body.edit-mode:not(.drawing-mode) .point:active { cursor: grabbing; }
         body.edit-mode:not(.drawing-mode) .point .point-icon-wrap::after {
@@ -172,11 +149,8 @@
             border-radius: 12px;
             pointer-events: none;
         }
-
         body.drawing-mode .point,
-        body.drawing-mode .draggable-panel {
-            cursor: crosshair !important;
-        }
+        body.drawing-mode .draggable-panel { cursor: crosshair !important; }
         body.drawing-mode .point .point-icon-wrap::after,
         body.drawing-mode .draggable-panel.on-map::after {
             border-color: rgba(255, 69, 0, 0.9) !important;
@@ -218,23 +192,10 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255,69,0,0.25);
         }
         body.drawing-mode .draw-toolbar { display: flex; }
-
-        .draw-label {
-            font-size: 0.78rem;
-            color: var(--muted);
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .color-swatches {
-            display: flex;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-        }
-
+        .draw-label { font-size: 0.78rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
+        .color-swatches { display: flex; gap: 0.4rem; flex-wrap: wrap; }
         .color-swatch {
-            width: 30px;
-            height: 30px;
+            width: 30px; height: 30px;
             border-radius: 50%;
             border: 2px solid #1a1209;
             cursor: pointer;
@@ -246,14 +207,7 @@
             box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.6), 0 0 15px rgba(255,69,0,0.5);
             transform: scale(1.15);
         }
-
-        .draw-info {
-            font-size: 0.8rem;
-            color: var(--accent-warm);
-            margin-left: auto;
-            font-style: italic;
-        }
-
+        .draw-info { font-size: 0.8rem; color: var(--accent-warm); margin-left: auto; font-style: italic; }
         .draw-tip {
             display: none;
             padding: 0.55rem 1rem;
@@ -269,10 +223,7 @@
         }
         body.drawing-mode .draw-tip { display: block; }
 
-        .stage-badges {
-            position: absolute; inset: 0;
-            pointer-events: none; z-index: 5;
-        }
+        .stage-badges { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
         .stage-badge {
             position: absolute;
             height: 20px; min-width: 20px; padding: 0 5px;
@@ -293,14 +244,8 @@
         .stage-badge.s2 { background: var(--stage-2, #3fbf6a); }
         .stage-badge.s3 { background: var(--stage-3, #e8a63a); }
         .stage-badge.s4 { background: var(--stage-4, #e84a8c); }
-        .stage-badge.gbr1 {
-            background: linear-gradient(180deg, #ffb04a, #d9661a);
-            color: #1a0e05; font-weight: 800;
-        }
-        .stage-badge.gbr2 {
-            background: linear-gradient(180deg, #b07aff, #6a2fd0);
-            color: #fff8e7; font-weight: 800;
-        }
+        .stage-badge.gbr1 { background: linear-gradient(180deg, #ffb04a, #d9661a); color: #1a0e05; font-weight: 800; }
+        .stage-badge.gbr2 { background: linear-gradient(180deg, #b07aff, #6a2fd0); color: #fff8e7; font-weight: 800; }
 
         .point-name {
             font-size: 0.75rem; font-weight: 500;
@@ -327,37 +272,27 @@
             border-color: var(--accent);
             color: #fff;
         }
-
         .point-owner {
-            font-size: 0.72rem;
-            font-weight: 600;
+            font-size: 0.72rem; font-weight: 600;
             color: var(--accent-warm);
             background: rgba(26, 13, 5, 0.94);
             padding: 0.2rem 0.55rem;
             border-radius: 5px;
             border: 1px solid rgba(255, 69, 0, 0.35);
-            white-space: nowrap;
-            text-align: center;
-            line-height: 1.2;
-            max-width: 150px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: nowrap; text-align: center;
+            line-height: 1.2; max-width: 150px;
+            overflow: hidden; text-overflow: ellipsis;
             cursor: text;
             transition: all 0.2s ease;
             margin-top: 0.15rem;
         }
-        .point-owner:hover {
-            border-color: var(--accent-warm);
-            color: #fff;
-            box-shadow: 0 0 12px rgba(255,69,0,0.4);
-        }
+        .point-owner:hover { border-color: var(--accent-warm); color: #fff; box-shadow: 0 0 12px rgba(255,69,0,0.4); }
         .point-owner[contenteditable="true"]:focus {
             outline: none;
             background: rgba(255, 69, 0, 0.15);
             border-color: var(--accent);
             color: #fff;
         }
-
         .point.center-point .point-icon {
             width: 90px; height: 76px;
             font-size: 2.2rem;
@@ -372,14 +307,8 @@
             0%, 100% { box-shadow: 0 0 30px rgba(255,100,0,0.5), 0 10px 24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,200,120,0.25); }
             50%      { box-shadow: 0 0 50px rgba(255,140,0,0.8), 0 10px 24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,200,120,0.4); }
         }
-        .point.water-collector .point-icon {
-            width: 48px; height: 42px;
-            font-size: 1.2rem;
-            border-radius: 7px;
-        }
-        .point.water-collector .point-name {
-            font-size: 0.7rem; padding: 0.2rem 0.5rem; max-width: 100px;
-        }
+        .point.water-collector .point-icon { width: 48px; height: 42px; font-size: 1.2rem; border-radius: 7px; }
+        .point.water-collector .point-name { font-size: 0.7rem; padding: 0.2rem 0.5rem; max-width: 100px; }
 
         .draggable-panel {
             background: rgba(26, 13, 5, 0.95);
@@ -390,7 +319,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255,69,0,0.1);
             position: relative;
         }
-
         .draggable-panel.on-map {
             position: absolute !important;
             transform: translate(-50%, -50%);
@@ -414,7 +342,6 @@
             pointer-events: none;
         }
         body.edit-mode .draggable-panel.on-map::after { border-color: var(--accent); }
-
         body.edit-mode:not(.drawing-mode) .draggable-panel:not(.on-map) {
             cursor: grab;
             border-color: rgba(255, 69, 0, 0.4);
@@ -425,13 +352,10 @@
             border-style: solid;
             box-shadow: 0 0 25px rgba(255,69,0,0.3);
         }
-
         .reset-pos-btn {
             position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 22px;
-            height: 22px;
+            top: 6px; right: 6px;
+            width: 22px; height: 22px;
             border-radius: 50%;
             background: linear-gradient(180deg, #ff6a1a, #c94a00);
             border: 2px solid #1a1209;
@@ -448,7 +372,6 @@
         }
         .reset-pos-btn:hover { transform: scale(1.15); }
         body.edit-mode .draggable-panel.on-map .reset-pos-btn { display: flex; }
-
         .draggable-panel .panel-title {
             font-size: 0.68rem;
             letter-spacing: 3px;
@@ -493,11 +416,8 @@
             border-radius: 6px;
             min-height: 1.7em;
         }
-
         .draggable-panel.gbr-panel .panel-stages,
-        .draggable-panel.gbr-panel .gbr-stages {
-            grid-template-columns: repeat(4, 1fr);
-        }
+        .draggable-panel.gbr-panel .gbr-stages { grid-template-columns: repeat(4, 1fr); }
         .draggable-panel.gbr-panel .gbr-name {
             font-size: 0.92rem;
             font-weight: 700;
@@ -513,7 +433,6 @@
             background: rgba(255, 69, 0, 0.12);
             color: var(--accent-warm);
         }
-
         .draggable-panel.reserve-panel .panel-players {
             display: flex;
             flex-wrap: wrap;
@@ -531,14 +450,12 @@
             background: rgba(255, 69, 0, 0.15);
             color: #fff;
         }
-
         .bottom-panel {
             margin-top: 0.75rem;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 0.6rem;
         }
-
         .bottom-bar {
             margin-top: 0.6rem;
             display: grid;
@@ -546,7 +463,6 @@
             gap: 0.6rem;
             align-items: stretch;
         }
-
         .stage {
             display: flex; align-items: center; gap: 0.55rem;
             border-radius: 8px; font-weight: 600;
@@ -562,47 +478,20 @@
             outline: 2px solid var(--accent); outline-offset: 1px;
             box-shadow: 0 0 15px rgba(255,69,0,0.6);
         }
-
         :root {
             --stage-1: #4a9eff;
             --stage-2: #3fbf6a;
             --stage-3: #e8a63a;
             --stage-4: #e84a8c;
         }
-
         body.light-theme .map-wrap { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
-        body.light-theme .draggable-panel {
-            background: rgba(255, 251, 242, 0.96);
-            border-color: #e8dcc8;
-        }
-        body.light-theme .point-icon {
-            background: linear-gradient(180deg, #fff5e6, #ffe7c4);
-            border-color: #d99a5a;
-        }
-        body.light-theme .point-name,
-        body.light-theme .point-owner {
-            background: rgba(255, 251, 242, 0.94);
-        }
-
-        .draggable-panel.on-map {
-            border-color: rgba(255, 69, 0, 0.4);
-        }
-        .draggable-panel.on-map:hover {
-            border-color: var(--accent);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255,69,0,0.35);
-        }
-        .draggable-panel .stage {
-            transition: all 0.25s ease;
-        }
-        .draggable-panel .stage:hover {
-            filter: brightness(1.15);
-            box-shadow: 0 0 15px currentColor;
-        }
+        body.light-theme .draggable-panel { background: rgba(255, 251, 242, 0.96); border-color: #e8dcc8; }
+        body.light-theme .point-icon { background: linear-gradient(180deg, #fff5e6, #ffe7c4); border-color: #d99a5a; }
+        body.light-theme .point-name, body.light-theme .point-owner { background: rgba(255, 251, 242, 0.94); }
     </style>
 </head>
 <body>
 
-<!-- ★ SVG-градиенты для компаса ★ -->
 <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
     <defs>
         <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
@@ -624,10 +513,9 @@
     </defs>
 </svg>
 
-<!-- ★ Угольки ★ -->
 <div class="embers" id="embers"></div>
 
-<div class="page">
+<div class="map-page">
 
     <header class="header">
         <a href="/" class="brand">
@@ -727,302 +615,298 @@
     </div>
 
     <div class="map-wrap">
-        <div class="map-scroll">
-            <div class="field" id="field">
+        <div class="field" id="field">
 
-                <svg class="arrows-layer" id="arrowsLayer" preserveAspectRatio="none"></svg>
+            <svg class="arrows-layer" id="arrowsLayer" preserveAspectRatio="none"></svg>
 
-                {% set panel_keys = ['hq1', 'hq2', 'hq3', 'hq4', 'gbr1', 'gbr2', 'reserve'] %}
-                {% for pk in panel_keys %}
-                    {% if map_values.get('panel-' + pk + '-onmap') == '1' %}
-                        {% set left_val = map_values.get('panel-' + pk + '-left', '50') %}
-                        {% set top_val = map_values.get('panel-' + pk + '-top', '50') %}
-                        {% set w_val = map_values.get('panel-' + pk + '-w', '') %}
-                        {% set h_val = map_values.get('panel-' + pk + '-h', '') %}
+            {% set panel_keys = ['hq1', 'hq2', 'hq3', 'hq4', 'gbr1', 'gbr2', 'reserve'] %}
+            {% for pk in panel_keys %}
+                {% if map_values.get('panel-' + pk + '-onmap') == '1' %}
+                    {% set left_val = map_values.get('panel-' + pk + '-left', '50') %}
+                    {% set top_val = map_values.get('panel-' + pk + '-top', '50') %}
+                    {% set w_val = map_values.get('panel-' + pk + '-w', '') %}
+                    {% set h_val = map_values.get('panel-' + pk + '-h', '') %}
 
-                        {% if pk == 'hq1' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq1" data-panel-type="team" data-connector-key="hq1" id="panel-hq1"
-                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
-                            <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
-                            <div class="panel-title"><span class="num">1</span> Команда</div>
-                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
-                            <div class="panel-stages">
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
-                            </div>
+                    {% if pk == 'hq1' %}
+                    <div class="draggable-panel on-map" data-panel-key="hq1" data-panel-type="team" data-connector-key="hq1" id="panel-hq1"
+                         style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                        <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
+                        <div class="panel-title"><span class="num">1</span> Команда</div>
+                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
+                        <div class="panel-stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
                         </div>
-                        {% endif %}
-
-                        {% if pk == 'hq2' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq2" data-panel-type="team" data-connector-key="hq2" id="panel-hq2"
-                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
-                            <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
-                            <div class="panel-title"><span class="num">2</span> Команда</div>
-                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
-                            <div class="panel-stages">
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if pk == 'hq3' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq3" data-panel-type="team" data-connector-key="hq3" id="panel-hq3"
-                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
-                            <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
-                            <div class="panel-title"><span class="num">3</span> Команда</div>
-                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
-                            <div class="panel-stages">
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if pk == 'hq4' %}
-                        <div class="draggable-panel on-map" data-panel-key="hq4" data-panel-type="team" data-connector-key="hq4" id="panel-hq4"
-                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
-                            <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
-                            <div class="panel-title"><span class="num">4</span> Команда</div>
-                            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
-                            <div class="panel-stages">
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if pk == 'gbr1' %}
-                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr1" data-panel-type="gbr" data-connector-key="gbr1" id="panel-gbr1"
-                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
-                            <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
-                            <div class="panel-title">1 ГБР</div>
-                            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
-                            <div class="gbr-stages">
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if pk == 'gbr2' %}
-                        <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr2" data-panel-type="gbr" data-connector-key="gbr2" id="panel-gbr2"
-                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
-                            <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
-                            <div class="panel-title">2 ГБР</div>
-                            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
-                            <div class="gbr-stages">
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
-                                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        {% if pk == 'reserve' %}
-                        <div class="draggable-panel reserve-panel on-map" data-panel-key="reserve" data-panel-type="reserve" data-connector-key="reserve" id="panel-reserve"
-                             style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
-                            <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
-                            <div class="panel-title">Резерв</div>
-                            <div class="panel-players">
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
-                                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
+                    </div>
                     {% endif %}
-                {% endfor %}
 
-                <!-- ★ ТОЧКИ ★ -->
-
-                <div class="point" data-point-key="pt-solar" data-connector-key="pt-solar" style="left: {{ map_values.get('pt-solar-left', '10') }}%; top: {{ map_values.get('pt-solar-top', '22') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">☀️</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge bl s1">4</span>
-                            <span class="stage-badge tl gbr1">1Г</span>
+                    {% if pk == 'hq2' %}
+                    <div class="draggable-panel on-map" data-panel-key="hq2" data-panel-type="team" data-connector-key="hq2" id="panel-hq2"
+                         style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                        <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
+                        <div class="panel-title"><span class="num">2</span> Команда</div>
+                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
+                        <div class="panel-stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
                         </div>
                     </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-owner">{{ map_values.get('pt-solar-owner', '—') }}</div>
-                </div>
+                    {% endif %}
 
-                <div class="point" data-point-key="pt-vpz-nw" data-connector-key="pt-vpz-nw" style="left: {{ map_values.get('pt-vpz-nw-left', '38') }}%; top: {{ map_values.get('pt-vpz-nw-top', '12') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">💧</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tl s1">2</span>
+                    {% if pk == 'hq3' %}
+                    <div class="draggable-panel on-map" data-panel-key="hq3" data-panel-type="team" data-connector-key="hq3" id="panel-hq3"
+                         style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                        <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
+                        <div class="panel-title"><span class="num">3</span> Команда</div>
+                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
+                        <div class="panel-stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
                         </div>
                     </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'ВПЗ 3') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-owner">{{ map_values.get('pt-vpz-nw-owner', '—') }}</div>
-                </div>
+                    {% endif %}
 
-                <div class="point" data-point-key="pt-vpz-ne" data-connector-key="pt-vpz-ne" style="left: {{ map_values.get('pt-vpz-ne-left', '88') }}%; top: {{ map_values.get('pt-vpz-ne-top', '12') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">💧</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tr s2">1</span>
+                    {% if pk == 'hq4' %}
+                    <div class="draggable-panel on-map" data-panel-key="hq4" data-panel-type="team" data-connector-key="hq4" id="panel-hq4"
+                         style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                        <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
+                        <div class="panel-title"><span class="num">4</span> Команда</div>
+                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
+                        <div class="panel-stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
                         </div>
                     </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'ВПЗ 2') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-owner">{{ map_values.get('pt-vpz-ne-owner', '—') }}</div>
-                </div>
+                    {% endif %}
 
-                <div class="point" data-point-key="pt-science" data-connector-key="pt-science" style="left: {{ map_values.get('pt-science-left', '28') }}%; top: {{ map_values.get('pt-science-top', '32') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🧪</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tl s3">1</span>
-                            <span class="stage-badge tr s3">3</span>
+                    {% if pk == 'gbr1' %}
+                    <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr1" data-panel-type="gbr" data-connector-key="gbr1" id="panel-gbr1"
+                         style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                        <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
+                        <div class="panel-title">1 ГБР</div>
+                        <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
+                        <div class="gbr-stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
                         </div>
                     </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-owner">{{ map_values.get('pt-science-owner', '—') }}</div>
-                </div>
+                    {% endif %}
 
-                <div class="point water-collector" data-point-key="pt-wc-1" data-connector-key="pt-wc-1" style="left: {{ map_values.get('pt-wc-1-left', '48') }}%; top: {{ map_values.get('pt-wc-1-top', '32') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🛢️</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tl s4">1</span>
+                    {% if pk == 'gbr2' %}
+                    <div class="draggable-panel gbr-panel on-map" data-panel-key="gbr2" data-panel-type="gbr" data-connector-key="gbr2" id="panel-gbr2"
+                         style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                        <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
+                        <div class="panel-title">2 ГБР</div>
+                        <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
+                        <div class="gbr-stages">
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
+                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
                         </div>
                     </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
-                </div>
+                    {% endif %}
 
-                <div class="point" data-point-key="pt-voc-ne" data-connector-key="pt-voc-ne" style="left: {{ map_values.get('pt-voc-ne-left', '68') }}%; top: {{ map_values.get('pt-voc-ne-top', '32') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🏭</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tr s2">3</span>
-                            <span class="stage-badge tl gbr2">2Г</span>
+                    {% if pk == 'reserve' %}
+                    <div class="draggable-panel reserve-panel on-map" data-panel-key="reserve" data-panel-type="reserve" data-connector-key="reserve" id="panel-reserve"
+                         style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
+                        <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
+                        <div class="panel-title">Резерв</div>
+                        <div class="panel-players">
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
+                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
                         </div>
                     </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'ВОЦ 2') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-owner">{{ map_values.get('pt-voc-ne-owner', '—') }}</div>
-                </div>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
 
-                <div class="point water-collector" data-point-key="pt-wc-2" data-connector-key="pt-wc-2" style="left: {{ map_values.get('pt-wc-2-left', '28') }}%; top: {{ map_values.get('pt-wc-2-top', '52') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🛢️</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tl s4">2</span>
-                        </div>
+            <div class="point" data-point-key="pt-solar" data-connector-key="pt-solar" style="left: {{ map_values.get('pt-solar-left', '10') }}%; top: {{ map_values.get('pt-solar-top', '22') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">☀️</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge bl s1">4</span>
+                        <span class="stage-badge tl gbr1">1Г</span>
                     </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
                 </div>
-
-                <div class="point center-point" data-point-key="pt-center" data-connector-key="pt-center" style="left: {{ map_values.get('pt-center-left', '50') }}%; top: {{ map_values.get('pt-center-top', '50') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🏰</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tl gbr1">1Г</span>
-                            <span class="stage-badge tr gbr2">2Г</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центр. резервуар') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-owner">{{ map_values.get('pt-center-owner', '—') }}</div>
-                </div>
-
-                <div class="point water-collector" data-point-key="pt-wc-3" data-connector-key="pt-wc-3" style="left: {{ map_values.get('pt-wc-3-left', '72') }}%; top: {{ map_values.get('pt-wc-3-top', '52') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🛢️</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tr s4">3</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
-                </div>
-
-                <div class="point" data-point-key="pt-voc-sw" data-connector-key="pt-voc-sw" style="left: {{ map_values.get('pt-voc-sw-left', '28') }}%; top: {{ map_values.get('pt-voc-sw-top', '72') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🏭</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge bl s2">4</span>
-                            <span class="stage-badge tl gbr1">1Г</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'ВОЦ 1') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-owner">{{ map_values.get('pt-voc-sw-owner', '—') }}</div>
-                </div>
-
-                <div class="point water-collector" data-point-key="pt-wc-4" data-connector-key="pt-wc-4" style="left: {{ map_values.get('pt-wc-4-left', '48') }}%; top: {{ map_values.get('pt-wc-4-top', '72') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🛢️</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge bl s4">4</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
-                </div>
-
-                <div class="point" data-point-key="pt-milfac" data-connector-key="pt-milfac" style="left: {{ map_values.get('pt-milfac-left', '68') }}%; top: {{ map_values.get('pt-milfac-top', '72') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">⚙️</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge tl s3">2</span>
-                            <span class="stage-badge tr s3">4</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-owner">{{ map_values.get('pt-milfac-owner', '—') }}</div>
-                </div>
-
-                <div class="point" data-point-key="pt-vpz-sw" data-connector-key="pt-vpz-sw" style="left: {{ map_values.get('pt-vpz-sw-left', '10') }}%; top: {{ map_values.get('pt-vpz-sw-top', '88') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">💧</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge bl s1">1</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'ВПЗ 1') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-owner">{{ map_values.get('pt-vpz-sw-owner', '—') }}</div>
-                </div>
-
-                <div class="point" data-point-key="pt-vpz-s" data-connector-key="pt-vpz-s" style="left: {{ map_values.get('pt-vpz-s-left', '60') }}%; top: {{ map_values.get('pt-vpz-s-top', '88') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">💧</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge br s2">2</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'ВПЗ 4') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-owner">{{ map_values.get('pt-vpz-s-owner', '—') }}</div>
-                </div>
-
-                <div class="point" data-point-key="pt-pad" data-connector-key="pt-pad" style="left: {{ map_values.get('pt-pad-left', '88') }}%; top: {{ map_values.get('pt-pad-top', '88') }}%;">
-                    <div class="point-icon-wrap">
-                        <div class="point-icon">🛬</div>
-                        <div class="stage-badges">
-                            <span class="stage-badge bl s1">3</span>
-                            <span class="stage-badge tl gbr2">2Г</span>
-                        </div>
-                    </div>
-                    <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Вертолётная площадка') }}</div>
-                    <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-owner">{{ map_values.get('pt-pad-owner', '—') }}</div>
-                </div>
-
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-owner">{{ map_values.get('pt-solar-owner', '—') }}</div>
             </div>
+
+            <div class="point" data-point-key="pt-vpz-nw" data-connector-key="pt-vpz-nw" style="left: {{ map_values.get('pt-vpz-nw-left', '38') }}%; top: {{ map_values.get('pt-vpz-nw-top', '12') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">💧</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tl s1">2</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'ВПЗ 3') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-owner">{{ map_values.get('pt-vpz-nw-owner', '—') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-vpz-ne" data-connector-key="pt-vpz-ne" style="left: {{ map_values.get('pt-vpz-ne-left', '88') }}%; top: {{ map_values.get('pt-vpz-ne-top', '12') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">💧</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tr s2">1</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'ВПЗ 2') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-owner">{{ map_values.get('pt-vpz-ne-owner', '—') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-science" data-connector-key="pt-science" style="left: {{ map_values.get('pt-science-left', '28') }}%; top: {{ map_values.get('pt-science-top', '32') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🧪</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tl s3">1</span>
+                        <span class="stage-badge tr s3">3</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-owner">{{ map_values.get('pt-science-owner', '—') }}</div>
+            </div>
+
+            <div class="point water-collector" data-point-key="pt-wc-1" data-connector-key="pt-wc-1" style="left: {{ map_values.get('pt-wc-1-left', '48') }}%; top: {{ map_values.get('pt-wc-1-top', '32') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🛢️</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tl s4">1</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-voc-ne" data-connector-key="pt-voc-ne" style="left: {{ map_values.get('pt-voc-ne-left', '68') }}%; top: {{ map_values.get('pt-voc-ne-top', '32') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🏭</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tr s2">3</span>
+                        <span class="stage-badge tl gbr2">2Г</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'ВОЦ 2') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-owner">{{ map_values.get('pt-voc-ne-owner', '—') }}</div>
+            </div>
+
+            <div class="point water-collector" data-point-key="pt-wc-2" data-connector-key="pt-wc-2" style="left: {{ map_values.get('pt-wc-2-left', '28') }}%; top: {{ map_values.get('pt-wc-2-top', '52') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🛢️</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tl s4">2</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
+            </div>
+
+            <div class="point center-point" data-point-key="pt-center" data-connector-key="pt-center" style="left: {{ map_values.get('pt-center-left', '50') }}%; top: {{ map_values.get('pt-center-top', '50') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🏰</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tl gbr1">1Г</span>
+                        <span class="stage-badge tr gbr2">2Г</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центр. резервуар') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-owner">{{ map_values.get('pt-center-owner', '—') }}</div>
+            </div>
+
+            <div class="point water-collector" data-point-key="pt-wc-3" data-connector-key="pt-wc-3" style="left: {{ map_values.get('pt-wc-3-left', '72') }}%; top: {{ map_values.get('pt-wc-3-top', '52') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🛢️</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tr s4">3</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-voc-sw" data-connector-key="pt-voc-sw" style="left: {{ map_values.get('pt-voc-sw-left', '28') }}%; top: {{ map_values.get('pt-voc-sw-top', '72') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🏭</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge bl s2">4</span>
+                        <span class="stage-badge tl gbr1">1Г</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'ВОЦ 1') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-owner">{{ map_values.get('pt-voc-sw-owner', '—') }}</div>
+            </div>
+
+            <div class="point water-collector" data-point-key="pt-wc-4" data-connector-key="pt-wc-4" style="left: {{ map_values.get('pt-wc-4-left', '48') }}%; top: {{ map_values.get('pt-wc-4-top', '72') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🛢️</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge bl s4">4</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-milfac" data-connector-key="pt-milfac" style="left: {{ map_values.get('pt-milfac-left', '68') }}%; top: {{ map_values.get('pt-milfac-top', '72') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">⚙️</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge tl s3">2</span>
+                        <span class="stage-badge tr s3">4</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-owner">{{ map_values.get('pt-milfac-owner', '—') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-vpz-sw" data-connector-key="pt-vpz-sw" style="left: {{ map_values.get('pt-vpz-sw-left', '10') }}%; top: {{ map_values.get('pt-vpz-sw-top', '88') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">💧</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge bl s1">1</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'ВПЗ 1') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-owner">{{ map_values.get('pt-vpz-sw-owner', '—') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-vpz-s" data-connector-key="pt-vpz-s" style="left: {{ map_values.get('pt-vpz-s-left', '60') }}%; top: {{ map_values.get('pt-vpz-s-top', '88') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">💧</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge br s2">2</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'ВПЗ 4') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-owner">{{ map_values.get('pt-vpz-s-owner', '—') }}</div>
+            </div>
+
+            <div class="point" data-point-key="pt-pad" data-connector-key="pt-pad" style="left: {{ map_values.get('pt-pad-left', '88') }}%; top: {{ map_values.get('pt-pad-top', '88') }}%;">
+                <div class="point-icon-wrap">
+                    <div class="point-icon">🛬</div>
+                    <div class="stage-badges">
+                        <span class="stage-badge bl s1">3</span>
+                        <span class="stage-badge tl gbr2">2Г</span>
+                    </div>
+                </div>
+                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Вертолётная площадка') }}</div>
+                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-owner">{{ map_values.get('pt-pad-owner', '—') }}</div>
+            </div>
+
         </div>
     </div>
 
@@ -1142,11 +1026,10 @@
 <script>
     window.INITIAL_ARROWS = {{ map_values.get('arrows-data', '[]')|safe }};
 
-    // ★★★ УГОЛЬКИ + ИСКРЫ ★★★
     (function () {
         const container = document.getElementById('embers');
         if (container) {
-            for (let i = 0; i < 25; i++) {
+            for (let i = 0; i < 30; i++) {
                 const ember = document.createElement('div');
                 ember.className = 'ember';
                 const size = 2 + Math.random() * 4;
@@ -1183,19 +1066,16 @@
 
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
-
     toggleBtn.addEventListener('click', () => {
         body.classList.toggle('light-theme');
         toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
         localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
     });
-
     if (localStorage.getItem('theme') === 'light') {
         body.classList.add('light-theme');
         toggleBtn.textContent = '☀️';
     }
 
-    // ★★★ ОТРИСОВКА СТРЕЛОК С ПРИВЯЗКОЙ К ОБЪЕКТАМ ★★★
     (function() {
         const field = document.getElementById('field');
         const svg = document.getElementById('arrowsLayer');
@@ -1262,19 +1142,12 @@
 
             arrowsArr.forEach(arrow => {
                 if (!arrow.points || arrow.points.length < 2) return;
-
                 const px = arrow.points.map(pt => {
                     const ap = window.getActualPointPercent(pt);
-                    return {
-                        x: (ap.x / 100) * w,
-                        y: (ap.y / 100) * h
-                    };
+                    return { x: (ap.x / 100) * w, y: (ap.y / 100) * h };
                 });
-
                 let d = 'M ' + px[0].x + ' ' + px[0].y;
-                for (let i = 1; i < px.length; i++) {
-                    d += ' L ' + px[i].x + ' ' + px[i].y;
-                }
+                for (let i = 1; i < px.length; i++) d += ' L ' + px[i].x + ' ' + px[i].y;
 
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', d);
@@ -1328,9 +1201,7 @@
         let dragOffsetY = 0;
 
         let arrows = [];
-        try {
-            arrows = JSON.parse(window.INITIAL_ARROWS || '[]');
-        } catch (e) { arrows = []; }
+        try { arrows = JSON.parse(window.INITIAL_ARROWS || '[]'); } catch (e) { arrows = []; }
 
         function ensurePreviewEls() {
             if (!svgLayer) return;
@@ -1352,52 +1223,34 @@
                 svgLayer.appendChild(startDotEl);
             }
         }
-
         function fieldRect() { return field.getBoundingClientRect(); }
-
         function clientToPercent(clientX, clientY) {
             const r = fieldRect();
-            return {
-                x: ((clientX - r.left) / r.width) * 100,
-                y: ((clientY - r.top) / r.height) * 100
-            };
+            return { x: ((clientX - r.left) / r.width) * 100, y: ((clientY - r.top) / r.height) * 100 };
         }
-
         function percentToPx(p) {
             const r = fieldRect();
-            return {
-                x: (p.x / 100) * r.width,
-                y: (p.y / 100) * r.height
-            };
+            return { x: (p.x / 100) * r.width, y: (p.y / 100) * r.height };
         }
-
         function findConnectorAt(clientX, clientY) {
             const el = document.elementFromPoint(clientX, clientY);
             if (!el) return null;
             return el.closest('[data-connector-key]');
         }
-
         function alignPoint(prevPt, targetPt) {
             if (!prevPt) return targetPt;
             const dx = Math.abs(targetPt.x - prevPt.x);
             const dy = Math.abs(targetPt.y - prevPt.y);
-            if (dx >= dy) {
-                return { x: targetPt.x, y: prevPt.y };
-            } else {
-                return { x: prevPt.x, y: targetPt.y };
-            }
+            if (dx >= dy) return { x: targetPt.x, y: prevPt.y };
+            return { x: prevPt.x, y: targetPt.y };
         }
-
         function buildPathD(pointsPercent) {
             if (!pointsPercent.length) return '';
             const px = pointsPercent.map(percentToPx);
             let d = 'M ' + px[0].x + ' ' + px[0].y;
-            for (let i = 1; i < px.length; i++) {
-                d += ' L ' + px[i].x + ' ' + px[i].y;
-            }
+            for (let i = 1; i < px.length; i++) d += ' L ' + px[i].x + ' ' + px[i].y;
             return d;
         }
-
         function updatePreview(mousePercent) {
             if (!currentPath) return;
             ensurePreviewEls();
@@ -1408,7 +1261,6 @@
             previewPathEl.setAttribute('stroke', currentColor);
             previewPathEl.style.display = '';
         }
-
         function showStartDot(percent) {
             ensurePreviewEls();
             const px = percentToPx(percent);
@@ -1416,22 +1268,18 @@
             startDotEl.setAttribute('cy', px.y);
             startDotEl.style.display = '';
         }
-
         function hidePreview() {
             if (previewPathEl) previewPathEl.style.display = 'none';
             if (startDotEl) startDotEl.style.display = 'none';
         }
-
         function collectData() {
             const data = {};
             editables.forEach(el => { data[el.dataset.key] = el.textContent.trim(); });
-
             points.forEach(point => {
                 const key = point.dataset.pointKey;
                 data[key + '-left'] = parseFloat(point.style.left) || 0;
                 data[key + '-top'] = parseFloat(point.style.top) || 0;
             });
-
             panels.forEach(panel => {
                 const key = panel.dataset.panelKey;
                 if (panel.classList.contains('on-map')) {
@@ -1446,11 +1294,9 @@
                     data['panel-' + key + '-h'] = '';
                 }
             });
-
             data['arrows-data'] = JSON.stringify(arrows);
             return data;
         }
-
         function saveData() {
             fetch('/api/reservoir-map/save', {
                 method: 'POST',
@@ -1462,17 +1308,11 @@
                 if (result.success) {
                     saveHint.textContent = '✓ Сохранено';
                     saveHint.classList.add('saved');
-                    setTimeout(() => {
-                        saveHint.textContent = '';
-                        saveHint.classList.remove('saved');
-                    }, 2000);
-                } else {
-                    saveHint.textContent = '✗ Ошибка';
-                }
+                    setTimeout(() => { saveHint.textContent = ''; saveHint.classList.remove('saved'); }, 2000);
+                } else { saveHint.textContent = '✗ Ошибка'; }
             })
             .catch(() => { saveHint.textContent = '✗ Ошибка сети'; });
         }
-
         function setEditMode(on) {
             isEditing = on;
             document.body.classList.toggle('edit-mode', on);
@@ -1480,7 +1320,6 @@
             editToggle.textContent = on ? '✕ Выйти из редактирования' : '✎ Режим редактирования';
             saveBtn.style.display = on ? 'inline-flex' : 'none';
             resetBtn.style.display = on ? 'inline-flex' : 'none';
-
             if (on) {
                 editables.forEach(el => el.setAttribute('contenteditable', 'true'));
                 points.forEach(p => p.draggable = true);
@@ -1493,28 +1332,18 @@
                 saveData();
             }
         }
-
         function setDrawMode(on) {
             isDrawing = on;
             document.body.classList.toggle('drawing-mode', on);
             drawToggle.classList.toggle('active', on);
             drawToggle.textContent = on ? '✏ Выйти из рисования' : '✏ Стрелки';
-
             currentPath = null;
             hidePreview();
             drawInfo.textContent = on ? 'Кликните по объекту, чтобы начать' : '';
-            drawTipText.innerHTML = on
-                ? '🎯 Кликните <b>по иконке</b>, чтобы начать стрелку от неё.<br>Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.'
-                : '';
         }
-
         editToggle.addEventListener('click', () => setEditMode(!isEditing));
-        drawToggle.addEventListener('click', () => {
-            if (!isEditing) setEditMode(true);
-            setDrawMode(!isDrawing);
-        });
+        drawToggle.addEventListener('click', () => { if (!isEditing) setEditMode(true); setDrawMode(!isDrawing); });
         saveBtn.addEventListener('click', saveData);
-
         resetBtn.addEventListener('click', () => {
             if (!confirm('Сбросить все изменения карты, включая стрелки?')) return;
             fetch('/api/reservoir-map/reset', { method: 'POST' })
@@ -1527,9 +1356,7 @@
                 document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
                 sw.classList.add('active');
                 currentColor = sw.dataset.color;
-                if (previewPathEl && currentPath) {
-                    previewPathEl.setAttribute('stroke', currentColor);
-                }
+                if (previewPathEl && currentPath) previewPathEl.setAttribute('stroke', currentColor);
             });
         });
 
@@ -1537,21 +1364,15 @@
             if (!isDrawing) return;
             if (e.target.closest('.reset-pos-btn')) return;
             if (e.target.closest('path.arrow-path')) return;
-
             e.preventDefault();
             e.stopPropagation();
-
             const now = Date.now();
             const isDoubleClick = (now - lastClickTime) < 350;
             lastClickTime = now;
-
             const p = clientToPercent(e.clientX, e.clientY);
             const connector = findConnectorAt(e.clientX, e.clientY);
             const connectorKey = connector ? connector.dataset.connectorKey : null;
-
-            const rawPoint = connectorKey
-                ? { key: connectorKey, x: p.x, y: p.y }
-                : { x: p.x, y: p.y };
+            const rawPoint = connectorKey ? { key: connectorKey, x: p.x, y: p.y } : { x: p.x, y: p.y };
 
             if (!currentPath) {
                 currentPath = [rawPoint];
@@ -1559,21 +1380,13 @@
                 drawInfo.textContent = '✓ Начало установлено. Ведите мышью, кликните для угла.';
                 return;
             }
-
             const lastPt = currentPath[currentPath.length - 1];
             const aligned = alignPoint(lastPt, rawPoint);
-
-            if (Math.abs(aligned.x - lastPt.x) < 0.3 && Math.abs(aligned.y - lastPt.y) < 0.3) {
-                return;
-            }
-
-            const newPoint = connectorKey
-                ? { key: connectorKey, x: aligned.x, y: aligned.y }
-                : { x: aligned.x, y: aligned.y };
+            if (Math.abs(aligned.x - lastPt.x) < 0.3 && Math.abs(aligned.y - lastPt.y) < 0.3) return;
+            const newPoint = connectorKey ? { key: connectorKey, x: aligned.x, y: aligned.y } : { x: aligned.x, y: aligned.y };
 
             if (isDoubleClick) {
                 currentPath.push(newPoint);
-
                 if (currentPath.length >= 2) {
                     const newArrow = {
                         id: 'arrow-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
@@ -1588,114 +1401,76 @@
                     window.INITIAL_ARROWS = arrows;
                     if (window.renderArrows) window.renderArrows();
                     saveData();
-
                     saveHint.textContent = '✓ Стрелка добавлена';
                     saveHint.classList.add('saved');
-                    setTimeout(() => {
-                        saveHint.textContent = '';
-                        saveHint.classList.remove('saved');
-                    }, 2000);
+                    setTimeout(() => { saveHint.textContent = ''; saveHint.classList.remove('saved'); }, 2000);
                 }
-
                 currentPath = null;
                 hidePreview();
                 drawInfo.textContent = 'Кликните по объекту для начала новой стрелки';
             } else {
                 currentPath.push(newPoint);
-                drawInfo.textContent = '✓ Угол добавлен. Продолжайте вести, двойной клик — завершить.';
+                drawInfo.textContent = '✓ Угол добавлен. Двойной клик — завершить.';
             }
         }
-
         function onFieldMove(e) {
             if (!isDrawing || !currentPath) return;
             const p = clientToPercent(e.clientX, e.clientY);
             updatePreview(p);
         }
-
         if (field) {
             field.addEventListener('click', onFieldClick);
             field.addEventListener('mousemove', onFieldMove);
         }
-
         if (svgLayer) {
             svgLayer.addEventListener('contextmenu', (e) => {
                 if (!isEditing) return;
-
                 let path = e.target.closest('path.arrow-path');
                 if (!path) {
                     const el = document.elementFromPoint(e.clientX, e.clientY);
                     if (el) path = el.closest('path.arrow-path');
                 }
-
                 if (!path) return;
                 e.preventDefault();
-
                 const arrowId = path.dataset.arrowId;
                 if (!arrowId) return;
-
                 if (!confirm('Удалить эту стрелку?')) return;
-
                 arrows = arrows.filter(a => a.id !== arrowId);
                 window.INITIAL_ARROWS = arrows;
                 if (window.renderArrows) window.renderArrows();
                 saveData();
-
                 saveHint.textContent = '✓ Стрелка удалена';
                 saveHint.classList.add('saved');
-                setTimeout(() => {
-                    saveHint.textContent = '';
-                    saveHint.classList.remove('saved');
-                }, 2000);
+                setTimeout(() => { saveHint.textContent = ''; saveHint.classList.remove('saved'); }, 2000);
             });
         }
-
         function onConnectorContextMenu(e) {
             if (!isEditing || isDrawing) return;
-
             const el = e.target.closest('[data-connector-key]');
             if (!el) return;
-
             const key = el.dataset.connectorKey;
             if (!key) return;
-
-            const related = arrows.filter(a =>
-                a.points && a.points.some(pt => pt.key === key)
-            );
-
+            const related = arrows.filter(a => a.points && a.points.some(pt => pt.key === key));
             if (!related.length) return;
-
             e.preventDefault();
             e.stopPropagation();
-
-            const msg = 'Удалить ' + related.length + ' стрелк' +
-                (related.length === 1 ? 'у' : (related.length < 5 ? 'и' : '')) +
-                ', привязанны' + (related.length === 1 ? 'ю' : 'е') + ' к этому объекту?';
+            const msg = 'Удалить ' + related.length + ' стрелк' + (related.length === 1 ? 'у' : (related.length < 5 ? 'и' : '')) + ', привязанны' + (related.length === 1 ? 'ю' : 'е') + ' к этому объекту?';
             if (!confirm(msg)) return;
-
-            arrows = arrows.filter(a =>
-                !(a.points && a.points.some(pt => pt.key === key))
-            );
+            arrows = arrows.filter(a => !(a.points && a.points.some(pt => pt.key === key)));
             window.INITIAL_ARROWS = arrows;
             if (window.renderArrows) window.renderArrows();
             saveData();
-
             saveHint.textContent = '✓ Удалено стрелок: ' + related.length;
             saveHint.classList.add('saved');
-            setTimeout(() => {
-                saveHint.textContent = '';
-                saveHint.classList.remove('saved');
-            }, 2000);
+            setTimeout(() => { saveHint.textContent = ''; saveHint.classList.remove('saved'); }, 2000);
         }
-
         document.querySelectorAll('[data-connector-key]').forEach(el => {
             el.addEventListener('contextmenu', onConnectorContextMenu);
         });
 
         points.forEach(point => {
             point.addEventListener('dragstart', (e) => {
-                if (!isEditing || isDrawing || e.target.closest('[contenteditable="true"]')) {
-                    e.preventDefault(); return;
-                }
+                if (!isEditing || isDrawing || e.target.closest('[contenteditable="true"]')) { e.preventDefault(); return; }
                 draggedPoint = point;
                 const rect = point.getBoundingClientRect();
                 dragOffsetX = e.clientX - rect.left - rect.width / 2;
@@ -1706,19 +1481,13 @@
                 e.dataTransfer.setData('text/plain', 'point');
             });
             point.addEventListener('dragend', () => {
-                if (draggedPoint) {
-                    draggedPoint.style.opacity = '';
-                    draggedPoint.style.zIndex = '';
-                }
+                if (draggedPoint) { draggedPoint.style.opacity = ''; draggedPoint.style.zIndex = ''; }
                 draggedPoint = null;
             });
         });
-
         panels.forEach(panel => {
             panel.addEventListener('dragstart', (e) => {
-                if (!isEditing || isDrawing || e.target.closest('[contenteditable="true"]') || e.target.closest('.reset-pos-btn')) {
-                    e.preventDefault(); return;
-                }
+                if (!isEditing || isDrawing || e.target.closest('[contenteditable="true"]') || e.target.closest('.reset-pos-btn')) { e.preventDefault(); return; }
                 draggedPanel = panel;
                 const rect = panel.getBoundingClientRect();
                 dragOffsetX = e.clientX - rect.left - rect.width / 2;
@@ -1755,7 +1524,6 @@
                     draggedPanel.style.top = percentY.toFixed(2) + '%';
                 }
             });
-
             field.addEventListener('drop', (e) => {
                 if (!isEditing || isDrawing) return;
                 if (draggedPanel) {
@@ -1784,12 +1552,6 @@
                     draggedPoint = null;
                 }
             });
-
-            field.addEventListener('mousemove', (e) => {
-                if (draggedPoint) {
-                    if (window.renderArrows) window.renderArrows();
-                }
-            });
         }
 
         panels.forEach(panel => {
@@ -1813,9 +1575,7 @@
                 if (!panel) return;
                 const isGbr = panel.dataset.panelType === 'gbr';
                 const isReserve = panel.dataset.panelType === 'reserve';
-                const targetContainer = (isGbr || isReserve)
-                    ? document.querySelector('.bottom-bar')
-                    : document.querySelector('.bottom-panel');
+                const targetContainer = (isGbr || isReserve) ? document.querySelector('.bottom-bar') : document.querySelector('.bottom-panel');
                 if (targetContainer) targetContainer.appendChild(panel);
                 panel.classList.remove('on-map');
                 panel.style.left = '';
@@ -1826,7 +1586,6 @@
                 saveData();
             });
         });
-
     })();
     {% endif %}
 </script>
