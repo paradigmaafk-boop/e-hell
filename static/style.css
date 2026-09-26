@@ -29,6 +29,9 @@ html, body {
     overflow-x: hidden;
 }
 
+/* ==================================================
+   ЖИВОЙ ФОН: ЛАВА + ПУЛЬС
+   ================================================== */
 body::before {
     content: "";
     position: fixed;
@@ -132,10 +135,12 @@ body::after {
 }
 .brand:hover { transform: scale(1.02); }
 
-/* КОМПАС-ПЛАМЯ */
+/* ============================================================
+   КОМПАС-ПЛАМЯ
+   ============================================================ */
 .brand-emblem {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
     position: relative;
 }
@@ -147,20 +152,20 @@ body::after {
 }
 @keyframes emblemFlicker {
     0%, 100% {
-        filter: drop-shadow(0 0 6px rgba(255,69,0,0.8))
-                drop-shadow(0 0 14px rgba(255,69,0,0.4));
+        filter: drop-shadow(0 0 6px rgba(255,69,0,0.85))
+                drop-shadow(0 0 14px rgba(255,69,0,0.45));
     }
     30% {
-        filter: drop-shadow(0 0 10px rgba(255,184,0,1))
-                drop-shadow(0 0 22px rgba(255,100,0,0.6));
+        filter: drop-shadow(0 0 12px rgba(255,184,0,1))
+                drop-shadow(0 0 24px rgba(255,100,0,0.7));
     }
     55% {
         filter: drop-shadow(0 0 5px rgba(255,69,0,0.7))
                 drop-shadow(0 0 10px rgba(255,69,0,0.3));
     }
     80% {
-        filter: drop-shadow(0 0 12px rgba(255,184,0,1))
-                drop-shadow(0 0 26px rgba(255,69,0,0.7));
+        filter: drop-shadow(0 0 14px rgba(255,184,0,1))
+                drop-shadow(0 0 28px rgba(255,69,0,0.8));
     }
 }
 .brand-emblem .ring-outer {
@@ -169,7 +174,7 @@ body::after {
     stroke-width: 1.6;
     stroke-linejoin: round;
     stroke-linecap: round;
-    filter: drop-shadow(0 0 4px rgba(255,69,0,0.8));
+    filter: drop-shadow(0 0 4px rgba(255,69,0,0.85));
 }
 .brand-emblem .ring-inner {
     fill: none;
@@ -185,7 +190,7 @@ body::after {
     stroke-width: 1.5;
     stroke-linejoin: round;
     stroke-linecap: round;
-    filter: drop-shadow(0 0 3px rgba(255,100,0,0.7));
+    filter: drop-shadow(0 0 3px rgba(255,100,0,0.75));
 }
 .brand-emblem .beam-diag {
     fill: none;
@@ -198,14 +203,15 @@ body::after {
 .brand-emblem .axis-glow {
     fill: url(#axisGlow);
     animation: axisPulse 2.4s ease-in-out infinite;
+    transform-origin: 30px 30px;
 }
 .brand-emblem .axis-core {
     fill: #ffffff;
     animation: axisFlash 1.6s ease-in-out infinite;
 }
 @keyframes axisPulse {
-    0%, 100% { opacity: 0.7; transform: scale(1); transform-origin: center; }
-    50%      { opacity: 1;   transform: scale(1.25); transform-origin: center; }
+    0%, 100% { opacity: 0.7; transform: scale(1); }
+    50%      { opacity: 1;   transform: scale(1.3); }
 }
 @keyframes axisFlash {
     0%, 100% { fill: #ffffff; }
@@ -228,8 +234,10 @@ body::after {
     display: flex;
     flex-direction: column;
     gap: 0.15rem;
+    justify-content: center;
 }
 
+/* ★ ПЕРЕЛИВАЮЩИЙСЯ ТЕКСТ БРЕНДА ★ */
 .brand-name {
     font-family: 'Forum', serif;
     font-size: 1.75rem;
@@ -258,14 +266,6 @@ body::after {
 @keyframes fireTextFlow {
     0%   { background-position: 0% 50%; }
     100% { background-position: 300% 50%; }
-}
-
-.brand-sub {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-size: 0.85rem;
-    color: var(--muted);
-    letter-spacing: 0.5px;
 }
 
 .header-right {
@@ -330,6 +330,7 @@ body::after {
     border-bottom: 1px solid var(--line);
     overflow-x: auto;
     scrollbar-width: none;
+    position: relative;
 }
 .nav::-webkit-scrollbar { display: none; }
 
@@ -413,7 +414,7 @@ body::after {
     -webkit-text-fill-color: transparent;
     color: transparent;
     animation: fireTextFlow 8s linear infinite;
-    filter: drop-shadow(0 0 14px rgba(255,69,0,0.4));
+    filter: drop-shadow(0 0 14px rgba(255,69,0,0.5));
 }
 .page-sub {
     color: var(--muted);
@@ -438,12 +439,10 @@ body::after {
 .section-title::after {
     content: "";
     position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 50px;
-    height: 1px;
+    bottom: -1px; left: 0;
+    width: 50px; height: 1px;
     background: var(--accent);
-    box-shadow: 0 0 10px rgba(255,69,0,0.6);
+    box-shadow: 0 0 10px rgba(255,69,0,0.8);
 }
 
 .accordion {
@@ -519,9 +518,8 @@ body::after {
 .calc-field select:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(255,69,0,0.15), 0 0 20px rgba(255,69,0,0.2);
+    box-shadow: 0 0 0 3px rgba(255,69,0,0.15), 0 0 20px rgba(255,69,0,0.25);
 }
-
 .calc-result {
     display: none;
     margin-top: 1.5rem;
@@ -530,7 +528,7 @@ body::after {
     border-radius: 12px;
     background: linear-gradient(180deg, rgba(255,69,0,0.08), rgba(255,184,0,0.03));
     text-align: center;
-    box-shadow: 0 0 30px rgba(255,69,0,0.15), inset 0 0 30px rgba(255,69,0,0.05);
+    box-shadow: 0 0 30px rgba(255,69,0,0.2), inset 0 0 30px rgba(255,69,0,0.05);
 }
 .calc-result.show { display: block; }
 .total-label {
@@ -546,7 +544,7 @@ body::after {
     font-weight: 700;
     color: var(--accent-warm);
     font-variant-numeric: tabular-nums;
-    text-shadow: 0 0 30px rgba(255,184,0,0.6);
+    text-shadow: 0 0 30px rgba(255,184,0,0.7);
 }
 
 /* ==================================================
@@ -576,25 +574,25 @@ body::after {
     position: absolute;
     top: 0; left: -100%;
     width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,140,0,0.15), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,140,0,0.2), transparent);
     transition: left 0.5s ease;
 }
 .btn:hover::before { left: 100%; }
 .btn:hover {
     border-color: var(--accent);
     color: var(--accent-warm);
-    box-shadow: 0 0 20px rgba(255,69,0,0.2);
+    box-shadow: 0 0 25px rgba(255,69,0,0.35);
 }
 .btn-primary {
     background: linear-gradient(135deg, #ff4500, #ffb800);
     border-color: var(--accent);
     color: #1a0f05;
     font-weight: 700;
-    box-shadow: 0 0 25px rgba(255,69,0,0.3);
+    box-shadow: 0 0 25px rgba(255,69,0,0.4);
 }
 .btn-primary:hover {
     color: #1a0f05;
-    box-shadow: 0 0 40px rgba(255,69,0,0.5);
+    box-shadow: 0 0 45px rgba(255,69,0,0.7);
 }
 .btn-small {
     padding: 0.35rem 0.9rem;
@@ -609,7 +607,7 @@ body::after {
     border-color: var(--danger);
     color: #ff8877;
     background: rgba(224,57,43,0.08);
-    box-shadow: 0 0 20px rgba(224,57,43,0.2);
+    box-shadow: 0 0 20px rgba(224,57,43,0.3);
 }
 
 /* ==================================================
@@ -637,7 +635,7 @@ th {
     letter-spacing: 2px;
     padding-bottom: 0.7rem;
 }
-tr:hover td { background: rgba(255,69,0,0.03); }
+tr:hover td { background: rgba(255,69,0,0.04); }
 td.num {
     color: var(--dim);
     font-variant-numeric: tabular-nums;
@@ -651,12 +649,13 @@ td.name-cell a {
 }
 td.name-cell a:hover {
     color: var(--accent-warm);
-    text-shadow: 0 0 10px rgba(255,184,0,0.5);
+    text-shadow: 0 0 10px rgba(255,184,0,0.6);
 }
 td.points-cell {
     color: var(--accent-warm);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 10px rgba(255,184,0,0.4);
 }
 .empty-msg {
     text-align: center;
@@ -685,7 +684,7 @@ td.points-cell {
 .podium-item:hover {
     transform: translateY(-3px);
     border-color: var(--accent);
-    box-shadow: 0 0 30px rgba(255,69,0,0.2);
+    box-shadow: 0 0 30px rgba(255,69,0,0.3);
 }
 .podium-item.winner {
     padding: 4px;
@@ -694,7 +693,7 @@ td.points-cell {
     background-size: 200% 100%;
     animation: fireFlow 6s linear infinite;
     transform: translateY(-6px);
-    box-shadow: 0 0 50px rgba(255,100,0,0.4);
+    box-shadow: 0 0 60px rgba(255,100,0,0.6);
 }
 .podium-item.winner > .inner {
     background: linear-gradient(180deg, #1a0d05, #0a0503);
@@ -709,7 +708,7 @@ td.points-cell {
 .medal { font-size: 2rem; margin-bottom: 0.75rem; line-height: 1; }
 .podium-item.winner .medal {
     font-size: 2.6rem;
-    filter: drop-shadow(0 0 20px rgba(255,184,0,0.8));
+    filter: drop-shadow(0 0 20px rgba(255,184,0,0.9));
     animation: bounceGold 2.5s ease-in-out infinite;
 }
 @keyframes bounceGold {
@@ -753,7 +752,7 @@ td.points-cell {
 }
 .stat-card:hover {
     border-color: var(--accent);
-    box-shadow: 0 0 30px rgba(255,69,0,0.2);
+    box-shadow: 0 0 30px rgba(255,69,0,0.3);
     transform: translateY(-3px);
 }
 .stat-card .number {
@@ -763,7 +762,7 @@ td.points-cell {
     font-variant-numeric: tabular-nums;
     margin-bottom: 0.4rem;
     line-height: 1.1;
-    text-shadow: 0 0 20px rgba(255,184,0,0.4);
+    text-shadow: 0 0 20px rgba(255,184,0,0.5);
 }
 .stat-card .label {
     font-size: 0.72rem;
@@ -783,13 +782,13 @@ td.points-cell {
     font-size: 0.88rem;
     border-radius: 6px;
     margin-bottom: 1.5rem;
-    box-shadow: 0 0 20px rgba(255,69,0,0.1);
+    box-shadow: 0 0 20px rgba(255,69,0,0.15);
 }
 .flash-error {
     border-left-color: var(--danger);
     background: rgba(224,57,43,0.06);
     color: #ff8877;
-    box-shadow: 0 0 20px rgba(224,57,43,0.15);
+    box-shadow: 0 0 20px rgba(224,57,43,0.2);
 }
 
 /* ==================================================
@@ -827,7 +826,7 @@ td.points-cell {
     border: 1px solid var(--line);
     border-radius: 20px;
     padding: 2.5rem 2rem;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 40px rgba(255,69,0,0.15);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 0 40px rgba(255,69,0,0.2);
     position: relative;
 }
 .login-card::before {
@@ -836,21 +835,14 @@ td.points-cell {
     inset: -2px;
     border-radius: 22px;
     padding: 2px;
-    background: linear-gradient(
-        90deg,
-        transparent 0%,
-        #ff2200 20%,
-        #ffcc00 50%,
-        #ff2200 80%,
-        transparent 100%
-    );
+    background: linear-gradient(90deg, transparent 0%, #ff2200 20%, #ffcc00 50%, #ff2200 80%, transparent 100%);
     background-size: 300% 100%;
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     animation: fireBorderFlow 5s linear infinite;
     pointer-events: none;
-    opacity: 0.7;
+    opacity: 0.8;
 }
 @keyframes fireBorderFlow {
     0%   { background-position: 0% 50%; }
@@ -901,7 +893,7 @@ td.points-cell {
 .input-field input:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(255,69,0,0.15), 0 0 20px rgba(255,69,0,0.25);
+    box-shadow: 0 0 0 3px rgba(255,69,0,0.15), 0 0 20px rgba(255,69,0,0.3);
 }
 .login-card .btn { width: 100%; }
 
@@ -951,7 +943,7 @@ td.points-cell {
 }
 
 /* ==================================================
-   КАРУСЕЛЬ-ПОДПИСЬ
+   ПОДПИСЬ КАРУСЕЛИ
    ================================================== */
 .carousel-caption {
     flex: 0 0 auto;
@@ -995,7 +987,7 @@ td.points-cell {
     -webkit-text-fill-color: transparent;
     color: transparent;
     animation: fireTextFlow 8s linear infinite;
-    filter: drop-shadow(0 0 14px rgba(255,69,0,0.4));
+    filter: drop-shadow(0 0 14px rgba(255,69,0,0.5));
 }
 .caption-text {
     font-size: 0.9rem;
@@ -1036,9 +1028,8 @@ body.light-theme .accordion {
 @media (max-width: 780px) {
     .wrap { padding: 1rem 1.25rem 3rem; }
     .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .brand-emblem { width: 40px; height: 40px; }
+    .brand-emblem { width: 46px; height: 46px; }
     .brand-name { font-size: 1.25rem; letter-spacing: 2px; }
-    .brand-sub { font-size: 0.8rem; }
     .header-right { gap: 1.25rem; }
     .nav { gap: 1.75rem; }
     .page-title { font-size: 1.5rem; }
