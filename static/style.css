@@ -30,7 +30,7 @@ html, body {
 }
 
 /* ============================================================
-   ЖИВОЙ ФОН: 3 СЛОЯ ЛАВЫ
+   ЖИВОЙ ФОН
    ============================================================ */
 body::before {
     content: "";
@@ -137,7 +137,6 @@ body::after {
 }
 .brand:hover { transform: scale(1.02); }
 
-/* КОМПАС-ПЛАМЯ */
 .brand-emblem {
     width: 52px;
     height: 52px;
@@ -367,6 +366,119 @@ body::after {
 }
 
 /* ============================================================
+   ★ БОКОВОЕ МЕНЮ ★
+   ============================================================ */
+.side-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+    padding-right: 4px;
+}
+.side-nav::-webkit-scrollbar { width: 4px; }
+.side-nav::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+.side-title {
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 0.6rem;
+    padding-left: 0.25rem;
+}
+.side-title.danger { color: #b8443a; }
+
+/* Ссылки и кнопки бокового меню */
+a.side-btn,
+button.side-btn,
+.side-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--muted) !important;
+    font: inherit;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    text-align: left;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+    text-decoration: none !important;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+a.side-btn:visited { color: var(--muted) !important; text-decoration: none !important; }
+a.side-btn:link { color: var(--muted) !important; text-decoration: none !important; }
+a.side-btn:active { color: var(--accent-warm) !important; }
+
+.side-btn::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,140,0,0.15), transparent);
+    transition: left 0.5s ease;
+}
+.side-btn:hover::before { left: 100%; }
+
+a.side-btn:hover,
+button.side-btn:hover,
+.side-btn:hover {
+    color: var(--text) !important;
+    border-color: var(--accent);
+    background: rgba(255,69,0,0.06);
+    box-shadow:
+        0 0 20px rgba(255,69,0,0.25),
+        inset 0 0 20px rgba(255,69,0,0.05);
+    text-decoration: none !important;
+}
+
+a.side-btn.active,
+.side-btn.active {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(255,69,0,0.15), rgba(255,184,0,0.05));
+    color: var(--accent-warm) !important;
+    box-shadow:
+        0 0 25px rgba(255,69,0,0.3),
+        inset 0 0 20px rgba(255,69,0,0.08);
+}
+
+a.side-btn.danger,
+button.side-btn.danger,
+.side-btn.danger {
+    border-color: #3a1e1e;
+    color: #d65446 !important;
+    background: transparent;
+}
+a.side-btn.danger:hover,
+button.side-btn.danger:hover,
+.side-btn.danger:hover {
+    border-color: #e0392b;
+    color: #ff8877 !important;
+    background: rgba(224,57,43,0.08);
+    box-shadow: 0 0 20px rgba(224,57,43,0.3);
+}
+
+.side-btn .arrow {
+    color: var(--dim);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+.side-btn:hover .arrow { color: var(--accent); transform: translateX(4px); }
+.side-btn.active .arrow { color: var(--accent); }
+
+/* ============================================================
    ХЛЕБНЫЕ КРОШКИ
    ============================================================ */
 .breadcrumbs {
@@ -386,7 +498,7 @@ body::after {
 .breadcrumbs .current { color: var(--text); }
 
 /* ============================================================
-   ЗАГОЛОВОК СТРАНИЦЫ
+   ЗАГОЛОВОК
    ============================================================ */
 .page-head {
     padding: 2rem 0 1.75rem;
@@ -547,7 +659,7 @@ body::after {
 }
 
 /* ============================================================
-   КНОПКИ
+   КНОПКИ ОБЩИЕ
    ============================================================ */
 .btn {
     display: inline-flex;
