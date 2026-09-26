@@ -66,7 +66,6 @@
 
         .map-scroll { overflow: visible; }
 
-        /* ★ ПЕСОЧНЫЙ ФОН КАРТЫ ★ */
         .field {
             position: relative;
             background:
@@ -107,12 +106,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 2;
-        }
-        .arrows-layer path {
-            fill: none;
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            opacity: 0.85;
+            overflow: visible;
         }
         body.edit-mode .arrows-layer {
             pointer-events: auto;
@@ -122,10 +116,9 @@
             cursor: pointer;
         }
         body.edit-mode .arrows-layer path:hover {
-            opacity: 1;
-            stroke-width: 3.5;
+            opacity: 1 !important;
+            stroke-width: 4 !important;
         }
-        /* В режиме рисования — все стрелки не кликабельны */
         body.drawing-mode .arrows-layer path {
             pointer-events: none !important;
         }
@@ -177,15 +170,8 @@
             pointer-events: none;
         }
 
-        /* ★ В РЕЖИМЕ РИСОВАНИЯ ★ */
         body.drawing-mode .point,
-        body.drawing-mode .draggable-panel,
-        body.drawing-mode .stage-badge,
-        body.drawing-mode .point-name,
-        body.drawing-mode .point-owner,
-        body.drawing-mode .panel-title,
-        body.drawing-mode .panel-players,
-        body.drawing-mode .gbr-name {
+        body.drawing-mode .draggable-panel {
             cursor: crosshair !important;
         }
         body.drawing-mode .point .point-icon-wrap::after,
@@ -215,7 +201,7 @@
         }
         body.edit-mode .drag-hint { display: flex; }
 
-        /* ★ ПАНЕЛЬ РИСОВАНИЯ СТРЕЛОК ★ */
+        /* ★ ПАНЕЛЬ РИСОВАНИЯ ★ */
         .draw-toolbar {
             display: none;
             padding: 0.7rem 1rem;
@@ -271,7 +257,6 @@
             font-style: italic;
         }
 
-        /* ★ ПОДСКАЗКА ПРО РИСОВАНИЕ ★ */
         .draw-tip {
             display: none;
             padding: 0.55rem 1rem;
@@ -283,9 +268,7 @@
             margin-top: 0.5rem;
             text-align: center;
         }
-        body.drawing-mode .draw-tip {
-            display: block;
-        }
+        body.drawing-mode .draw-tip { display: block; }
         body.drawing-mode[data-draw-start] .draw-tip {
             background: rgba(63, 191, 106, 0.1);
             border-color: rgba(63, 191, 106, 0.5);
@@ -395,7 +378,6 @@
             font-size: 0.7rem; padding: 0.2rem 0.5rem; max-width: 100px;
         }
 
-        /* ★★★ ПЛАВАЮЩИЕ ПЛАШКИ ★★★ */
         .draggable-panel {
             background: rgba(20, 14, 8, 0.95);
             border: 1px solid var(--line);
@@ -728,7 +710,6 @@
     </div>
     {% endif %}
 
-    <!-- ★ ТУЛБАР ДЛЯ РИСОВАНИЯ ★ -->
     <div class="draw-toolbar">
         <span class="draw-label">🎨 Цвет стрелки:</span>
         <div class="color-swatches" id="colorSwatches">
@@ -753,15 +734,12 @@
         ↔ Скролльте карту, чтобы увидеть все объекты
     </div>
 
-    <!-- ★★★ КАРТА ★★★ -->
     <div class="map-wrap">
         <div class="map-scroll">
             <div class="field" id="field">
 
-                <!-- ★ SVG-СЛОЙ ДЛЯ СТРЕЛОК ★ -->
                 <svg class="arrows-layer" id="arrowsLayer" preserveAspectRatio="none"></svg>
 
-                <!-- ★ ПЛАШКИ КОМАНД, ПЕРЕНЕСЁННЫЕ НА КАРТУ ★ -->
                 {% set panel_keys = ['hq1', 'hq2', 'hq3', 'hq4', 'gbr1', 'gbr2', 'reserve'] %}
                 {% for pk in panel_keys %}
                     {% if map_values.get('panel-' + pk + '-onmap') == '1' %}
@@ -882,9 +860,8 @@
                     {% endif %}
                 {% endfor %}
 
-                <!-- ★★★ ТОЧКИ КАРТЫ ★★★ -->
+                <!-- ★ ТОЧКИ ★ -->
 
-                <!-- Солнечная -->
                 <div class="point" data-point-key="pt-solar" data-connector-key="pt-solar" style="left: {{ map_values.get('pt-solar-left', '10') }}%; top: {{ map_values.get('pt-solar-top', '22') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">☀️</div>
@@ -897,7 +874,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-owner">{{ map_values.get('pt-solar-owner', '—') }}</div>
                 </div>
 
-                <!-- ВПЗ 3 -->
                 <div class="point" data-point-key="pt-vpz-nw" data-connector-key="pt-vpz-nw" style="left: {{ map_values.get('pt-vpz-nw-left', '38') }}%; top: {{ map_values.get('pt-vpz-nw-top', '12') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
@@ -909,7 +885,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-owner">{{ map_values.get('pt-vpz-nw-owner', '—') }}</div>
                 </div>
 
-                <!-- ВПЗ 2 -->
                 <div class="point" data-point-key="pt-vpz-ne" data-connector-key="pt-vpz-ne" style="left: {{ map_values.get('pt-vpz-ne-left', '88') }}%; top: {{ map_values.get('pt-vpz-ne-top', '12') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
@@ -921,7 +896,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-owner">{{ map_values.get('pt-vpz-ne-owner', '—') }}</div>
                 </div>
 
-                <!-- Комплекс -->
                 <div class="point" data-point-key="pt-science" data-connector-key="pt-science" style="left: {{ map_values.get('pt-science-left', '28') }}%; top: {{ map_values.get('pt-science-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🧪</div>
@@ -934,7 +908,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-owner">{{ map_values.get('pt-science-owner', '—') }}</div>
                 </div>
 
-                <!-- Водосборник верхний -->
                 <div class="point water-collector" data-point-key="pt-wc-1" data-connector-key="pt-wc-1" style="left: {{ map_values.get('pt-wc-1-left', '48') }}%; top: {{ map_values.get('pt-wc-1-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
@@ -945,7 +918,6 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
                 </div>
 
-                <!-- ВОЦ 2 -->
                 <div class="point" data-point-key="pt-voc-ne" data-connector-key="pt-voc-ne" style="left: {{ map_values.get('pt-voc-ne-left', '68') }}%; top: {{ map_values.get('pt-voc-ne-top', '32') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
@@ -958,7 +930,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-owner">{{ map_values.get('pt-voc-ne-owner', '—') }}</div>
                 </div>
 
-                <!-- Водосборник левый -->
                 <div class="point water-collector" data-point-key="pt-wc-2" data-connector-key="pt-wc-2" style="left: {{ map_values.get('pt-wc-2-left', '28') }}%; top: {{ map_values.get('pt-wc-2-top', '52') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
@@ -969,7 +940,6 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
                 </div>
 
-                <!-- Центральный резервуар -->
                 <div class="point center-point" data-point-key="pt-center" data-connector-key="pt-center" style="left: {{ map_values.get('pt-center-left', '50') }}%; top: {{ map_values.get('pt-center-top', '50') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏰</div>
@@ -982,7 +952,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-owner">{{ map_values.get('pt-center-owner', '—') }}</div>
                 </div>
 
-                <!-- Водосборник правый -->
                 <div class="point water-collector" data-point-key="pt-wc-3" data-connector-key="pt-wc-3" style="left: {{ map_values.get('pt-wc-3-left', '72') }}%; top: {{ map_values.get('pt-wc-3-top', '52') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
@@ -993,7 +962,6 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
                 </div>
 
-                <!-- ВОЦ 1 -->
                 <div class="point" data-point-key="pt-voc-sw" data-connector-key="pt-voc-sw" style="left: {{ map_values.get('pt-voc-sw-left', '28') }}%; top: {{ map_values.get('pt-voc-sw-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🏭</div>
@@ -1006,7 +974,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-owner">{{ map_values.get('pt-voc-sw-owner', '—') }}</div>
                 </div>
 
-                <!-- Водосборник нижний -->
                 <div class="point water-collector" data-point-key="pt-wc-4" data-connector-key="pt-wc-4" style="left: {{ map_values.get('pt-wc-4-left', '48') }}%; top: {{ map_values.get('pt-wc-4-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛢️</div>
@@ -1017,7 +984,6 @@
                     <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
                 </div>
 
-                <!-- Военный завод -->
                 <div class="point" data-point-key="pt-milfac" data-connector-key="pt-milfac" style="left: {{ map_values.get('pt-milfac-left', '68') }}%; top: {{ map_values.get('pt-milfac-top', '72') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">⚙️</div>
@@ -1030,7 +996,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-owner">{{ map_values.get('pt-milfac-owner', '—') }}</div>
                 </div>
 
-                <!-- ВПЗ 1 -->
                 <div class="point" data-point-key="pt-vpz-sw" data-connector-key="pt-vpz-sw" style="left: {{ map_values.get('pt-vpz-sw-left', '10') }}%; top: {{ map_values.get('pt-vpz-sw-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
@@ -1042,7 +1007,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-owner">{{ map_values.get('pt-vpz-sw-owner', '—') }}</div>
                 </div>
 
-                <!-- ВПЗ 4 -->
                 <div class="point" data-point-key="pt-vpz-s" data-connector-key="pt-vpz-s" style="left: {{ map_values.get('pt-vpz-s-left', '60') }}%; top: {{ map_values.get('pt-vpz-s-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">💧</div>
@@ -1054,7 +1018,6 @@
                     <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-owner">{{ map_values.get('pt-vpz-s-owner', '—') }}</div>
                 </div>
 
-                <!-- Заброшенная вертолётная площадка -->
                 <div class="point" data-point-key="pt-pad" data-connector-key="pt-pad" style="left: {{ map_values.get('pt-pad-left', '88') }}%; top: {{ map_values.get('pt-pad-top', '88') }}%;">
                     <div class="point-icon-wrap">
                         <div class="point-icon">🛬</div>
@@ -1071,7 +1034,6 @@
         </div>
     </div>
 
-    <!-- ★★★ НИЖНЯЯ ПАНЕЛЬ ★★★ -->
     <div class="bottom-panel">
 
         {% if map_values.get('panel-hq1-onmap') != '1' %}
@@ -1207,21 +1169,32 @@
     (function() {
         const field = document.getElementById('field');
         const svg = document.getElementById('arrowsLayer');
-        if (!field || !svg) return;
+        if (!field || !svg) {
+            console.log('[arrows] SVG или field не найдены');
+            return;
+        }
 
-        function renderArrows() {
-            // Считаем размеры field
+        console.log('[arrows] init, стрелок из БД:', (window.INITIAL_ARROWS || []).length);
+
+        window.renderArrows = function() {
             const rect = field.getBoundingClientRect();
-            svg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`);
-            svg.setAttribute('width', rect.width);
-            svg.setAttribute('height', rect.height);
+            const w = rect.width;
+            const h = rect.height;
 
-            svg.innerHTML = '';
+            svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+            svg.setAttribute('width', w);
+            svg.setAttribute('height', h);
 
-            // Defs для маркеров-стрелок (по цвету)
+            // Очистка
+            while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+            const arrowsArr = window.INITIAL_ARROWS || [];
+            console.log('[arrows] рисуем:', arrowsArr.length, 'size:', w + 'x' + h);
+
+            // Defs для маркеров
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
             const colors = new Set();
-            (window.INITIAL_ARROWS || []).forEach(a => colors.add(a.color));
+            arrowsArr.forEach(a => { if (a.color) colors.add(a.color); });
 
             colors.forEach(color => {
                 const markerId = 'arrow-marker-' + color.replace('#', '');
@@ -1232,42 +1205,46 @@
                 marker.setAttribute('refY', '5');
                 marker.setAttribute('markerWidth', '7');
                 marker.setAttribute('markerHeight', '7');
-                marker.setAttribute('orient', 'auto-start-reverse');
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
-                path.setAttribute('fill', color);
-                marker.appendChild(path);
+                marker.setAttribute('orient', 'auto');
+                marker.setAttribute('markerUnits', 'strokeWidth');
+                const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                p.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+                p.setAttribute('fill', color);
+                marker.appendChild(p);
                 defs.appendChild(marker);
             });
             svg.appendChild(defs);
 
             // Рисуем стрелки
-            (window.INITIAL_ARROWS || []).forEach(arrow => {
+            arrowsArr.forEach(arrow => {
                 if (!arrow.from || !arrow.to) return;
 
-                const x1 = (arrow.from.x / 100) * rect.width;
-                const y1 = (arrow.from.y / 100) * rect.height;
-                const x2 = (arrow.to.x / 100) * rect.width;
-                const y2 = (arrow.to.y / 100) * rect.height;
+                const x1 = (arrow.from.x / 100) * w;
+                const y1 = (arrow.from.y / 100) * h;
+                const x2 = (arrow.to.x / 100) * w;
+                const y2 = (arrow.to.y / 100) * h;
 
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', `M ${x1} ${y1} L ${x2} ${y2}`);
+                path.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' L ' + x2 + ' ' + y2);
                 path.setAttribute('stroke', arrow.color);
-                path.setAttribute('marker-end', 'url(#arrow-marker-' + arrow.color.replace('#', '') + ')');
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke-width', '2.5');
+                path.setAttribute('stroke-linecap', 'round');
+                path.setAttribute('opacity', '0.9');
+                path.setAttribute('marker-end', 'url(#' + 'arrow-marker-' + arrow.color.replace('#', '') + ')');
                 path.dataset.arrowId = arrow.id;
                 svg.appendChild(path);
             });
-        }
+        };
 
-        // Рисуем после загрузки
-        requestAnimationFrame(renderArrows);
+        // Первый рендер
+        requestAnimationFrame(window.renderArrows);
+
+        // Рендер при ресайзе
         window.addEventListener('resize', () => {
             clearTimeout(window._arrowResizeTimer);
-            window._arrowResizeTimer = setTimeout(renderArrows, 150);
+            window._arrowResizeTimer = setTimeout(() => window.renderArrows(), 150);
         });
-
-        // Экспортируем для админского скрипта
-        window.renderArrows = renderArrows;
     })();
 
     {% if session['username'] == 'admin' %}
@@ -1289,13 +1266,12 @@
         let isEditing = false;
         let isDrawing = false;
         let currentColor = '#4a9eff';
-        let drawStart = null; // { key, x, y } первой точки
+        let drawStart = null;
         let draggedPoint = null;
         let draggedPanel = null;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
 
-        // Данные стрелок — берём из БД
         let arrows = [];
         try {
             arrows = JSON.parse(window.INITIAL_ARROWS || '[]');
@@ -1303,18 +1279,11 @@
             arrows = [];
         }
 
-        // ★ Собираем все элементы, которые могут быть концами стрелок
-        function getAllConnectors() {
-            return document.querySelectorAll('[data-connector-key]');
-        }
-
         function getConnectorPosition(el) {
             const fieldRect = field.getBoundingClientRect();
             const rect = el.getBoundingClientRect();
-            // Центр элемента
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
-            // В процентах от field
             return {
                 x: ((centerX - fieldRect.left) / fieldRect.width) * 100,
                 y: ((centerY - fieldRect.top) / fieldRect.height) * 100
@@ -1346,9 +1315,7 @@
                 }
             });
 
-            // ★ Сохраняем стрелки
             data['arrows-data'] = JSON.stringify(arrows);
-
             return data;
         }
 
@@ -1404,8 +1371,6 @@
             document.body.classList.toggle('drawing-mode', on);
             drawToggle.classList.toggle('active', on);
             drawToggle.textContent = on ? '✏ Выйти из рисования' : '✏ Стрелки';
-
-            // Сбрасываем начало рисования
             drawStart = null;
             document.body.removeAttribute('data-draw-start');
             drawInfo.textContent = 'Кликните на первую точку';
@@ -1429,7 +1394,6 @@
             });
         });
 
-        // ★ Палитра цветов
         document.querySelectorAll('.color-swatch').forEach(sw => {
             sw.addEventListener('click', () => {
                 document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
@@ -1438,14 +1402,17 @@
             });
         });
 
-        // ★★★ КЛИК ПО КОННЕКТОРУ В РЕЖИМЕ РИСОВАНИЯ ★★★
-        function onConnectorClick(e) {
+        // ★★★ КЛИК ПО КАРТЕ В РЕЖИМЕ РИСОВАНИЯ ★★★
+        function onFieldClick(e) {
             if (!isDrawing) return;
 
             // Не обрабатываем клик по кнопке "Вернуть на панель"
             if (e.target.closest('.reset-pos-btn')) return;
 
-            const el = e.currentTarget;
+            // Ищем ближайший коннектор (точку или плашку)
+            const el = e.target.closest('[data-connector-key]');
+            if (!el) return;
+
             const key = el.dataset.connectorKey;
             if (!key) return;
 
@@ -1455,15 +1422,12 @@
             const pos = getConnectorPosition(el);
 
             if (!drawStart) {
-                // Начало стрелки
                 drawStart = { key: key, x: pos.x, y: pos.y };
                 document.body.setAttribute('data-draw-start', 'true');
                 drawInfo.textContent = 'Теперь кликните на конечную точку';
                 drawTipText.textContent = '🎯 Кликните на вторую иконку или плашку, куда должна идти стрелка';
             } else {
-                // Конец стрелки
                 if (drawStart.key === key) {
-                    // Тот же самый элемент — отмена
                     drawStart = null;
                     document.body.removeAttribute('data-draw-start');
                     drawInfo.textContent = 'Кликните на первую точку';
@@ -1471,7 +1435,6 @@
                     return;
                 }
 
-                // Создаём стрелку
                 const newArrow = {
                     id: 'arrow-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
                     from: { key: drawStart.key, x: drawStart.x, y: drawStart.y },
@@ -1480,24 +1443,21 @@
                 };
 
                 arrows.push(newArrow);
-
-                // Отрисовка
+                window.INITIAL_ARROWS = arrows;   // ★ СИНХРОНИЗИРУЕМ с глобальной переменной
                 if (window.renderArrows) window.renderArrows();
 
-                // Сброс
                 drawStart = null;
                 document.body.removeAttribute('data-draw-start');
                 drawInfo.textContent = '✓ Стрелка добавлена';
                 drawTipText.textContent = '🎯 Кликните на иконку или плашку, где должна начаться новая стрелка';
 
-                // Автосохранение
                 saveData();
             }
         }
 
-        getAllConnectors().forEach(el => {
-            el.addEventListener('click', onConnectorClick, true);
-        });
+        if (field) {
+            field.addEventListener('click', onFieldClick);
+        }
 
         // ★★★ УДАЛЕНИЕ СТРЕЛКИ (ПРАВЫЙ КЛИК) ★★★
         const svgLayer = document.getElementById('arrowsLayer');
@@ -1515,6 +1475,7 @@
                 if (!confirm('Удалить эту стрелку?')) return;
 
                 arrows = arrows.filter(a => a.id !== arrowId);
+                window.INITIAL_ARROWS = arrows;   // ★ СИНХРОНИЗИРУЕМ
                 if (window.renderArrows) window.renderArrows();
                 saveData();
 
@@ -1527,7 +1488,7 @@
             });
         }
 
-        // ★ DRAG & DROP точек и панелей (в режиме редактирования, но не в режиме рисования) ★
+        // ★ DRAG & DROP точек и панелей ★
         points.forEach(point => {
             point.addEventListener('dragstart', (e) => {
                 if (!isEditing || isDrawing || e.target.closest('[contenteditable="true"]')) {
@@ -1649,7 +1610,6 @@
             });
         }
 
-        // ★ RESIZE — сохранение размеров
         panels.forEach(panel => {
             if (typeof ResizeObserver !== 'undefined') {
                 const ro = new ResizeObserver(() => {
@@ -1662,7 +1622,6 @@
             }
         });
 
-        // ★ КНОПКА ВЕРНУТЬ НА ПАНЕЛЬ
         document.querySelectorAll('.reset-pos-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
