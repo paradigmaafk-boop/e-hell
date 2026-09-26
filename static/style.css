@@ -1,3 +1,5 @@
+
+   
 /* ==================================================
    БАЗА
    ================================================== */
@@ -744,6 +746,46 @@ td.points-cell {
 }
 
 /* ==================================================
+   КАРУСЕЛЬ — заголовок и описание
+   ================================================== */
+.carousel-caption {
+    flex: 0 0 auto;
+    padding: 1.5rem 2rem 1.75rem;
+    text-align: center;
+    background: linear-gradient(180deg, #110a04, #0e0803);
+    border-top: 1px solid var(--line-soft);
+}
+
+/* Заголовок — в стиле шапки (Forum, оранжевый, uppercase) */
+.caption-title {
+    font-family: 'Forum', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    letter-spacing: 3px;
+    line-height: 1.2;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    padding: 0 1rem;
+}
+
+/* Описание — по ширине, с переносом, без обрезки */
+.caption-text {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.65;
+    max-width: 900px;
+    margin: 0 auto;
+    text-align: left;
+    white-space: normal;
+    overflow: visible;
+    display: block;
+    padding: 0 1rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* ==================================================
    СВЕТЛАЯ ТЕМА
    ================================================== */
 body.light-theme {
@@ -764,6 +806,10 @@ body.light-theme .accordion {
     background: linear-gradient(180deg, #fffbf2, #fdf7ec);
 }
 
+body.light-theme .carousel-caption {
+    background: linear-gradient(180deg, #fffbf2, #fdf7ec);
+}
+
 /* ==================================================
    АДАПТИВ
    ================================================== */
@@ -780,4 +826,6 @@ body.light-theme .accordion {
     .podium-item.winner { transform: none; order: -1; }
     .admin-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .caption-title { font-size: 1.2rem; letter-spacing: 2px; padding: 0 0.75rem; }
+    .caption-text { font-size: 0.85rem; padding: 0 0.75rem; }
 }
