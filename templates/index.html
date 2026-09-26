@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=205">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=300">
     <style>
         /* Стили, специфичные для главной страницы */
         html, body { height: 100vh; overflow: hidden; }
@@ -175,17 +175,6 @@
 </head>
 <body>
 
-<!-- 🔥 ФОНОВЫЕ ПЕРЕЛИВЫ ПЛАМЕНИ -->
-<div class="fire-bg" aria-hidden="true">
-    <div class="fire-blob fire-blob-1"></div>
-    <div class="fire-blob fire-blob-2"></div>
-    <div class="fire-blob fire-blob-3"></div>
-    <div class="fire-blob fire-blob-4"></div>
-    <div class="fire-blob fire-blob-5"></div>
-    <div class="fire-blob fire-blob-6"></div>
-</div>
-
-<!-- SVG-градиенты для эмблемы-компаса -->
 <svg width="0" height="0" style="position:absolute;" aria-hidden="true">
     <defs>
         <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
