@@ -26,31 +26,34 @@
 
         .admin-actions { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
         .btn.active {
-            background: rgba(255, 138, 31, 0.1);
+            background: rgba(255, 69, 0, 0.15);
             border-color: var(--accent); color: var(--accent-warm);
+            box-shadow: 0 0 20px rgba(255,69,0,0.3);
         }
         .save-hint { font-size: 0.78rem; color: var(--dim); font-style: italic; }
-        .save-hint.saved { color: #4ec97a; }
+        .save-hint.saved { color: var(--accent-warm); text-shadow: 0 0 10px rgba(255,184,0,0.6); }
 
         .edit-banner {
             display: none; padding: 0.6rem 1rem;
-            background: rgba(255, 138, 31, 0.08);
-            border: 1px solid rgba(255, 138, 31, 0.3);
+            background: rgba(255, 69, 0, 0.1);
+            border: 1px solid rgba(255, 69, 0, 0.4);
             border-radius: 10px; font-size: 0.82rem;
             color: var(--accent-warm); margin-top: 0.75rem;
             align-items: center; gap: 0.6rem;
+            box-shadow: 0 0 25px rgba(255,69,0,0.15);
         }
         body.edit-mode .edit-banner { display: flex; }
 
         .map-wrap {
             margin-top: 0.75rem;
-            background: linear-gradient(180deg, #14100a, #0f0b07);
+            background: linear-gradient(180deg, #1a0d05, #0a0503);
             border: 1px solid var(--line);
             border-radius: 20px;
             padding: 0.75rem;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+            box-shadow: 0 0 40px rgba(255,69,0,0.15), inset 0 0 30px rgba(255,69,0,0.05);
         }
 
         .field {
@@ -61,12 +64,13 @@
                 radial-gradient(ellipse 70% 45% at 50% 90%, rgba(180, 140, 80, 0.16), transparent 70%),
                 radial-gradient(ellipse 40% 30% at 85% 15%, rgba(210, 175, 110, 0.12), transparent 70%),
                 linear-gradient(180deg, #c9b183 0%, #bda474 25%, #b3986a 50%, #a88c5e 75%, #8f7548 100%);
-            border: 1px solid var(--line);
+            border: 1px solid rgba(255, 69, 0, 0.3);
             border-radius: 14px;
             height: 820px;
             overflow: hidden;
             z-index: 1;
             width: 100%;
+            box-shadow: inset 0 0 60px rgba(255,69,0,0.15);
         }
 
         .field::after {
@@ -131,14 +135,15 @@
         .point-icon {
             width: 64px; height: 56px;
             border-radius: 8px;
-            background: linear-gradient(180deg, #2e2820, #1a150e);
-            border: 1px solid #4a3a2a;
+            background: linear-gradient(180deg, #2a1508, #1a0a04);
+            border: 1px solid #6a2a08;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.6rem;
             box-shadow:
                 0 8px 18px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 200, 120, 0.12),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+                inset 0 1px 0 rgba(255, 200, 120, 0.15),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.5),
+                0 0 12px rgba(255, 69, 0, 0.15);
             position: relative;
             transition: border-color 0.25s ease, box-shadow 0.25s ease;
         }
@@ -150,10 +155,11 @@
             background: linear-gradient(90deg, transparent, rgba(255, 200, 120, 0.3), transparent);
         }
         .point:hover .point-icon {
-            border-color: var(--gold);
+            border-color: var(--accent-warm);
             box-shadow:
-                0 10px 26px rgba(217, 178, 106, 0.4),
-                inset 0 1px 0 rgba(255, 200, 120, 0.2);
+                0 10px 26px rgba(255, 100, 0, 0.5),
+                inset 0 1px 0 rgba(255, 200, 120, 0.25),
+                0 0 24px rgba(255, 69, 0, 0.5);
         }
 
         body.edit-mode:not(.drawing-mode) .point { cursor: grab; }
@@ -162,7 +168,7 @@
             content: "";
             position: absolute;
             inset: -8px;
-            border: 1.5px dashed rgba(255, 138, 31, 0.5);
+            border: 1.5px dashed rgba(255, 69, 0, 0.6);
             border-radius: 12px;
             pointer-events: none;
         }
@@ -173,7 +179,7 @@
         }
         body.drawing-mode .point .point-icon-wrap::after,
         body.drawing-mode .draggable-panel.on-map::after {
-            border-color: rgba(255, 138, 31, 0.9) !important;
+            border-color: rgba(255, 69, 0, 0.9) !important;
             border-style: dashed !important;
             animation: pulse-draw 1s ease-in-out infinite;
         }
@@ -185,8 +191,8 @@
         .drag-hint {
             display: none;
             padding: 0.5rem 0.9rem;
-            background: rgba(255, 138, 31, 0.12);
-            border: 1px solid rgba(255, 138, 31, 0.35);
+            background: rgba(255, 69, 0, 0.12);
+            border: 1px solid rgba(255, 69, 0, 0.4);
             border-radius: 8px;
             font-size: 0.78rem;
             color: var(--accent-warm);
@@ -195,20 +201,21 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            box-shadow: 0 0 20px rgba(255,69,0,0.15);
         }
         body.edit-mode .drag-hint { display: flex; }
 
         .draw-toolbar {
             display: none;
             padding: 0.7rem 1rem;
-            background: rgba(20, 14, 8, 0.95);
+            background: rgba(26, 13, 5, 0.95);
             border: 1px solid var(--accent);
             border-radius: 12px;
             margin-top: 0.6rem;
             align-items: center;
             gap: 0.8rem;
             flex-wrap: wrap;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255,69,0,0.25);
         }
         body.drawing-mode .draw-toolbar { display: flex; }
 
@@ -236,7 +243,7 @@
         }
         .color-swatch:hover { transform: scale(1.15); }
         .color-swatch.active {
-            box-shadow: 0 0 0 3px rgba(255, 138, 31, 0.6);
+            box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.6), 0 0 15px rgba(255,69,0,0.5);
             transform: scale(1.15);
         }
 
@@ -250,14 +257,15 @@
         .draw-tip {
             display: none;
             padding: 0.55rem 1rem;
-            background: rgba(74, 158, 255, 0.1);
-            border: 1px solid rgba(74, 158, 255, 0.4);
+            background: rgba(255, 100, 0, 0.1);
+            border: 1px solid rgba(255, 100, 0, 0.5);
             border-radius: 10px;
             font-size: 0.8rem;
-            color: #8ac0ff;
+            color: var(--accent-warm);
             margin-top: 0.5rem;
             text-align: center;
             line-height: 1.5;
+            box-shadow: 0 0 20px rgba(255,69,0,0.2);
         }
         body.drawing-mode .draw-tip { display: block; }
 
@@ -273,7 +281,7 @@
             font-size: 0.62rem; font-weight: 700;
             color: #0d0804;
             border: 2px solid #1a1209;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 8px rgba(255,69,0,0.4);
             font-family: 'Inter', sans-serif;
             line-height: 1;
         }
@@ -297,21 +305,25 @@
         .point-name {
             font-size: 0.75rem; font-weight: 500;
             color: var(--text);
-            background: rgba(13, 8, 4, 0.92);
+            background: rgba(26, 13, 5, 0.94);
             padding: 0.28rem 0.65rem;
             border-radius: 6px;
             border: 1px solid var(--line);
             white-space: normal; text-align: center;
             line-height: 1.25; max-width: 150px;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255,69,0,0.15);
             cursor: text;
             transition: all 0.2s ease;
             word-break: break-word;
         }
-        .point-name:hover { border-color: var(--gold); color: #fff; }
+        .point-name:hover {
+            border-color: var(--accent-warm);
+            color: #fff;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.5), 0 0 15px rgba(255,69,0,0.4);
+        }
         .point-name[contenteditable="true"]:focus {
             outline: none;
-            background: rgba(255, 138, 31, 0.15);
+            background: rgba(255, 69, 0, 0.15);
             border-color: var(--accent);
             color: #fff;
         }
@@ -320,10 +332,10 @@
             font-size: 0.72rem;
             font-weight: 600;
             color: var(--accent-warm);
-            background: rgba(13, 8, 4, 0.92);
+            background: rgba(26, 13, 5, 0.94);
             padding: 0.2rem 0.55rem;
             border-radius: 5px;
-            border: 1px solid rgba(255, 138, 31, 0.3);
+            border: 1px solid rgba(255, 69, 0, 0.35);
             white-space: nowrap;
             text-align: center;
             line-height: 1.2;
@@ -335,12 +347,13 @@
             margin-top: 0.15rem;
         }
         .point-owner:hover {
-            border-color: var(--gold);
+            border-color: var(--accent-warm);
             color: #fff;
+            box-shadow: 0 0 12px rgba(255,69,0,0.4);
         }
         .point-owner[contenteditable="true"]:focus {
             outline: none;
-            background: rgba(255, 138, 31, 0.15);
+            background: rgba(255, 69, 0, 0.15);
             border-color: var(--accent);
             color: #fff;
         }
@@ -348,11 +361,16 @@
         .point.center-point .point-icon {
             width: 90px; height: 76px;
             font-size: 2.2rem;
-            border-color: var(--gold);
+            border-color: var(--accent-warm);
             box-shadow:
-                0 0 24px rgba(217, 178, 106, 0.35),
+                0 0 30px rgba(255, 100, 0, 0.5),
                 0 10px 24px rgba(0, 0, 0, 0.7),
-                inset 0 1px 0 rgba(255, 200, 120, 0.2);
+                inset 0 1px 0 rgba(255, 200, 120, 0.25);
+            animation: centerPulse 3s ease-in-out infinite;
+        }
+        @keyframes centerPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(255,100,0,0.5), 0 10px 24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,200,120,0.25); }
+            50%      { box-shadow: 0 0 50px rgba(255,140,0,0.8), 0 10px 24px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,200,120,0.4); }
         }
         .point.water-collector .point-icon {
             width: 48px; height: 42px;
@@ -364,12 +382,12 @@
         }
 
         .draggable-panel {
-            background: rgba(20, 14, 8, 0.95);
+            background: rgba(26, 13, 5, 0.95);
             border: 1px solid var(--line);
             border-radius: 12px;
             padding: 0.7rem 0.85rem;
             backdrop-filter: blur(6px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255,69,0,0.1);
             position: relative;
         }
 
@@ -391,7 +409,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            border: 1.5px dashed rgba(255, 138, 31, 0.5);
+            border: 1.5px dashed rgba(255, 69, 0, 0.5);
             border-radius: 12px;
             pointer-events: none;
         }
@@ -399,12 +417,13 @@
 
         body.edit-mode:not(.drawing-mode) .draggable-panel:not(.on-map) {
             cursor: grab;
-            border-color: rgba(255, 138, 31, 0.4);
+            border-color: rgba(255, 69, 0, 0.4);
             border-style: dashed;
         }
         body.edit-mode:not(.drawing-mode) .draggable-panel:not(.on-map):hover {
             border-color: var(--accent);
             border-style: solid;
+            box-shadow: 0 0 25px rgba(255,69,0,0.3);
         }
 
         .reset-pos-btn {
@@ -425,6 +444,7 @@
             justify-content: center;
             padding: 0;
             z-index: 20;
+            box-shadow: 0 0 10px rgba(255,69,0,0.6);
         }
         .reset-pos-btn:hover { transform: scale(1.15); }
         body.edit-mode .draggable-panel.on-map .reset-pos-btn { display: flex; }
@@ -458,7 +478,7 @@
         }
         .draggable-panel .panel-players[contenteditable="true"]:focus {
             outline: none;
-            background: rgba(255, 138, 31, 0.12);
+            background: rgba(255, 69, 0, 0.12);
             color: #fff;
         }
         .draggable-panel .panel-stages {
@@ -490,7 +510,7 @@
         }
         .draggable-panel.gbr-panel .gbr-name[contenteditable="true"]:focus {
             outline: none;
-            background: rgba(255, 138, 31, 0.12);
+            background: rgba(255, 69, 0, 0.12);
             color: var(--accent-warm);
         }
 
@@ -508,7 +528,7 @@
         }
         .draggable-panel.reserve-panel .panel-players span[contenteditable="true"]:focus {
             outline: none;
-            background: rgba(255, 138, 31, 0.15);
+            background: rgba(255, 69, 0, 0.15);
             color: #fff;
         }
 
@@ -540,6 +560,7 @@
         .stage[data-stage="4"] { background: var(--stage-4, #e84a8c); }
         .stage[contenteditable="true"]:focus {
             outline: 2px solid var(--accent); outline-offset: 1px;
+            box-shadow: 0 0 15px rgba(255,69,0,0.6);
         }
 
         :root {
@@ -549,26 +570,89 @@
             --stage-4: #e84a8c;
         }
 
+        /* ============================================================
+           ОГНЕННЫЕ ОВЕРРАЙДЫ ДЛЯ КАРТЫ
+           ============================================================ */
         body.light-theme .map-wrap { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
         body.light-theme .draggable-panel {
             background: rgba(255, 251, 242, 0.96);
             border-color: #e8dcc8;
         }
+        body.light-theme .point-icon {
+            background: linear-gradient(180deg, #fff5e6, #ffe7c4);
+            border-color: #d99a5a;
+        }
+        body.light-theme .point-name,
+        body.light-theme .point-owner {
+            background: rgba(255, 251, 242, 0.94);
+        }
+
+        /* Свечение активных командных плашек */
+        .draggable-panel.on-map {
+            border-color: rgba(255, 69, 0, 0.4);
+        }
+        .draggable-panel.on-map:hover {
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 30px rgba(255,69,0,0.35);
+        }
+        .draggable-panel .stage {
+            transition: all 0.25s ease;
+        }
+        .draggable-panel .stage:hover {
+            filter: brightness(1.15);
+            box-shadow: 0 0 15px currentColor;
+        }
     </style>
 </head>
 <body>
+
+<!-- SVG-градиенты для компаса -->
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<!-- Угольки -->
+<div class="embers" id="embers"></div>
 
 <div class="page">
 
     <header class="header">
         <a href="/" class="brand">
             <div class="brand-emblem">
-                <svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
-                    <path class="flame-outline" d="M 20 4 C 20 4, 12 14, 12 22 C 12 28, 15 33, 20 33 C 25 33, 28 28, 28 22 C 28 14, 20 4, 20 4 Z" />
-                    <path class="flame-inner" d="M 20 14 C 20 14, 16 20, 16 25 C 16 28, 18 30, 20 30 C 22 30, 24 28, 24 25 C 24 20, 20 14, 20 14 Z" />
-                    <circle class="flame-dot" cx="20" cy="2" r="1.2" />
-                    <line class="flame-base" x1="10" y1="40" x2="30" y2="40" />
-                    <circle class="flame-dot" cx="20" cy="45" r="1.2" />
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
                 </svg>
             </div>
             <div class="brand-text">
@@ -630,13 +714,13 @@
     <div class="draw-toolbar">
         <span class="draw-label">🎨 Цвет стрелки:</span>
         <div class="color-swatches" id="colorSwatches">
-            <button class="color-swatch active" data-color="#4a9eff" style="background:#4a9eff;" title="Синий"></button>
+            <button class="color-swatch active" data-color="#ff8a1f" style="background:#ff8a1f;" title="Оранжевый"></button>
+            <button class="color-swatch" data-color="#ff4500" style="background:#ff4500;" title="Раскалённый"></button>
+            <button class="color-swatch" data-color="#ffb800" style="background:#ffb800;" title="Жёлтый"></button>
+            <button class="color-swatch" data-color="#ff2200" style="background:#ff2200;" title="Красный"></button>
+            <button class="color-swatch" data-color="#4a9eff" style="background:#4a9eff;" title="Синий"></button>
             <button class="color-swatch" data-color="#3fbf6a" style="background:#3fbf6a;" title="Зелёный"></button>
-            <button class="color-swatch" data-color="#e8a63a" style="background:#e8a63a;" title="Оранжевый"></button>
-            <button class="color-swatch" data-color="#e84a8c" style="background:#e84a8c;" title="Розовый"></button>
-            <button class="color-swatch" data-color="#ff8a1f" style="background:#ff8a1f;" title="Ярко-оранжевый"></button>
             <button class="color-swatch" data-color="#b07aff" style="background:#b07aff;" title="Фиолетовый"></button>
-            <button class="color-swatch" data-color="#ffd700" style="background:#ffd700;" title="Золотой"></button>
             <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;" title="Белый"></button>
             <button class="color-swatch" data-color="#000000" style="background:#000000; border-color:#666;" title="Чёрный"></button>
         </div>
@@ -1063,6 +1147,45 @@
 <script>
     window.INITIAL_ARROWS = {{ map_values.get('arrows-data', '[]')|safe }};
 
+    // ★★★ УГОЛЬКИ + ИСКРЫ ★★★
+    (function () {
+        const container = document.getElementById('embers');
+        if (container) {
+            for (let i = 0; i < 25; i++) {
+                const ember = document.createElement('div');
+                ember.className = 'ember';
+                const size = 2 + Math.random() * 4;
+                const left = Math.random() * 100;
+                const duration = 6 + Math.random() * 10;
+                const delay = Math.random() * 12;
+                const drift = (Math.random() - 0.5) * 200;
+                ember.style.left = left + '%';
+                ember.style.width = size + 'px';
+                ember.style.height = size + 'px';
+                ember.style.animationDuration = duration + 's';
+                ember.style.animationDelay = delay + 's';
+                ember.style.setProperty('--drift', drift + 'px');
+                const hue = 15 + Math.random() * 30;
+                ember.style.background = `radial-gradient(circle, hsl(${hue + 20}, 100%, 70%), hsl(${hue}, 100%, 50%) 60%, transparent 100%)`;
+                ember.style.boxShadow = `0 0 8px 1px hsla(${hue}, 100%, 55%, 0.8)`;
+                container.appendChild(ember);
+            }
+        }
+
+        const sparkStyle = document.createElement('style');
+        sparkStyle.textContent = '@keyframes sparkBurst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1; } 50% { transform: translate(-50%,-50%) scale(3); opacity: 0.8; } 100% { transform: translate(-50%,-50%) scale(6); opacity: 0; } }';
+        document.head.appendChild(sparkStyle);
+        document.querySelectorAll('.side-btn, .nav a, .link-btn, .btn').forEach(el => {
+            el.addEventListener('click', () => {
+                const rect = el.getBoundingClientRect();
+                const spark = document.createElement('div');
+                spark.style.cssText = `position:fixed;left:${rect.left + rect.width/2}px;top:${rect.top + rect.height/2}px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle, #ffec80, #ff4500 60%, transparent);box-shadow:0 0 20px 4px rgba(255,140,0,0.8);pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);animation:sparkBurst 0.6s ease-out forwards;`;
+                document.body.appendChild(spark);
+                setTimeout(() => spark.remove(), 650);
+            });
+        });
+    })();
+
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
 
@@ -1199,7 +1322,7 @@
 
         let isEditing = false;
         let isDrawing = false;
-        let currentColor = '#4a9eff';
+        let currentColor = '#ff8a1f';
         let currentPath = null;
         let previewPathEl = null;
         let startDotEl = null;
@@ -1415,7 +1538,6 @@
             });
         });
 
-        // ★★★ КЛИК ПО КАРТЕ В РЕЖИМЕ РИСОВАНИЯ ★★★
         function onFieldClick(e) {
             if (!isDrawing) return;
             if (e.target.closest('.reset-pos-btn')) return;
@@ -1500,7 +1622,6 @@
             field.addEventListener('mousemove', onFieldMove);
         }
 
-        // ★★★ УДАЛЕНИЕ СТРЕЛКИ (правый клик по стрелке) ★★★
         if (svgLayer) {
             svgLayer.addEventListener('contextmenu', (e) => {
                 if (!isEditing) return;
@@ -1533,7 +1654,6 @@
             });
         }
 
-        // ★★★ УДАЛЕНИЕ СВЯЗАННЫХ СТРЕЛОК (правый клик по объекту) ★★★
         function onConnectorContextMenu(e) {
             if (!isEditing || isDrawing) return;
 
@@ -1576,7 +1696,6 @@
             el.addEventListener('contextmenu', onConnectorContextMenu);
         });
 
-        // ★ DRAG & DROP точек и панелей ★
         points.forEach(point => {
             point.addEventListener('dragstart', (e) => {
                 if (!isEditing || isDrawing || e.target.closest('[contenteditable="true"]')) {
