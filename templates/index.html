@@ -181,37 +181,6 @@
             border-radius: 4px;
             box-shadow: 0 0 10px rgba(255, 138, 31, 0.6);
         }
-        .carousel-caption {
-            flex: 0 0 auto;
-            padding: 1.5rem 2rem 1.75rem;
-            text-align: center;
-            background: linear-gradient(180deg, #110a04, #0e0803);
-            border-top: 1px solid var(--line-soft);
-        }
-        .caption-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 0.6rem;
-            letter-spacing: 0.3px;
-            line-height: 1.3;
-            background: linear-gradient(180deg, #ffd98a 0%, #ff8a1f 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(255, 138, 31, 0.2));
-        }
-        .caption-text {
-            font-size: 0.88rem;
-            color: var(--muted);
-            line-height: 1.6;
-            max-width: 720px;
-            margin: 0 auto;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
         .empty-carousel {
             display: flex;
             flex-direction: column;
@@ -243,7 +212,6 @@
             to { opacity: 1; transform: translate(-50%, 0); }
         }
         body.light-theme .carousel { background: #fffbf2; }
-        body.light-theme .carousel-caption { background: linear-gradient(180deg, #fffbf2, #fdf7ec); }
         body.light-theme .flash-top { background: rgba(255, 251, 242, 0.95); }
 
         @media (max-width: 900px) and (orientation: landscape) {
