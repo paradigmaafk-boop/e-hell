@@ -98,7 +98,6 @@
             opacity: 0.7;
         }
 
-        /* ★★★ SVG-СЛОЙ ДЛЯ СТРЕЛОК ★★★ */
         .arrows-layer {
             position: absolute;
             inset: 0;
@@ -201,7 +200,6 @@
         }
         body.edit-mode .drag-hint { display: flex; }
 
-        /* ★ ПАНЕЛЬ РИСОВАНИЯ ★ */
         .draw-toolbar {
             display: none;
             padding: 0.7rem 1rem;
@@ -1148,7 +1146,6 @@
 </div>
 
 <script>
-    // ★ ДАННЫЕ СТРЕЛОК ИЗ БД ★
     window.INITIAL_ARROWS = {{ map_values.get('arrows-data', '[]')|safe }};
 
     const toggleBtn = document.getElementById('theme-toggle');
@@ -1165,7 +1162,7 @@
         toggleBtn.textContent = '☀️';
     }
 
-    // ★★★ ОТРИСОВКА СТРЕЛОК (ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ) ★★★
+    // ★★★ ОТРИСОВКА ЛОМАНЫХ СТРЕЛОК (ДЛЯ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ) ★★★
     (function() {
         const field = document.getElementById('field');
         const svg = document.getElementById('arrowsLayer');
@@ -1185,13 +1182,11 @@
             svg.setAttribute('width', w);
             svg.setAttribute('height', h);
 
-            // Очистка
             while (svg.firstChild) svg.removeChild(svg.firstChild);
 
             const arrowsArr = window.INITIAL_ARROWS || [];
             console.log('[arrows] рисуем:', arrowsArr.length, 'size:', w + 'x' + h);
 
-            // Defs для маркеров
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
             const colors = new Set();
             arrowsArr.forEach(a => { if (a.color) colors.add(a.color); });
@@ -1215,7 +1210,7 @@
             });
             svg.appendChild(defs);
 
-            // Рисуем стрелки
+            // ★ РИСУЕМ ЛОМАНЫЕ СТРЕЛКИ ПОД ПРЯМЫМ УГЛОМ ★
             arrowsArr.forEach(arrow => {
                 if (!arrow.from || !arrow.to) return;
 
@@ -1224,12 +1219,25 @@
                 const x2 = (arrow.to.x / 100) * w;
                 const y2 = (arrow.to.y / 100) * h;
 
+                // Тип излома: 'horizontal' или 'vertical'
+                const bend = arrow.bend || 'horizontal';
+
+                let d;
+                if (bend === 'horizontal') {
+                    // Сначала горизонталь → потом вертикаль
+                    d = 'M ' + x1 + ' ' + y1 + ' L ' + x2 + ' ' + y1 + ' L ' + x2 + ' ' + y2;
+                } else {
+                    // Сначала вертикаль → потом горизонталь
+                    d = 'M ' + x1 + ' ' + y1 + ' L ' + x1 + ' ' + y2 + ' L ' + x2 + ' ' + y2;
+                }
+
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                path.setAttribute('d', 'M ' + x1 + ' ' + y1 + ' L ' + x2 + ' ' + y2);
+                path.setAttribute('d', d);
                 path.setAttribute('stroke', arrow.color);
                 path.setAttribute('fill', 'none');
                 path.setAttribute('stroke-width', '2.5');
                 path.setAttribute('stroke-linecap', 'round');
+                path.setAttribute('stroke-linejoin', 'round');
                 path.setAttribute('opacity', '0.9');
                 path.setAttribute('marker-end', 'url(#' + 'arrow-marker-' + arrow.color.replace('#', '') + ')');
                 path.dataset.arrowId = arrow.id;
@@ -1237,10 +1245,8 @@
             });
         };
 
-        // Первый рендер
         requestAnimationFrame(window.renderArrows);
 
-        // Рендер при ресайзе
         window.addEventListener('resize', () => {
             clearTimeout(window._arrowResizeTimer);
             window._arrowResizeTimer = setTimeout(() => window.renderArrows(), 150);
@@ -1405,11 +1411,8 @@
         // ★★★ КЛИК ПО КАРТЕ В РЕЖИМЕ РИСОВАНИЯ ★★★
         function onFieldClick(e) {
             if (!isDrawing) return;
-
-            // Не обрабатываем клик по кнопке "Вернуть на панель"
             if (e.target.closest('.reset-pos-btn')) return;
 
-            // Ищем ближайший коннектор (точку или плашку)
             const el = e.target.closest('[data-connector-key]');
             if (!el) return;
 
@@ -1439,11 +1442,12 @@
                     id: 'arrow-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
                     from: { key: drawStart.key, x: drawStart.x, y: drawStart.y },
                     to: { key: key, x: pos.x, y: pos.y },
-                    color: currentColor
+                    color: currentColor,
+                    bend: 'horizontal'
                 };
 
                 arrows.push(newArrow);
-                window.INITIAL_ARROWS = arrows;   // ★ СИНХРОНИЗИРУЕМ с глобальной переменной
+                window.INITIAL_ARROWS = arrows;
                 if (window.renderArrows) window.renderArrows();
 
                 drawStart = null;
@@ -1459,9 +1463,39 @@
             field.addEventListener('click', onFieldClick);
         }
 
-        // ★★★ УДАЛЕНИЕ СТРЕЛКИ (ПРАВЫЙ КЛИК) ★★★
+        // ★★★ КЛИК ПО СТРЕЛКЕ: ПЕРЕКЛЮЧЕНИЕ ИЗЛОМА + УДАЛЕНИЕ ★★★
         const svgLayer = document.getElementById('arrowsLayer');
         if (svgLayer) {
+            // Левый клик — переключить излом
+            svgLayer.addEventListener('click', (e) => {
+                if (!isEditing || isDrawing) return;
+                const path = e.target.closest('path[data-arrow-id]');
+                if (!path) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const arrowId = path.dataset.arrowId;
+                if (!arrowId) return;
+
+                const arrow = arrows.find(a => a.id === arrowId);
+                if (!arrow) return;
+
+                arrow.bend = (arrow.bend === 'vertical') ? 'horizontal' : 'vertical';
+
+                window.INITIAL_ARROWS = arrows;
+                if (window.renderArrows) window.renderArrows();
+                saveData();
+
+                saveHint.textContent = '✓ Излом переключён';
+                saveHint.classList.add('saved');
+                setTimeout(() => {
+                    saveHint.textContent = '';
+                    saveHint.classList.remove('saved');
+                }, 1500);
+            });
+
+            // Правый клик — удалить
             svgLayer.addEventListener('contextmenu', (e) => {
                 if (!isEditing) return;
                 const path = e.target.closest('path[data-arrow-id]');
@@ -1475,7 +1509,7 @@
                 if (!confirm('Удалить эту стрелку?')) return;
 
                 arrows = arrows.filter(a => a.id !== arrowId);
-                window.INITIAL_ARROWS = arrows;   // ★ СИНХРОНИЗИРУЕМ
+                window.INITIAL_ARROWS = arrows;
                 if (window.renderArrows) window.renderArrows();
                 saveData();
 
