@@ -110,9 +110,9 @@ body::before {
 .wrap {
     position: relative;
     z-index: 1;
-    max-width: 1240px;
+    max-width: 1800px;
     margin: 0 auto;
-    padding: 1.25rem 2rem 4rem;
+    padding: 1.25rem 2rem 2rem;
 }
 
 /* ============================================================
