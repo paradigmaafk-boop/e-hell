@@ -498,6 +498,16 @@ def admin_carousel():
     slides = get_all_slides()
     return render_template('admin_carousel.html', slides=slides)
 
+@app.route('/admin')
+def admin_panel():
+    increment_counter('admin_actions')
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ только для администратора!')
+        return redirect(url_for('index'))
+
+    rating_types = get_all_rating_types()
+    return render_template('admin.html', rating_types=rating_types)
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
 else:
