@@ -747,106 +747,96 @@ td.points-cell {
 }
 
 /* ============================================================
-   ПОДИУМ
+   ПОДИУМ · ВАРИАНТ 4 — МИНИМАЛИЗМ С ЛИНИЯМИ
    ============================================================ */
-.podium {
+.podium-minimal {
     display: grid;
-    grid-template-columns: 1fr 1.15fr 1fr;
-    gap: 1rem;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 1.5rem;
     align-items: end;
     margin-bottom: 2rem;
 }
-.podium-item {
-    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    padding: 1.75rem 1.25rem 1.5rem;
+
+.podium-item-minimal {
     text-align: center;
-    transition: all 0.25s ease;
-}
-.podium-item:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
-}
-.podium-item.winner {
-    padding: 4px;
-    border: none;
-    background: linear-gradient(100deg, #ff2200, #ff6600, #ffb800, #ffec80, #ffb800, #ff6600, #ff2200);
-    background-size: 200% 100%;
-    animation: fireFlow 6s linear infinite;
-    transform: translateY(-6px);
-}
-.podium-item.winner > .inner {
-    background: linear-gradient(180deg, #1a0d05, #0a0503);
-    border-radius: 13px;
-    padding: 1.75rem 1.25rem 1.5rem;
-    height: 100%;
-}
-@keyframes fireFlow {
-    0%   { background-position: 0% 50%; }
-    100% { background-position: 200% 50%; }
-}
-.medal { font-size: 2rem; margin-bottom: 0.75rem; line-height: 1; }
-.podium-item.winner .medal {
-    font-size: 2.6rem;
-    animation: bounceGold 2.5s ease-in-out infinite;
-}
-@keyframes bounceGold {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%      { transform: translateY(-5px) scale(1.05); }
-}
-.podium-name { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
-.podium-item.winner .podium-name { font-size: 1.2rem; color: var(--accent-warm); }
-.podium-points { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; }
-.podium-points b { color: var(--accent-warm); font-weight: 700; }
-.podium-badge {
-    font-size: 0.65rem;
-    letter-spacing: 2.5px;
-    text-transform: uppercase;
-    color: var(--dim);
-    padding-top: 0.9rem;
-    border-top: 1px solid var(--line);
-    font-weight: 600;
-}
-.podium-item.winner .podium-badge {
-    color: var(--accent);
-    border-top-color: #3a1a08;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+    position: relative;
 }
 
-/* ============================================================
-   СТАТ-КАРТОЧКИ
-   ============================================================ */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 1rem;
-    margin-bottom: 2rem;
+.podium-item-minimal.first {
+    border-bottom-color: var(--accent-warm);
 }
-.stat-card {
-    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 1.5rem 1.25rem;
-    text-align: center;
-    transition: all 0.3s ease;
+.podium-item-minimal.first::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-warm), transparent);
+    box-shadow: 0 0 15px var(--accent-warm);
 }
-.stat-card:hover {
-    border-color: var(--accent);
-    transform: translateY(-3px);
-}
-.stat-card .number {
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--accent-warm);
-    font-variant-numeric: tabular-nums;
-    margin-bottom: 0.4rem;
-    line-height: 1.1;
-}
-.stat-card .label {
-    font-size: 0.72rem;
-    color: var(--dim);
+
+.podium-rank {
+    font-size: 0.65rem;
+    letter-spacing: 4px;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    color: var(--dim);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+.podium-item-minimal.first .podium-rank {
+    color: var(--accent-warm);
+}
+
+.podium-num {
+    font-family: 'Forum', serif;
+    font-size: 2.5rem;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    font-variant-numeric: tabular-nums;
+}
+.podium-item-minimal.first .podium-num {
+    font-size: 3.5rem;
+    color: var(--accent-warm);
+    text-shadow: 0 0 30px rgba(255, 184, 0, 0.6);
+}
+
+.podium-name {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    word-break: break-word;
+}
+.podium-item-minimal.first .podium-name {
+    color: var(--accent-warm);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Светлая тема */
+body.light-theme .podium-item-minimal {
+    border-bottom-color: #e8dcc8;
+}
+body.light-theme .podium-item-minimal.first {
+    border-bottom-color: #d44000;
+}
+body.light-theme .podium-item-minimal.first::after {
+    background: linear-gradient(90deg, transparent, #d44000, transparent);
+    box-shadow: 0 0 15px #d44000;
+}
+body.light-theme .podium-item-minimal.first .podium-num {
+    color: #d44000;
+    text-shadow: 0 0 25px rgba(212, 64, 0, 0.4);
+}
+body.light-theme .podium-item-minimal.first .podium-rank,
+body.light-theme .podium-item-minimal.first .podium-name {
+    color: #d44000;
 }
 
 /* ============================================================
@@ -1047,7 +1037,7 @@ td.points-cell {
 }
 
 /* ============================================================
-   БЛОК ТАКТИКИ БОЯ (над картой)
+   БЛОК ТАКТИКИ БОЯ (для карты резервуара)
    ============================================================ */
 .tactics-block {
     margin-top: 1rem;
@@ -1058,7 +1048,6 @@ td.points-cell {
     border-radius: 12px;
     box-shadow: 0 0 25px rgba(255, 69, 0, 0.1);
 }
-
 .tactics-header {
     display: flex;
     justify-content: space-between;
@@ -1067,7 +1056,6 @@ td.points-cell {
     gap: 1rem;
     flex-wrap: wrap;
 }
-
 .tactics-label {
     font-size: 0.72rem;
     letter-spacing: 3px;
@@ -1076,13 +1064,11 @@ td.points-cell {
     font-weight: 600;
     text-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
 }
-
 .tactics-hint {
     font-size: 0.72rem;
     color: var(--dim);
     font-style: italic;
 }
-
 .tactics-text {
     font-size: 0.95rem;
     line-height: 1.65;
@@ -1094,22 +1080,16 @@ td.points-cell {
     transition: background 0.2s ease, box-shadow 0.2s ease;
     min-height: 1.5rem;
 }
-
-.tactics-text.editable {
-    cursor: text;
-}
-
+.tactics-text.editable { cursor: text; }
 .tactics-text.editable:hover {
     background: rgba(255, 69, 0, 0.06);
     box-shadow: inset 0 0 0 1px rgba(255, 69, 0, 0.25);
 }
-
 .tactics-text[contenteditable="true"]:focus {
     outline: none;
     background: rgba(255, 69, 0, 0.1);
     box-shadow: inset 0 0 0 1px var(--accent), 0 0 15px rgba(255, 69, 0, 0.3);
 }
-
 .tactics-text[contenteditable="true"]:empty::before {
     content: 'Введите тактику боя...';
     color: var(--dim);
@@ -1117,7 +1097,7 @@ td.points-cell {
 }
 
 /* ============================================================
-   ЕДИНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ (замена 4-х отдельных плашек)
+   ЕДИНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ (для карты)
    ============================================================ */
 .control-panel {
     display: none;
@@ -1130,32 +1110,25 @@ td.points-cell {
     flex-direction: column;
     gap: 0.6rem;
 }
-
-body.edit-mode .control-panel {
-    display: flex;
-}
-
+body.edit-mode .control-panel { display: flex; }
 .control-row {
     display: flex;
     align-items: center;
     gap: 0.8rem;
     flex-wrap: wrap;
 }
-
 .control-label {
     font-size: 0.78rem;
     color: var(--muted);
     font-weight: 500;
     white-space: nowrap;
 }
-
 .control-status {
     font-size: 0.78rem;
     color: var(--accent-warm);
     font-style: italic;
     margin-left: auto;
 }
-
 .control-hint {
     display: none;
     padding: 0.5rem 0.85rem;
@@ -1166,19 +1139,9 @@ body.edit-mode .control-panel {
     color: var(--accent-warm);
     line-height: 1.5;
 }
-
-body.edit-mode .control-hint {
-    display: block;
-}
-
-body.drawing-mode #drawTip {
-    display: block;
-}
-
-body:not(.drawing-mode) #drawTip {
-    display: none;
-}
-
+body.edit-mode .control-hint { display: block; }
+body.drawing-mode #drawTip { display: block; }
+body:not(.drawing-mode) #drawTip { display: none; }
 body.drawing-mode #drawToggle {
     background: rgba(255, 69, 0, 0.15);
     border-color: var(--accent);
@@ -1186,7 +1149,7 @@ body.drawing-mode #drawToggle {
     box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
 }
 
-/* Скрыть старые плашки */
+/* Скрыть старые плашки карты */
 .edit-banner,
 .drag-hint,
 .draw-toolbar,
@@ -1209,16 +1172,11 @@ body.drawing-mode #drawToggle {
     padding: 1rem;
     animation: modalFadeIn 0.2s ease;
 }
-
-.modal-overlay.show {
-    display: flex;
-}
-
+.modal-overlay.show { display: flex; }
 @keyframes modalFadeIn {
     from { opacity: 0; }
     to   { opacity: 1; }
 }
-
 .modal-box {
     width: 100%;
     max-width: 380px;
@@ -1230,12 +1188,10 @@ body.drawing-mode #drawToggle {
                 0 0 40px rgba(255, 69, 0, 0.35);
     animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-
 @keyframes modalPop {
     from { transform: scale(0.9); opacity: 0; }
     to   { transform: scale(1); opacity: 1; }
 }
-
 .modal-title {
     font-family: 'Forum', serif;
     font-size: 1.25rem;
@@ -1246,7 +1202,6 @@ body.drawing-mode #drawToggle {
     margin-bottom: 0.75rem;
     text-shadow: 0 0 12px rgba(255, 184, 0, 0.5);
 }
-
 .modal-text {
     font-size: 0.88rem;
     color: var(--muted);
@@ -1254,22 +1209,18 @@ body.drawing-mode #drawToggle {
     margin-bottom: 1.5rem;
     line-height: 1.5;
 }
-
 .modal-actions {
     display: flex;
     gap: 0.75rem;
     justify-content: center;
 }
-
 .modal-actions .btn {
     flex: 1;
     padding: 0.7rem 1rem;
 }
-
 body.light-theme .modal-box {
     background: linear-gradient(180deg, #fffbf2, #fdf7ec);
 }
-
 body.light-theme .modal-title {
     color: #d44000;
     text-shadow: 0 0 12px rgba(212, 64, 0, 0.35);
@@ -1293,7 +1244,6 @@ body.light-theme::before,
 body.light-theme::after {
     display: none;
 }
-body.light-theme .podium-item,
 body.light-theme .admin-panel,
 body.light-theme .stat-card,
 body.light-theme .login-card,
@@ -1315,8 +1265,10 @@ body.light-theme .control-panel {
     .header-right { gap: 1.25rem; }
     .nav { gap: 1.75rem; }
     .page-title { font-size: 1.5rem; }
-    .podium { grid-template-columns: 1fr; gap: 1rem; }
-    .podium-item.winner { transform: none; order: -1; }
+    .podium-minimal { grid-template-columns: 1fr; gap: 1.25rem; }
+    .podium-item-minimal { padding-bottom: 0.85rem; }
+    .podium-num { font-size: 2rem; }
+    .podium-item-minimal.first .podium-num { font-size: 2.6rem; }
     .admin-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
     .caption-title { font-size: 1.2rem; letter-spacing: 2px; padding: 0 0.75rem; }
