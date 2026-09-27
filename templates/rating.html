@@ -95,28 +95,23 @@
     <section class="section">
         <div class="section-title">Топы Ацкого Пламени</div>
 
-        <div class="podium">
-            <div class="podium-item">
-                <div class="medal">🥈</div>
-                <div class="podium-name">{% if leaders|length >= 2 %}{{ leaders[1][0] }}{% else %}—{% endif %}</div>
-                <div class="podium-points">{% if leaders|length >= 2 %}<b>{{ leaders[1][1] }}</b> ★{% endif %}</div>
-                <div class="podium-badge">2 место</div>
+        <div class="podium-minimal">
+            <div class="podium-item-minimal second">
+                <div class="podium-rank">2 место</div>
+                <div class="podium-num">{% if leaders|length >= 2 %}{{ leaders[1][1] }}{% else %}—{% endif %}</div>
+                <div class="podium-name">{% if leaders|length >= 2 %}🥈 {{ leaders[1][0] }}{% else %}—{% endif %}</div>
             </div>
 
-            <div class="podium-item winner">
-                <div class="inner">
-                    <div class="medal">🏆</div>
-                    <div class="podium-name">{% if leaders|length >= 1 %}{{ leaders[0][0] }}{% else %}—{% endif %}</div>
-                    <div class="podium-points">{% if leaders|length >= 1 %}<b>{{ leaders[0][1] }}</b> ★{% endif %}</div>
-                    <div class="podium-badge">1 место</div>
-                </div>
+            <div class="podium-item-minimal first">
+                <div class="podium-rank">🏆 1 место</div>
+                <div class="podium-num">{% if leaders|length >= 1 %}{{ leaders[0][1] }}{% else %}—{% endif %}</div>
+                <div class="podium-name">{% if leaders|length >= 1 %}🏆 {{ leaders[0][0] }}{% else %}—{% endif %}</div>
             </div>
 
-            <div class="podium-item">
-                <div class="medal">🥉</div>
-                <div class="podium-name">{% if leaders|length >= 3 %}{{ leaders[2][0] }}{% else %}—{% endif %}</div>
-                <div class="podium-points">{% if leaders|length >= 3 %}<b>{{ leaders[2][1] }}</b> ★{% endif %}</div>
-                <div class="podium-badge">3 место</div>
+            <div class="podium-item-minimal third">
+                <div class="podium-rank">3 место</div>
+                <div class="podium-num">{% if leaders|length >= 3 %}{{ leaders[2][1] }}{% else %}—{% endif %}</div>
+                <div class="podium-name">{% if leaders|length >= 3 %}🥉 {{ leaders[2][0] }}{% else %}—{% endif %}</div>
             </div>
         </div>
     </section>
