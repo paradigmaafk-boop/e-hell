@@ -33,14 +33,12 @@ html, body {
    ============================================================ */
 body {
     position: relative;
-    /* градиент: снизу тёмно-бордовый с тёплым отливом → вверх почти чёрный */
     background: linear-gradient(to top, #4a1410, #0a0203);
     background-size: 100% 200%;
     background-attachment: fixed;
     animation: emberPulse 7s ease-in-out infinite alternate;
 }
 
-/* слой тёплого оранжевого свечения снизу — тлеющие угли */
 body::after {
     content: '';
     position: fixed;
@@ -51,7 +49,6 @@ body::after {
     animation: emberFlicker 5.5s ease-in-out infinite alternate;
 }
 
-/* лёгкая тёмная вуаль сверху, чтобы контент читался */
 body::before {
     content: '';
     position: fixed;
@@ -71,7 +68,6 @@ body::before {
     100% { opacity: 0.85; transform: scale(1.18); }
 }
 
-/* Скрыть любые висячие .ember / .embers на всякий случай */
 .embers,
 .ember {
     display: none !important;
