@@ -33,17 +33,6 @@
         .save-hint { font-size: 0.78rem; color: var(--dim); font-style: italic; }
         .save-hint.saved { color: var(--accent-warm); text-shadow: 0 0 10px rgba(255,184,0,0.6); }
 
-        .edit-banner {
-            display: none; padding: 0.6rem 1rem;
-            background: rgba(255, 69, 0, 0.1);
-            border: 1px solid rgba(255, 69, 0, 0.4);
-            border-radius: 10px; font-size: 0.82rem;
-            color: var(--accent-warm); margin-top: 0.75rem;
-            align-items: center; gap: 0.6rem;
-            box-shadow: 0 0 25px rgba(255,69,0,0.15);
-        }
-        body.edit-mode .edit-banner { display: flex; }
-
         .map-wrap {
             margin-top: 0.75rem;
             background: linear-gradient(180deg, #1a0d05, #0a0503);
@@ -162,66 +151,9 @@
             50% { opacity: 1; }
         }
 
-        .drag-hint {
-            display: none;
-            padding: 0.5rem 0.9rem;
-            background: rgba(255, 69, 0, 0.12);
-            border: 1px solid rgba(255, 69, 0, 0.4);
-            border-radius: 8px;
-            font-size: 0.78rem;
-            color: var(--accent-warm);
-            margin-top: 0.6rem;
-            text-align: center;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            box-shadow: 0 0 20px rgba(255,69,0,0.15);
-        }
-        body.edit-mode .drag-hint { display: flex; }
-
         .draw-toolbar {
             display: none;
-            padding: 0.7rem 1rem;
-            background: rgba(26, 13, 5, 0.95);
-            border: 1px solid var(--accent);
-            border-radius: 12px;
-            margin-top: 0.6rem;
-            align-items: center;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255,69,0,0.25);
         }
-        body.drawing-mode .draw-toolbar { display: flex; }
-        .draw-label { font-size: 0.78rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
-        .color-swatches { display: flex; gap: 0.4rem; flex-wrap: wrap; }
-        .color-swatch {
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            border: 2px solid #1a1209;
-            cursor: pointer;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-            padding: 0;
-        }
-        .color-swatch:hover { transform: scale(1.15); }
-        .color-swatch.active {
-            box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.6), 0 0 15px rgba(255,69,0,0.5);
-            transform: scale(1.15);
-        }
-        .draw-info { font-size: 0.8rem; color: var(--accent-warm); margin-left: auto; font-style: italic; }
-        .draw-tip {
-            display: none;
-            padding: 0.55rem 1rem;
-            background: rgba(255, 100, 0, 0.1);
-            border: 1px solid rgba(255, 100, 0, 0.5);
-            border-radius: 10px;
-            font-size: 0.8rem;
-            color: var(--accent-warm);
-            margin-top: 0.5rem;
-            text-align: center;
-            line-height: 1.5;
-            box-shadow: 0 0 20px rgba(255,69,0,0.2);
-        }
-        body.drawing-mode .draw-tip { display: block; }
 
         .stage-badges { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
         .stage-badge {
@@ -584,34 +516,45 @@
         {% endif %}
     </div>
 
+    <!-- === Блок тактики боя === -->
+    <section class="tactics-block">
+        <div class="tactics-header">
+            <span class="tactics-label">📋 Тактика боя</span>
+            {% if session['username'] == 'admin' %}
+            <span class="tactics-hint" id="tacticsHint">Нажмите на текст, чтобы отредактировать</span>
+            {% endif %}
+        </div>
+        <div class="tactics-text {% if session['username'] == 'admin' %}editable{% endif %}"
+             data-key="tactics-text"
+             {% if session['username'] == 'admin' %}contenteditable="false"{% endif %}>{{ map_values.get('tactics-text', 'Тактика боя ещё не заполнена. Администратор может добавить описание.') }}</div>
+    </section>
+
+    <!-- === Единая панель управления (только для админа) === -->
     {% if session['username'] == 'admin' %}
-    <div class="edit-banner">
-        ⚡ Режим редактирования включён. Кликайте на текст, перетаскивайте иконки и плашки. Правый клик по стрелке или объекту — удалить.
-    </div>
-    <div class="drag-hint">
-        🖐 Тащите иконки и плашки мышью. Растягивайте плашки за правый нижний угол.
+    <div class="control-panel">
+        <div class="control-row">
+            <span class="control-label">🎨 Цвет стрелки:</span>
+            <div class="color-swatches" id="colorSwatches">
+                <button class="color-swatch active" data-color="#ff8a1f" style="background:#ff8a1f;" title="Оранжевый"></button>
+                <button class="color-swatch" data-color="#ff4500" style="background:#ff4500;" title="Раскалённый"></button>
+                <button class="color-swatch" data-color="#ffb800" style="background:#ffb800;" title="Жёлтый"></button>
+                <button class="color-swatch" data-color="#ff2200" style="background:#ff2200;" title="Красный"></button>
+                <button class="color-swatch" data-color="#4a9eff" style="background:#4a9eff;" title="Синий"></button>
+                <button class="color-swatch" data-color="#3fbf6a" style="background:#3fbf6a;" title="Зелёный"></button>
+                <button class="color-swatch" data-color="#b07aff" style="background:#b07aff;" title="Фиолетовый"></button>
+                <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;" title="Белый"></button>
+                <button class="color-swatch" data-color="#000000" style="background:#000000; border-color:#666;" title="Чёрный"></button>
+            </div>
+            <span class="control-status" id="drawInfo">Кликните для начала стрелки</span>
+        </div>
+        <div class="control-hint" id="drawTip">
+            <span id="drawTipText">🎯 Кликните <b>по иконке</b>, чтобы начать стрелку от неё. Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.</span>
+        </div>
+        <div class="control-hint" id="controlHint">
+            ✏️ <b>Режим редактирования:</b> кликайте на текст (имена, ники, этапы, тактику), перетаскивайте иконки и плашки мышью. Растягивайте плашки за правый нижний угол. Правый клик по стрелке или объекту — удалить.
+        </div>
     </div>
     {% endif %}
-
-    <div class="draw-toolbar">
-        <span class="draw-label">🎨 Цвет стрелки:</span>
-        <div class="color-swatches" id="colorSwatches">
-            <button class="color-swatch active" data-color="#ff8a1f" style="background:#ff8a1f;" title="Оранжевый"></button>
-            <button class="color-swatch" data-color="#ff4500" style="background:#ff4500;" title="Раскалённый"></button>
-            <button class="color-swatch" data-color="#ffb800" style="background:#ffb800;" title="Жёлтый"></button>
-            <button class="color-swatch" data-color="#ff2200" style="background:#ff2200;" title="Красный"></button>
-            <button class="color-swatch" data-color="#4a9eff" style="background:#4a9eff;" title="Синий"></button>
-            <button class="color-swatch" data-color="#3fbf6a" style="background:#3fbf6a;" title="Зелёный"></button>
-            <button class="color-swatch" data-color="#b07aff" style="background:#b07aff;" title="Фиолетовый"></button>
-            <button class="color-swatch" data-color="#ffffff" style="background:#ffffff;" title="Белый"></button>
-            <button class="color-swatch" data-color="#000000" style="background:#000000; border-color:#666;" title="Чёрный"></button>
-        </div>
-        <span class="draw-info" id="drawInfo">Кликните для начала стрелки</span>
-    </div>
-
-    <div class="draw-tip" id="drawTip">
-        <div id="drawTipText">🎯 Кликните <b>по иконке</b>, чтобы начать стрелку от неё.<br>Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.</div>
-    </div>
 
     <div class="map-wrap">
         <div class="field" id="field">
