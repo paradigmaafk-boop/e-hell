@@ -1048,6 +1048,155 @@ td.points-cell {
 }
 
 /* ============================================================
+   БЛОК ТАКТИКИ БОЯ (над картой)
+   ============================================================ */
+.tactics-block {
+    margin-top: 1rem;
+    padding: 1rem 1.25rem;
+    background: linear-gradient(180deg, rgba(26, 13, 5, 0.9), rgba(10, 5, 3, 0.95));
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    box-shadow: 0 0 25px rgba(255, 69, 0, 0.1);
+}
+
+.tactics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.tactics-label {
+    font-size: 0.72rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent-warm);
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
+}
+
+.tactics-hint {
+    font-size: 0.72rem;
+    color: var(--dim);
+    font-style: italic;
+}
+
+.tactics-text {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 0.5rem 0.6rem;
+    border-radius: 6px;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    min-height: 1.5rem;
+}
+
+.tactics-text.editable {
+    cursor: text;
+}
+
+.tactics-text.editable:hover {
+    background: rgba(255, 69, 0, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(255, 69, 0, 0.25);
+}
+
+.tactics-text[contenteditable="true"]:focus {
+    outline: none;
+    background: rgba(255, 69, 0, 0.1);
+    box-shadow: inset 0 0 0 1px var(--accent), 0 0 15px rgba(255, 69, 0, 0.3);
+}
+
+.tactics-text[contenteditable="true"]:empty::before {
+    content: 'Введите тактику боя...';
+    color: var(--dim);
+    font-style: italic;
+}
+
+/* ============================================================
+   ЕДИНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ (замена 4-х отдельных плашек)
+   ============================================================ */
+.control-panel {
+    display: none;
+    margin-top: 0.75rem;
+    padding: 0.85rem 1.1rem;
+    background: linear-gradient(180deg, rgba(26, 13, 5, 0.95), rgba(10, 5, 3, 0.98));
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 69, 0, 0.2);
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+body.edit-mode .control-panel {
+    display: flex;
+}
+
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.control-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.control-status {
+    font-size: 0.78rem;
+    color: var(--accent-warm);
+    font-style: italic;
+    margin-left: auto;
+}
+
+.control-hint {
+    display: none;
+    padding: 0.5rem 0.85rem;
+    background: rgba(255, 69, 0, 0.08);
+    border: 1px solid rgba(255, 69, 0, 0.3);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: var(--accent-warm);
+    line-height: 1.5;
+}
+
+body.edit-mode .control-hint {
+    display: block;
+}
+
+body.drawing-mode #drawTip {
+    display: block;
+}
+
+body:not(.drawing-mode) #drawTip {
+    display: none;
+}
+
+/* Кнопка «Стрелки» в активном режиме — подсветка */
+body.drawing-mode #drawToggle {
+    background: rgba(255, 69, 0, 0.15);
+    border-color: var(--accent);
+    color: var(--accent-warm);
+    box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
+}
+
+/* Скрыть старые плашки, если где-то остались */
+.edit-banner,
+.drag-hint,
+.draw-toolbar,
+.draw-tip {
+    display: none !important;
+}
+
+/* ============================================================
    СВЕТЛАЯ ТЕМА
    ============================================================ */
 body.light-theme {
@@ -1070,7 +1219,9 @@ body.light-theme .admin-panel,
 body.light-theme .stat-card,
 body.light-theme .login-card,
 body.light-theme .accordion,
-body.light-theme .carousel-caption {
+body.light-theme .carousel-caption,
+body.light-theme .tactics-block,
+body.light-theme .control-panel {
     background: linear-gradient(180deg, #fffbf2, #fdf7ec);
 }
 
@@ -1078,7 +1229,7 @@ body.light-theme .carousel-caption {
    АДАПТИВ
    ============================================================ */
 @media (max-width: 780px) {
-    .wrap { padding: 1rem 1.25rem 3rem; }
+    .wrap { padding: 1rem 1.25rem 2rem; }
     .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
     .brand-emblem { width: 46px; height: 46px; }
     .brand-name { font-size: 1.25rem; letter-spacing: 2px; }
