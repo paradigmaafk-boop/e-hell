@@ -25,11 +25,51 @@ html, body {
     line-height: 1.55;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    background: #0a0503;
     overflow-x: hidden;
 }
 
-body { position: relative; }
+/* ============================================================
+   ФОН: ТЛЕЮЩИЙ ЖАР (вариант 1)
+   ============================================================ */
+body {
+    position: relative;
+    /* градиент: снизу тёмно-бордовый с тёплым отливом → вверх почти чёрный */
+    background: linear-gradient(to top, #4a1410, #0a0203);
+    background-size: 100% 200%;
+    background-attachment: fixed;
+    animation: emberPulse 7s ease-in-out infinite alternate;
+}
+
+/* слой тёплого оранжевого свечения снизу — тлеющие угли */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at 50% 92%, rgba(220, 100, 30, 0.55), transparent 68%);
+    animation: emberFlicker 5.5s ease-in-out infinite alternate;
+}
+
+/* лёгкая тёмная вуаль сверху, чтобы контент читался */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: linear-gradient(to bottom, rgba(5, 1, 2, 0.55), rgba(5, 1, 2, 0.1) 40%, rgba(5, 1, 2, 0.5));
+}
+
+@keyframes emberPulse {
+    0%   { background-position: 0% 100%; }
+    100% { background-position: 0% 0%; }
+}
+
+@keyframes emberFlicker {
+    0%   { opacity: 0.35; transform: scale(1); }
+    100% { opacity: 0.85; transform: scale(1.18); }
+}
 
 /* Скрыть любые висячие .ember / .embers на всякий случай */
 .embers,
@@ -981,6 +1021,11 @@ body.light-theme {
     --dim: #a89880;
     --panel: #fffbf2;
     background: #fbf5ea;
+    animation: none;
+}
+body.light-theme::before,
+body.light-theme::after {
+    display: none;
 }
 body.light-theme .podium-item,
 body.light-theme .admin-panel,
