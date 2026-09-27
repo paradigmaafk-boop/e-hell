@@ -85,7 +85,11 @@
         }
         body.edit-mode:not(.drawing-mode) .arrows-layer { pointer-events: auto; }
         body.edit-mode:not(.drawing-mode) .arrows-layer path { pointer-events: stroke; cursor: pointer; }
-        body.edit-mode:not(.drawing-mode) .arrows-layer path:hover { opacity: 1 !important; stroke-width: 4 !important; }
+        body.edit-mode:not(.drawing-mode) .arrows-layer path:hover {
+            opacity: 1 !important;
+            stroke-width: 5 !important;
+            filter: drop-shadow(0 0 6px currentColor);
+        }
         body.drawing-mode .arrows-layer path { pointer-events: none !important; }
 
         .arrows-layer .draw-preview { stroke-dasharray: 6 4; opacity: 0.9; pointer-events: none; }
@@ -149,10 +153,6 @@
         @keyframes pulse-draw {
             0%, 100% { opacity: 0.7; }
             50% { opacity: 1; }
-        }
-
-        .draw-toolbar {
-            display: none;
         }
 
         .stage-badges { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
@@ -548,10 +548,10 @@
             <span class="control-status" id="drawInfo">Кликните для начала стрелки</span>
         </div>
         <div class="control-hint" id="drawTip">
-            <span id="drawTipText">🎯 Кликните <b>по иконке</b>, чтобы начать стрелку от неё. Сегменты выравниваются по осям автоматически. <b>Двойной клик</b> — завершить.</span>
+            <span id="drawTipText">🎯 Кликните <b>по иконке</b>, чтобы начать стрелку от неё. Углы всегда прямые (90°). <b>Двойной клик</b> — завершить.</span>
         </div>
         <div class="control-hint" id="controlHint">
-            ✏️ <b>Режим редактирования:</b> кликайте на текст (имена, ники, этапы, тактику), перетаскивайте иконки и плашки мышью. Растягивайте плашки за правый нижний угол. Правый клик по стрелке или объекту — удалить.
+            ✏️ <b>Режим редактирования:</b> кликайте на текст (имена, ники, этапы, тактику), перетаскивайте иконки и плашки мышью. Растягивайте плашки за правый нижний угол. <b>Клик по стрелке</b> — открыть меню удаления.
         </div>
     </div>
     {% endif %}
@@ -1083,12 +1083,60 @@
         const resetBtn = document.getElementById('resetBtn');
         const saveHint = document.getElementById('saveHint');
         const drawInfo = document.getElementById('drawInfo');
-        const drawTipText = document.getElementById('drawTipText');
         const editables = document.querySelectorAll('.editable');
         const field = document.getElementById('field');
         const points = document.querySelectorAll('.point[data-point-key]');
         const panels = document.querySelectorAll('.draggable-panel[data-panel-key]');
         const svgLayer = document.getElementById('arrowsLayer');
+
+        let arrows = [];
+        try { arrows = JSON.parse(window.INITIAL_ARROWS || '[]'); } catch (e) { arrows = []; }
+
+        // === Модалка удаления стрелки ===
+        let arrowModal = document.getElementById('arrowDeleteModal');
+        if (!arrowModal) {
+            arrowModal = document.createElement('div');
+            arrowModal.id = 'arrowDeleteModal';
+            arrowModal.className = 'modal-overlay';
+            arrowModal.innerHTML = `
+                <div class="modal-box">
+                    <div class="modal-title">🗑 Удалить стрелку?</div>
+                    <div class="modal-text">Это действие нельзя отменить.</div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-danger" id="arrowModalConfirm">Удалить</button>
+                        <button type="button" class="btn" id="arrowModalCancel">Отмена</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(arrowModal);
+        }
+        const arrowModalConfirm = document.getElementById('arrowModalConfirm');
+        const arrowModalCancel = document.getElementById('arrowModalCancel');
+        let pendingDeleteArrowId = null;
+
+        function openArrowModal(arrowId) {
+            pendingDeleteArrowId = arrowId;
+            arrowModal.classList.add('show');
+        }
+        function closeArrowModal() {
+            pendingDeleteArrowId = null;
+            arrowModal.classList.remove('show');
+        }
+        arrowModalCancel.addEventListener('click', closeArrowModal);
+        arrowModal.addEventListener('click', (e) => {
+            if (e.target === arrowModal) closeArrowModal();
+        });
+        arrowModalConfirm.addEventListener('click', () => {
+            if (!pendingDeleteArrowId) return closeArrowModal();
+            arrows = arrows.filter(a => a.id !== pendingDeleteArrowId);
+            window.INITIAL_ARROWS = arrows;
+            if (window.renderArrows) window.renderArrows();
+            saveData();
+            saveHint.textContent = '✓ Стрелка удалена';
+            saveHint.classList.add('saved');
+            setTimeout(() => { saveHint.textContent = ''; saveHint.classList.remove('saved'); }, 2000);
+            closeArrowModal();
+        });
 
         if (!editToggle) return;
 
@@ -1096,6 +1144,7 @@
         let isDrawing = false;
         let currentColor = '#ff8a1f';
         let currentPath = null;
+        let currentPathLockedAxis = null; // 'h' или 'v' — ориентация последнего сегмента
         let previewPathEl = null;
         let startDotEl = null;
         let lastClickTime = 0;
@@ -1103,9 +1152,6 @@
         let draggedPanel = null;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
-
-        let arrows = [];
-        try { arrows = JSON.parse(window.INITIAL_ARROWS || '[]'); } catch (e) { arrows = []; }
 
         function ensurePreviewEls() {
             if (!svgLayer) return;
@@ -1141,13 +1187,33 @@
             if (!el) return null;
             return el.closest('[data-connector-key]');
         }
-        function alignPoint(prevPt, targetPt) {
-            if (!prevPt) return targetPt;
-            const dx = Math.abs(targetPt.x - prevPt.x);
-            const dy = Math.abs(targetPt.y - prevPt.y);
-            if (dx >= dy) return { x: targetPt.x, y: prevPt.y };
-            return { x: prevPt.x, y: targetPt.y };
+
+        // === Построение ортогонального пути с прямыми углами ===
+        // Первый сегмент идёт от исходной точки либо горизонтально, либо вертикально —
+        // в зависимости от того, какое смещение больше. Далее — строго чередуется.
+        function buildOrthogonalPath(startPt, endPt, firstAxis) {
+            const dx = endPt.x - startPt.x;
+            const dy = endPt.y - startPt.y;
+            if (Math.abs(dx) < 0.3 && Math.abs(dy) < 0.3) return [];
+            let axis = firstAxis;
+            if (!axis) {
+                axis = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
+            }
+            const result = [];
+            // Первый сегмент
+            if (axis === 'h') {
+                result.push({ x: endPt.x, y: startPt.y });
+            } else {
+                result.push({ x: startPt.x, y: endPt.y });
+            }
+            // Второй сегмент — до конца
+            const corner = result[0];
+            if (Math.abs(endPt.x - corner.x) > 0.3 || Math.abs(endPt.y - corner.y) > 0.3) {
+                result.push({ x: endPt.x, y: endPt.y });
+            }
+            return result;
         }
+
         function buildPathD(pointsPercent) {
             if (!pointsPercent.length) return '';
             const px = pointsPercent.map(percentToPx);
@@ -1156,11 +1222,11 @@
             return d;
         }
         function updatePreview(mousePercent) {
-            if (!currentPath) return;
+            if (!currentPath || currentPath.length === 0) return;
             ensurePreviewEls();
             const lastPt = currentPath[currentPath.length - 1];
-            const aligned = alignPoint(lastPt, mousePercent);
-            const points = currentPath.concat([aligned]);
+            const extra = buildOrthogonalPath(lastPt, mousePercent, currentPathLockedAxis);
+            const points = currentPath.concat(extra);
             previewPathEl.setAttribute('d', buildPathD(points));
             previewPathEl.setAttribute('stroke', currentColor);
             previewPathEl.style.display = '';
@@ -1242,6 +1308,7 @@
             drawToggle.classList.toggle('active', on);
             drawToggle.textContent = on ? '✏ Выйти из рисования' : '✏ Стрелки';
             currentPath = null;
+            currentPathLockedAxis = null;
             hidePreview();
             drawInfo.textContent = on ? 'Кликните по объекту, чтобы начать' : '';
         }
@@ -1276,21 +1343,33 @@
             const p = clientToPercent(e.clientX, e.clientY);
             const connector = findConnectorAt(e.clientX, e.clientY);
             const connectorKey = connector ? connector.dataset.connectorKey : null;
-            const rawPoint = connectorKey ? { key: connectorKey, x: p.x, y: p.y } : { x: p.x, y: p.y };
 
             if (!currentPath) {
+                // старт
+                const rawPoint = connectorKey
+                    ? { key: connectorKey, x: p.x, y: p.y }
+                    : { x: p.x, y: p.y };
                 currentPath = [rawPoint];
+                currentPathLockedAxis = null;
                 showStartDot(p);
-                drawInfo.textContent = '✓ Начало установлено. Ведите мышью, кликните для угла.';
+                drawInfo.textContent = '✓ Начало установлено. Ведите мышью, кликните для фиксации, двойной клик — завершить.';
                 return;
             }
+
             const lastPt = currentPath[currentPath.length - 1];
-            const aligned = alignPoint(lastPt, rawPoint);
-            if (Math.abs(aligned.x - lastPt.x) < 0.3 && Math.abs(aligned.y - lastPt.y) < 0.3) return;
-            const newPoint = connectorKey ? { key: connectorKey, x: aligned.x, y: aligned.y } : { x: aligned.x, y: aligned.y };
 
             if (isDoubleClick) {
-                currentPath.push(newPoint);
+                const extra = buildOrthogonalPath(lastPt, p, currentPathLockedAxis);
+                if (extra.length > 0) {
+                    extra.forEach(pt => {
+                        const isLast = pt === extra[extra.length - 1];
+                        if (isLast && connectorKey) {
+                            currentPath.push({ key: connectorKey, x: pt.x, y: pt.y });
+                        } else {
+                            currentPath.push({ x: pt.x, y: pt.y });
+                        }
+                    });
+                }
                 if (currentPath.length >= 2) {
                     const newArrow = {
                         id: 'arrow-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
@@ -1310,12 +1389,31 @@
                     setTimeout(() => { saveHint.textContent = ''; saveHint.classList.remove('saved'); }, 2000);
                 }
                 currentPath = null;
+                currentPathLockedAxis = null;
                 hidePreview();
                 drawInfo.textContent = 'Кликните по объекту для начала новой стрелки';
-            } else {
-                currentPath.push(newPoint);
-                drawInfo.textContent = '✓ Угол добавлен. Двойной клик — завершить.';
+                return;
             }
+
+            const extra = buildOrthogonalPath(lastPt, p, currentPathLockedAxis);
+            if (extra.length === 0) return;
+
+            // Определяем ориентацию последнего добавленного сегмента
+            const lastSegEnd = extra[extra.length - 1];
+            const prevSegStart = extra.length >= 2 ? extra[extra.length - 2] : lastPt;
+            const segDx = Math.abs(lastSegEnd.x - prevSegStart.x);
+            const segDy = Math.abs(lastSegEnd.y - prevSegStart.y);
+            currentPathLockedAxis = segDx >= segDy ? 'h' : 'v';
+
+            extra.forEach(pt => {
+                const isLast = pt === extra[extra.length - 1];
+                if (isLast && connectorKey) {
+                    currentPath.push({ key: connectorKey, x: pt.x, y: pt.y });
+                } else {
+                    currentPath.push({ x: pt.x, y: pt.y });
+                }
+            });
+            drawInfo.textContent = '✓ Угол добавлен. Ведите мышью, двойной клик — завершить.';
         }
         function onFieldMove(e) {
             if (!isDrawing || !currentPath) return;
@@ -1326,9 +1424,11 @@
             field.addEventListener('click', onFieldClick);
             field.addEventListener('mousemove', onFieldMove);
         }
+
+        // === Клик по стрелке в режиме редактирования — открыть модалку удаления ===
         if (svgLayer) {
-            svgLayer.addEventListener('contextmenu', (e) => {
-                if (!isEditing) return;
+            svgLayer.addEventListener('click', (e) => {
+                if (!isEditing || isDrawing) return;
                 let path = e.target.closest('path.arrow-path');
                 if (!path) {
                     const el = document.elementFromPoint(e.clientX, e.clientY);
@@ -1336,18 +1436,14 @@
                 }
                 if (!path) return;
                 e.preventDefault();
+                e.stopPropagation();
                 const arrowId = path.dataset.arrowId;
                 if (!arrowId) return;
-                if (!confirm('Удалить эту стрелку?')) return;
-                arrows = arrows.filter(a => a.id !== arrowId);
-                window.INITIAL_ARROWS = arrows;
-                if (window.renderArrows) window.renderArrows();
-                saveData();
-                saveHint.textContent = '✓ Стрелка удалена';
-                saveHint.classList.add('saved');
-                setTimeout(() => { saveHint.textContent = ''; saveHint.classList.remove('saved'); }, 2000);
+                openArrowModal(arrowId);
             });
         }
+
+        // === Правый клик по объекту — массовое удаление связанных стрелок ===
         function onConnectorContextMenu(e) {
             if (!isEditing || isDrawing) return;
             const el = e.target.closest('[data-connector-key]');
