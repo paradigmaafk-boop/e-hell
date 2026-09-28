@@ -101,8 +101,8 @@
 
                 <div class="leader-card place-3 {% if leaders|length < 3 %}empty{% endif %}">
                     <div class="leader-place">
-                        <span class="leader-icon">🥉</span>
-                        <span class="leader-label">бронза</span>
+                        <span class="leader-icon">🥇</span>
+                        <span class="leader-label">золото</span>
                     </div>
                     <div class="leader-content">
                         <div class="leader-rank">3</div>
@@ -141,8 +141,8 @@
 
                 <div class="leader-card place-4 {% if leaders|length < 4 %}empty{% endif %}">
                     <div class="leader-place">
-                        <span class="leader-icon">⚙️</span>
-                        <span class="leader-label">сталь</span>
+                        <span class="leader-icon">🥈</span>
+                        <span class="leader-label">серебро</span>
                     </div>
                     <div class="leader-content">
                         <div class="leader-rank">4</div>
@@ -153,8 +153,8 @@
 
                 <div class="leader-card place-5 {% if leaders|length < 5 %}empty{% endif %}">
                     <div class="leader-place">
-                        <span class="leader-icon">⚙️</span>
-                        <span class="leader-label">сталь</span>
+                        <span class="leader-icon">🥈</span>
+                        <span class="leader-label">серебро</span>
                     </div>
                     <div class="leader-content">
                         <div class="leader-rank">5</div>
@@ -190,51 +190,57 @@
 
     <section class="section section-tight">
         <div class="section-title">Общий рейтинг</div>
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">#</th>
-                        <th>Никнейм</th>
-                        <th style="width: 150px;">Очки</th>
-                        <th style="width: 120px;">Прогресс</th>
-                        {% if session['username'] == 'admin' %}
-                        <th style="width: 120px;">Действия</th>
-                        {% endif %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if rating %}
-                        {% for player in rating %}
-                        <tr>
-                            <td class="num">{{ loop.index }}</td>
-                            <td class="name-cell">
-                                <a href="/player/{{ rating_type }}/{{ player[0] }}">{{ player[0] }}</a>
-                            </td>
-                            <td class="points-cell">{{ player[1] }}</td>
-                            <td>
-                                <a href="/player/{{ rating_type }}/{{ player[0] }}" class="btn btn-small">График</a>
-                            </td>
-                            {% if session['username'] == 'admin' %}
-                            <td>
-                                <form action="/delete-player/{{ rating_type }}/{{ player[0] }}" method="POST" style="display: inline;"
-                                      onsubmit="return confirm('Удалить игрока {{ player[0] }} и всю его историю?');">
-                                    <button type="submit" class="btn btn-small btn-danger">Удалить</button>
-                                </form>
-                            </td>
-                            {% endif %}
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="{% if session['username'] == 'admin' %}5{% else %}4{% endif %}" class="empty-msg">
-                                Нет данных. Загрузите рейтинг!
-                            </td>
-                        </tr>
+
+        {% if rating %}
+        <div class="rating-list">
+
+            {% for player in rating %}
+            {% set place = loop.index %}
+            <div class="rating-row
+                {% if place == 1 %}p1
+                {% elif place <= 3 %}p2
+                {% elif place <= 5 %}p3
+                {% elif place <= 10 %}p4
+                {% elif place <= 50 %}p5
+                {% else %}p6{% endif %}">
+
+                <div class="rating-circle">{{ place }}</div>
+
+                <div class="rating-info">
+                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="rating-name">{{ player[0] }}</a>
+                    <div class="rating-tier">
+                        {% if place == 1 %}Алмаз
+                        {% elif place <= 3 %}Золото
+                        {% elif place <= 5 %}Серебро
+                        {% elif place <= 10 %}Бронза
+                        {% elif place <= 50 %}Сталь
+                        {% else %}—{% endif %}
+                    </div>
+                </div>
+
+                <div class="rating-points">{{ player[1] }}<small>★</small></div>
+
+                <div class="rating-actions">
+                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="rating-btn" title="График">
+                        📈 <span class="rating-btn-text">График</span>
+                    </a>
+                    {% if session['username'] == 'admin' %}
+                    <form action="/delete-player/{{ rating_type }}/{{ player[0] }}" method="POST" style="display: inline; margin: 0;"
+                          onsubmit="return confirm('Удалить игрока {{ player[0] }} и всю его историю?');">
+                        <button type="submit" class="rating-btn rating-btn-danger" title="Удалить">
+                            🗑 <span class="rating-btn-text">Удалить</span>
+                        </button>
+                    </form>
                     {% endif %}
-                </tbody>
-            </table>
+                </div>
+
+            </div>
+            {% endfor %}
+
         </div>
+        {% else %}
+        <div class="empty-msg">Нет данных. Загрузите рейтинг!</div>
+        {% endif %}
     </section>
 
     {% if session['username'] == 'admin' %}
