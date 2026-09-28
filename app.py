@@ -79,7 +79,7 @@ def rating_view(rating_type):
         return redirect(url_for('rating_view', rating_type='duel'))
 
     rating_data = get_latest_rating(rating_type)
-    leaders = get_all_time_leaders(rating_type)
+    leaders = get_all_time_leaders(rating_type, limit=5)
     display_name = get_rating_display_name(rating_type)
 
     return render_template('rating.html',
