@@ -282,11 +282,11 @@ def get_total_weeks(rating_type):
     conn.close()
     return total or 0
 
-def get_all_time_leaders(rating_type):
+def get_all_time_leaders(rating_type, limit=3):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(f"""SELECT nickname, SUM(points) as total_points FROM history_{rating_type}
-                       GROUP BY nickname ORDER BY total_points DESC LIMIT 3""")
+                       GROUP BY nickname ORDER BY total_points DESC LIMIT %s""", (limit,))
     data = cursor.fetchall()
     conn.close()
     return data
