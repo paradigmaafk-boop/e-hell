@@ -66,6 +66,14 @@ def index():
     increment_counter('visits')
     slides = get_all_slides(only_active=True)
     rating_types = get_all_rating_types()
+
+    # Проверяем, что файлы на месте — если нет, пишем в лог
+    for slide in slides:
+        if slide[4] and slide[4].startswith('/static/carousel/'):
+            rel_path = slide[4].replace('/static/', 'static/', 1)
+            if not os.path.exists(rel_path):
+                print(f"[WARN] Файл слайда #{slide[0]} не найден: {rel_path}")
+
     return render_template('index.html',
                            slides=slides,
                            rating_types=rating_types)
