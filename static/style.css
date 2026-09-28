@@ -4,12 +4,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* ============================================================
-   УБИРАЕМ СИНЮЮ ПОДСВЕТКУ И БЕЛЫЕ ПОЛОСЫ НА МОБИЛЬНЫХ
+   УБИРАЕМ СИНЮЮ ПОДСВЕТКУ НА МОБИЛЬНЫХ
    ============================================================ */
 html {
     -webkit-tap-highlight-color: transparent;
     background: #0a0503;
-    overscroll-behavior: none;
 }
 
 a, button, .btn, .side-btn, .nav a, .link-btn, .moon,
@@ -59,7 +58,6 @@ html, body {
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
-    overscroll-behavior-y: none;
 }
 
 /* ============================================================
@@ -824,7 +822,6 @@ td.points-cell {
     font-size: 0.95rem;
 }
 
-/* Светлая тема */
 body.light-theme .podium-item-minimal {
     border-bottom-color: #e8dcc8;
 }
@@ -842,6 +839,42 @@ body.light-theme .podium-item-minimal.first .podium-num {
 body.light-theme .podium-item-minimal.first .podium-rank,
 body.light-theme .podium-item-minimal.first .podium-name {
     color: #d44000;
+}
+
+/* ============================================================
+   СТАТ-КАРТОЧКИ
+   ============================================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.stat-card {
+    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+.stat-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+}
+.stat-card .number {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--accent-warm);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 0.4rem;
+    line-height: 1.1;
+}
+.stat-card .label {
+    font-size: 0.72rem;
+    color: var(--dim);
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
 
 /* ============================================================
@@ -1042,7 +1075,7 @@ body.light-theme .podium-item-minimal.first .podium-name {
 }
 
 /* ============================================================
-   БЛОК ТАКТИКИ БОЯ (для карты резервуара)
+   БЛОК ТАКТИКИ БОЯ
    ============================================================ */
 .tactics-block {
     margin-top: 1rem;
@@ -1102,7 +1135,7 @@ body.light-theme .podium-item-minimal.first .podium-name {
 }
 
 /* ============================================================
-   ЕДИНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ (для карты)
+   ЕДИНАЯ ПАНЕЛЬ УПРАВЛЕНИЯ
    ============================================================ */
 .control-panel {
     display: none;
