@@ -146,10 +146,18 @@
         }
         .empty-carousel p { font-size: 0.9rem; }
 
+        /* ============================================================
+           ПОДПИСЬ КАРУСЕЛИ — фиксированная высота, одинаковая для всех
+           слайдов. Текст помещается полностью, без скролла.
+           ============================================================ */
         .carousel-caption {
             flex: 0 0 auto;
-            min-height: 6.5rem;
-            max-height: 8rem;
+            height: 13rem;
+            padding: 1.25rem 2rem 1.5rem;
+            text-align: center;
+            background: linear-gradient(180deg, #1a0d05, #0a0503);
+            border-top: 1px solid var(--line);
+            position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -158,16 +166,20 @@
 
         .caption-title {
             flex: 0 0 auto;
+            margin-bottom: 0.85rem;
+            line-height: 1.2;
             overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         .caption-text {
             flex: 1 1 auto;
-            overflow: hidden;
             margin: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .caption-text::-webkit-scrollbar { display: none; }
 
         .flash-top {
             position: fixed;
@@ -196,9 +208,6 @@
 
             .carousel-stage {
                 max-height: calc(100vh - 26rem);
-            }
-            .carousel-caption {
-                max-height: 8rem;
             }
         }
 
@@ -271,26 +280,30 @@
 
             .carousel-caption {
                 flex: 0 0 auto;
-                min-height: 5.5rem;
-                max-height: 7rem;
-                overflow: hidden;
+                height: 12rem;
                 padding: 0.7rem 0.9rem 0.8rem;
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start;
             }
             .caption-title {
+                flex: 0 0 auto;
                 font-size: 1rem;
                 letter-spacing: 1.5px;
                 margin-bottom: 0.4rem;
-                line-height: 1.2;
-                white-space: nowrap;
                 overflow: hidden;
-                text-overflow: ellipsis;
             }
             .caption-text {
+                flex: 1 1 auto;
                 font-size: 0.78rem;
                 line-height: 1.45;
-                overflow: hidden;
-                margin: 0;
+                overflow-y: auto;
+                overflow-x: hidden;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
             }
+            .caption-text::-webkit-scrollbar { display: none; }
 
             .nav-arrow {
                 width: 34px;
@@ -312,13 +325,10 @@
             .nav-arrow { width: 30px; height: 30px; font-size: 0.85rem; }
 
             .carousel-caption {
-                min-height: 4.5rem;
-                max-height: 6rem;
+                height: 13rem;
             }
             .caption-title { font-size: 0.92rem; }
-            .caption-text {
-                font-size: 0.72rem;
-            }
+            .caption-text { font-size: 0.72rem; }
         }
 
         @media (max-width: 900px) and (max-height: 520px) {
