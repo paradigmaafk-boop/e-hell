@@ -4,10 +4,12 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* ============================================================
-   УБИРАЕМ СИНЮЮ ПОДСВЕТКУ НА МОБИЛЬНЫХ
+   УБИРАЕМ СИНЮЮ ПОДСВЕТКУ И БЕЛЫЕ ПОЛОСЫ НА МОБИЛЬНЫХ
    ============================================================ */
 html {
     -webkit-tap-highlight-color: transparent;
+    background: #0a0503;
+    overscroll-behavior: none;
 }
 
 a, button, .btn, .side-btn, .nav a, .link-btn, .moon,
@@ -57,6 +59,7 @@ html, body {
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
 }
 
 /* ============================================================
@@ -64,9 +67,11 @@ html, body {
    ============================================================ */
 body {
     position: relative;
-    background: linear-gradient(to top, #4a1410, #0a0203);
+    background-color: #0a0503;
+    background-image: linear-gradient(to top, #4a1410, #0a0203);
     background-size: 100% 200%;
     background-attachment: fixed;
+    background-repeat: no-repeat;
     animation: emberPulse 7s ease-in-out infinite alternate;
 }
 
@@ -1149,7 +1154,6 @@ body.drawing-mode #drawToggle {
     box-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
 }
 
-/* Скрыть старые плашки карты */
 .edit-banner,
 .drag-hint,
 .draw-toolbar,
@@ -1237,7 +1241,8 @@ body.light-theme {
     --muted: #7a6a54;
     --dim: #a89880;
     --panel: #fffbf2;
-    background: #fbf5ea;
+    background-color: #fbf5ea;
+    background-image: none;
     animation: none;
 }
 body.light-theme::before,
