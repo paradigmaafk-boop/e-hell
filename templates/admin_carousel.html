@@ -153,9 +153,9 @@
                     <div style="border-radius: 8px; overflow: hidden; background: #000; height: 140px; display: flex; align-items: center; justify-content: center;">
                         {% if slide[4] %}
                             {% if slide[3] == 'video' %}
-                                <video src="{{ slide[4] }}" muted autoplay loop playsinline style="max-width: 100%; max-height: 100%;"></video>
+                                <video src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}" muted autoplay loop playsinline style="max-width: 100%; max-height: 100%;"></video>
                             {% else %}
-                                <img src="{{ slide[4] }}" style="max-width: 100%; max-height: 100%;" alt="">
+                                <img src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}" style="max-width: 100%; max-height: 100%;" alt="">
                             {% endif %}
                         {% else %}
                             <span style="color: var(--dim); font-size: 0.85rem;">Нет медиа</span>
