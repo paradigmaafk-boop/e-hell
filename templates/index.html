@@ -56,13 +56,14 @@
             min-height: 0;
         }
 
+        /* Перелистывание в 2 раза медленнее */
         .slide {
             position: absolute;
             inset: 0;
             opacity: 0;
             transform: scale(1.04);
-            transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 2.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 3.6s cubic-bezier(0.4, 0, 0.2, 1),
+                        transform 4.8s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -146,10 +147,7 @@
         }
         .empty-carousel p { font-size: 0.9rem; }
 
-        /* ============================================================
-           ПОДПИСЬ КАРУСЕЛИ — фиксированная высота, одинаковая для всех
-           слайдов. Текст помещается полностью, без скролла.
-           ============================================================ */
+        /* ПОДПИСЬ: фиксированной высоты — одинаковое место для всех слайдов */
         .carousel-caption {
             flex: 0 0 auto;
             height: 13rem;
@@ -567,7 +565,7 @@
         }
         function next() { goTo(current + 1); }
         function prev() { goTo(current - 1); }
-        function startTimer() { timer = setInterval(next, 10000); }
+        function startTimer() { timer = setInterval(next, 15000); }
         function resetTimer() { clearInterval(timer); startTimer(); }
 
         if (nextBtn) nextBtn.addEventListener('click', next);
