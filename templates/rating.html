@@ -92,36 +92,88 @@
     </div>
 
     {% if leaders %}
-    <section class="section">
+    <section class="section section-tight">
         <div class="section-title">Топы Ацкого Пламени</div>
 
-        <div class="podium-minimal">
-            <div class="podium-item-minimal second">
-                <div class="podium-rank">2 место</div>
-                <div class="podium-num">{% if leaders|length >= 2 %}{{ leaders[1][1] }}{% else %}—{% endif %}</div>
-                <div class="podium-name">{% if leaders|length >= 2 %}🥈 {{ leaders[1][0] }}{% else %}—{% endif %}</div>
+        <div class="leaders-block">
+
+            <div class="leaders-podium">
+
+                <div class="leader-card place-3 {% if leaders|length < 3 %}empty{% endif %}">
+                    <div class="leader-place">
+                        <span class="leader-icon">🥉</span>
+                        <span class="leader-label">бронза</span>
+                    </div>
+                    <div class="leader-content">
+                        <div class="leader-rank">3</div>
+                        <div class="leader-name">{% if leaders|length >= 3 %}{{ leaders[2][0] }}{% else %}—{% endif %}</div>
+                        <div class="leader-points">{% if leaders|length >= 3 %}{{ leaders[2][1] }} ★{% else %}—{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="leader-card place-1 winner {% if leaders|length < 1 %}empty{% endif %}">
+                    <div class="leader-place">
+                        <span class="leader-icon">💎</span>
+                        <span class="leader-label">алмаз</span>
+                    </div>
+                    <div class="leader-content">
+                        <div class="leader-rank">1</div>
+                        <div class="leader-name">{% if leaders|length >= 1 %}{{ leaders[0][0] }}{% else %}—{% endif %}</div>
+                        <div class="leader-points">{% if leaders|length >= 1 %}{{ leaders[0][1] }} ★{% else %}—{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="leader-card place-2 {% if leaders|length < 2 %}empty{% endif %}">
+                    <div class="leader-place">
+                        <span class="leader-icon">🥇</span>
+                        <span class="leader-label">золото</span>
+                    </div>
+                    <div class="leader-content">
+                        <div class="leader-rank">2</div>
+                        <div class="leader-name">{% if leaders|length >= 2 %}{{ leaders[1][0] }}{% else %}—{% endif %}</div>
+                        <div class="leader-points">{% if leaders|length >= 2 %}{{ leaders[1][1] }} ★{% else %}—{% endif %}</div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="podium-item-minimal first">
-                <div class="podium-rank">🏆 1 место</div>
-                <div class="podium-num">{% if leaders|length >= 1 %}{{ leaders[0][1] }}{% else %}—{% endif %}</div>
-                <div class="podium-name">{% if leaders|length >= 1 %}🏆 {{ leaders[0][0] }}{% else %}—{% endif %}</div>
+            <div class="leaders-bottom">
+
+                <div class="leader-card place-4 {% if leaders|length < 4 %}empty{% endif %}">
+                    <div class="leader-place">
+                        <span class="leader-icon">⚙️</span>
+                        <span class="leader-label">сталь</span>
+                    </div>
+                    <div class="leader-content">
+                        <div class="leader-rank">4</div>
+                        <div class="leader-name">{% if leaders|length >= 4 %}{{ leaders[3][0] }}{% else %}—{% endif %}</div>
+                        <div class="leader-points">{% if leaders|length >= 4 %}{{ leaders[3][1] }} ★{% else %}—{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="leader-card place-5 {% if leaders|length < 5 %}empty{% endif %}">
+                    <div class="leader-place">
+                        <span class="leader-icon">⚙️</span>
+                        <span class="leader-label">сталь</span>
+                    </div>
+                    <div class="leader-content">
+                        <div class="leader-rank">5</div>
+                        <div class="leader-name">{% if leaders|length >= 5 %}{{ leaders[4][0] }}{% else %}—{% endif %}</div>
+                        <div class="leader-points">{% if leaders|length >= 5 %}{{ leaders[4][1] }} ★{% else %}—{% endif %}</div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="podium-item-minimal third">
-                <div class="podium-rank">3 место</div>
-                <div class="podium-num">{% if leaders|length >= 3 %}{{ leaders[2][1] }}{% else %}—{% endif %}</div>
-                <div class="podium-name">{% if leaders|length >= 3 %}🥉 {{ leaders[2][0] }}{% else %}—{% endif %}</div>
-            </div>
         </div>
     </section>
     {% endif %}
 
     {% if session['username'] == 'admin' %}
-    <section class="section">
+    <section class="section section-tight">
         <div class="section-title">Загрузка рейтинга</div>
         <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form"
-              style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; padding: 1.25rem 1.5rem; border: 1px dashed var(--line); border-radius: 12px; margin-bottom: 1.5rem;">
+              style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; padding: 1rem 1.25rem; border: 1px dashed var(--line); border-radius: 12px;">
             <input type="file" name="file" accept=".xlsx,.xls" id="fileInput" required style="display: none;">
             <label for="fileInput" class="btn" style="cursor: pointer;">Выбрать Excel</label>
             <span id="fileName" class="file-name" style="color: var(--dim); font-size: 0.82rem;">Файл не выбран</span>
@@ -130,13 +182,13 @@
 
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="flash-message">{{ messages[0] }}</div>
+                <div class="flash-message" style="margin-top: 1rem;">{{ messages[0] }}</div>
             {% endif %}
         {% endwith %}
     </section>
     {% endif %}
 
-    <section class="section">
+    <section class="section section-tight">
         <div class="section-title">Общий рейтинг</div>
         <div class="table-wrap">
             <table>
@@ -214,6 +266,7 @@
 <script>
     (function () {
         const container = document.getElementById('embers');
+        if (!container) return;
         for (let i = 0; i < 30; i++) {
             const ember = document.createElement('div');
             ember.className = 'ember';
@@ -246,19 +299,6 @@
         body.classList.add('light-theme');
         toggleBtn.textContent = '☀️';
     }
-
-    const sparkStyle = document.createElement('style');
-    sparkStyle.textContent = '@keyframes sparkBurst { 0% { transform: translate(-50%,-50%) scale(0); opacity: 1; } 50% { transform: translate(-50%,-50%) scale(3); opacity: 0.8; } 100% { transform: translate(-50%,-50%) scale(6); opacity: 0; } }';
-    document.head.appendChild(sparkStyle);
-    document.querySelectorAll('.side-btn, .nav a, .link-btn, .btn').forEach(el => {
-        el.addEventListener('click', () => {
-            const rect = el.getBoundingClientRect();
-            const spark = document.createElement('div');
-            spark.style.cssText = `position:fixed;left:${rect.left + rect.width/2}px;top:${rect.top + rect.height/2}px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle, #ffec80, #ff4500 60%, transparent);box-shadow:0 0 20px 4px rgba(255,140,0,0.8);pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);animation:sparkBurst 0.6s ease-out forwards;`;
-            document.body.appendChild(spark);
-            setTimeout(() => spark.remove(), 650);
-        });
-    });
 
     const fileInput = document.getElementById('fileInput');
     const fileNameSpan = document.getElementById('fileName');
