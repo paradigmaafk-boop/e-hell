@@ -8,7 +8,7 @@
    ============================================================ */
 html {
     -webkit-tap-highlight-color: transparent;
-    background: #0a0503;
+    background: #050101;
 }
 
 a, button, .btn, .side-btn, .nav a, .link-btn, .moon,
@@ -18,11 +18,11 @@ input, select, textarea, [role="button"] {
 }
 
 ::selection {
-    background: rgba(255, 69, 0, 0.35);
+    background: rgba(255, 69, 0, 0.4);
     color: #fff;
 }
 ::-moz-selection {
-    background: rgba(255, 69, 0, 0.35);
+    background: rgba(255, 69, 0, 0.4);
     color: #fff;
 }
 
@@ -36,13 +36,13 @@ a:focus-visible, button:focus-visible, .btn:focus-visible,
 }
 
 :root {
-    --bg: #0a0503;
-    --panel: #1a0d05;
+    --bg: #050101;
+    --panel: #150a04;
     --line: #3a1a08;
     --line-soft: #2a1206;
-    --text: #f5e6d3;
-    --muted: #8a5a3a;
-    --dim: #5a3a1a;
+    --text: #f8ecdf;          /* было #f5e6d3 — светлее */
+    --muted: #b88a62;         /* было #8a5a3a — светлее */
+    --dim: #7a5230;           /* было #5a3a1a — светлее */
     --accent: #ff4500;
     --accent-warm: #ffb800;
     --gold: #ffb800;
@@ -66,12 +66,12 @@ html, body {
 }
 
 /* ============================================================
-   ФОН: ТЛЕЮЩИЙ ЖАР
+   ФОН: ТЛЕЮЩИЙ ЖАР — затемнённый
    ============================================================ */
 body {
     position: relative;
-    background-color: #0a0503;
-    background-image: linear-gradient(to top, #4a1410, #0a0203);
+    background-color: #050101;
+    background-image: linear-gradient(to top, #2a0a08, #050101);
     background-size: 100% 200%;
     background-attachment: fixed;
     background-repeat: no-repeat;
@@ -84,7 +84,7 @@ body::after {
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background: radial-gradient(circle at 50% 92%, rgba(220, 100, 30, 0.55), transparent 68%);
+    background: radial-gradient(circle at 50% 92%, rgba(200, 80, 20, 0.35), transparent 68%);
     animation: emberFlicker 5.5s ease-in-out infinite alternate;
 }
 
@@ -94,7 +94,7 @@ body::before {
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background: linear-gradient(to bottom, rgba(5, 1, 2, 0.55), rgba(5, 1, 2, 0.1) 40%, rgba(5, 1, 2, 0.5));
+    background: linear-gradient(to bottom, rgba(3, 0, 0, 0.65), rgba(3, 0, 0, 0.15) 40%, rgba(3, 0, 0, 0.6));
 }
 
 @keyframes emberPulse {
@@ -103,8 +103,8 @@ body::before {
 }
 
 @keyframes emberFlicker {
-    0%   { opacity: 0.35; transform: scale(1); }
-    100% { opacity: 0.85; transform: scale(1.18); }
+    0%   { opacity: 0.3; transform: scale(1); }
+    100% { opacity: 0.8; transform: scale(1.15); }
 }
 
 .embers,
@@ -414,12 +414,12 @@ body::before {
     margin-bottom: 0.6rem;
     padding-left: 0.25rem;
 }
-.side-title.danger { color: #b8443a; }
+.side-title.danger { color: #d4614a; }
 
 a.side-btn,
 button.side-btn,
 .side-btn {
-    background: transparent;
+    background: rgba(255, 69, 0, 0.03);
     border: 1px solid var(--line);
     border-radius: 10px;
     color: var(--muted) !important;
@@ -448,30 +448,30 @@ button.side-btn:hover,
 .side-btn:hover {
     color: var(--text) !important;
     border-color: var(--accent);
-    background: rgba(255,69,0,0.06);
+    background: rgba(255,69,0,0.12);
     text-decoration: none !important;
 }
 
 a.side-btn.active,
 .side-btn.active {
     border-color: var(--accent);
-    background: linear-gradient(180deg, rgba(255,69,0,0.15), rgba(255,184,0,0.05));
+    background: linear-gradient(180deg, rgba(255,69,0,0.2), rgba(255,184,0,0.05));
     color: var(--accent-warm) !important;
 }
 
 a.side-btn.danger,
 button.side-btn.danger,
 .side-btn.danger {
-    border-color: #3a1e1e;
-    color: #d65446 !important;
-    background: transparent;
+    border-color: #4a2626;
+    color: #e87868 !important;
+    background: rgba(224,57,43,0.04);
 }
 a.side-btn.danger:hover,
 button.side-btn.danger:hover,
 .side-btn.danger:hover {
     border-color: #e0392b;
-    color: #ff8877 !important;
-    background: rgba(224,57,43,0.08);
+    color: #ffa090 !important;
+    background: rgba(224,57,43,0.12);
 }
 
 .side-btn .arrow {
@@ -559,7 +559,6 @@ button.side-btn.danger:hover,
     background: var(--accent);
 }
 
-/* Компактные секции */
 .section-tight {
     margin-bottom: 1.25rem !important;
 }
@@ -578,7 +577,7 @@ button.side-btn.danger:hover,
     border: 1px solid var(--line);
     border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
+    background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
 }
 .accordion-head {
     display: flex;
@@ -589,7 +588,7 @@ button.side-btn.danger:hover,
     transition: background 0.2s ease;
     user-select: none;
 }
-.accordion-head:hover { background: rgba(255,69,0,0.04); }
+.accordion-head:hover { background: rgba(255,69,0,0.06); }
 .accordion-head h3 {
     font-size: 0.95rem;
     font-weight: 600;
@@ -654,7 +653,7 @@ button.side-btn.danger:hover,
     padding: 1.5rem;
     border: 1px solid var(--accent);
     border-radius: 12px;
-    background: linear-gradient(180deg, rgba(255,69,0,0.08), rgba(255,184,0,0.03));
+    background: linear-gradient(180deg, rgba(255,69,0,0.1), rgba(255,184,0,0.03));
     text-align: center;
 }
 .calc-result.show { display: block; }
@@ -711,16 +710,16 @@ button.side-btn.danger:hover,
 }
 .btn-danger {
     border-color: #4a1e1e;
-    color: #ff6655;
+    color: #ff8066;
 }
 .btn-danger:hover {
     border-color: var(--danger);
-    color: #ff8877;
-    background: rgba(224,57,43,0.08);
+    color: #ffa090;
+    background: rgba(224,57,43,0.12);
 }
 
 /* ============================================================
-   ТАБЛИЦЫ (оставлены для других страниц)
+   ТАБЛИЦЫ (для других страниц)
    ============================================================ */
 .table-wrap {
     overflow-x: auto;
@@ -744,7 +743,7 @@ th {
     letter-spacing: 2px;
     padding-bottom: 0.7rem;
 }
-tr:hover td { background: rgba(255,69,0,0.04); }
+tr:hover td { background: rgba(255,69,0,0.05); }
 td.num {
     color: var(--dim);
     font-variant-numeric: tabular-nums;
@@ -765,188 +764,11 @@ td.points-cell {
 .empty-msg {
     text-align: center;
     padding: 3rem;
-    color: var(--dim);
+    color: var(--muted);
 }
 
 /* ============================================================
-   ТОП-5 ЛИДЕРОВ (сверху страницы)
-   ============================================================ */
-.leaders-block {
-    margin-bottom: 1.5rem;
-}
-
-.leaders-podium {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr 1fr;
-    gap: 1rem;
-    align-items: end;
-    margin-bottom: 1rem;
-}
-
-.leaders-bottom {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.leader-card {
-    position: relative;
-    background: linear-gradient(180deg, rgba(26,13,5,0.92), rgba(10,5,3,0.96));
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 1rem 1.1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-    transition: all 0.3s ease;
-    overflow: hidden;
-}
-.leader-card:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
-}
-
-.leader-place {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.7rem;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--dim);
-}
-.leader-icon {
-    font-size: 1.1rem;
-    line-height: 1;
-    filter: drop-shadow(0 0 6px rgba(255,180,0,0.4));
-}
-
-.leader-content {
-    display: flex;
-    align-items: baseline;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-}
-.leader-rank {
-    font-family: 'Forum', serif;
-    font-size: 1.6rem;
-    line-height: 1;
-    color: var(--dim);
-    font-variant-numeric: tabular-nums;
-    min-width: 1.2rem;
-}
-.leader-name {
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: var(--text);
-    word-break: break-word;
-    flex: 1 1 auto;
-}
-.leader-points {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--accent-warm);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-}
-
-/* === 1 место — АЛМАЗ === */
-.leader-card.place-1 {
-    border-color: var(--diamond);
-    box-shadow: 0 0 40px rgba(120, 200, 255, 0.25),
-                inset 0 0 30px rgba(120, 200, 255, 0.05);
-    padding: 1.5rem 1.25rem 1.25rem;
-    background: linear-gradient(180deg, rgba(30, 18, 12, 0.95), rgba(10, 5, 3, 0.98));
-}
-.leader-card.place-1 .leader-icon {
-    font-size: 1.6rem;
-    filter: drop-shadow(0 0 12px rgba(150, 220, 255, 0.9));
-}
-.leader-card.place-1 .leader-place { color: var(--diamond); }
-.leader-card.place-1 .leader-rank {
-    font-size: 2.4rem;
-    color: var(--diamond);
-    text-shadow: 0 0 20px rgba(120, 200, 255, 0.6);
-}
-.leader-card.place-1 .leader-name {
-    font-size: 1.25rem;
-    color: #c8eaff;
-}
-.leader-card.place-1 .leader-points {
-    font-size: 1.2rem;
-    color: var(--diamond);
-}
-
-/* === 2–3 место — ЗОЛОТО === */
-.leader-card.place-2,
-.leader-card.place-3 { border-color: var(--gold-2); }
-.leader-card.place-2 .leader-place,
-.leader-card.place-3 .leader-place { color: var(--gold-2); }
-.leader-card.place-2 .leader-rank,
-.leader-card.place-3 .leader-rank { color: var(--gold-2); }
-.leader-card.place-2 .leader-name,
-.leader-card.place-3 .leader-name { color: #ffd980; }
-.leader-card.place-2 .leader-points,
-.leader-card.place-3 .leader-points { color: var(--gold-2); }
-
-/* === 4–5 место — СЕРЕБРО === */
-.leader-card.place-4,
-.leader-card.place-5 { border-color: var(--silver); }
-.leader-card.place-4 .leader-place,
-.leader-card.place-5 .leader-place { color: var(--silver); }
-.leader-card.place-4 .leader-rank,
-.leader-card.place-5 .leader-rank { color: var(--silver); }
-.leader-card.place-4 .leader-name,
-.leader-card.place-5 .leader-name { color: #e0e0e8; }
-.leader-card.place-4 .leader-points,
-.leader-card.place-5 .leader-points { color: var(--silver); }
-
-.leader-card.empty {
-    opacity: 0.4;
-}
-
-/* Мобильный — вертикальный список 1→5 */
-@media (max-width: 780px) {
-    .leaders-podium {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        align-items: stretch;
-    }
-    .leaders-podium .place-1 { order: 1; }
-    .leaders-podium .place-2 { order: 2; }
-    .leaders-podium .place-3 { order: 3; }
-
-    .leaders-bottom {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        margin-top: 0.6rem;
-    }
-
-    .leader-card {
-        padding: 0.8rem 1rem;
-        border-radius: 12px;
-    }
-    .leader-card.place-1 {
-        padding: 1rem 1rem 0.9rem;
-    }
-    .leader-card.place-1 .leader-rank { font-size: 1.8rem; }
-    .leader-card.place-1 .leader-name { font-size: 1.05rem; }
-    .leader-card.place-1 .leader-points { font-size: 1rem; }
-
-    .leader-card.place-2 .leader-rank,
-    .leader-card.place-3 .leader-rank,
-    .leader-card.place-4 .leader-rank,
-    .leader-card.place-5 .leader-rank { font-size: 1.3rem; }
-
-    .leader-name { font-size: 0.95rem; }
-    .leader-points { font-size: 0.9rem; }
-}
-
-/* ============================================================
-   ОБЩИЙ РЕЙТИНГ — КАРТОЧКИ В СТИЛЕ ВАРИАНТА 5
+   ОБЩИЙ РЕЙТИНГ — КАРТОЧКИ
    ============================================================ */
 .rating-list {
     display: flex;
@@ -965,12 +787,8 @@ td.points-cell {
     border: 1px solid transparent;
     transition: all 0.25s ease;
 }
+.rating-row:hover { transform: translateX(4px); }
 
-.rating-row:hover {
-    transform: translateX(4px);
-}
-
-/* Круг с номером */
 .rating-circle {
     width: 48px;
     height: 48px;
@@ -984,11 +802,10 @@ td.points-cell {
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
     border: 2px solid var(--line);
-    background: linear-gradient(180deg, #1a0d05, #0a0503);
+    background: linear-gradient(180deg, #150a04, #050101);
     color: var(--muted);
 }
 
-/* Имя, ссылка и тир */
 .rating-info { min-width: 0; }
 .rating-name {
     display: block;
@@ -1010,7 +827,6 @@ td.points-cell {
     font-weight: 500;
 }
 
-/* Очки */
 .rating-points {
     font-family: 'Forum', serif;
     font-size: 1.2rem;
@@ -1025,7 +841,6 @@ td.points-cell {
     margin-left: 0.15rem;
 }
 
-/* Кнопки */
 .rating-actions {
     display: flex;
     align-items: center;
@@ -1038,8 +853,8 @@ td.points-cell {
     align-items: center;
     gap: 0.35rem;
     padding: 0.4rem 0.75rem;
-    background: rgba(255,69,0,0.06);
-    border: 1px solid rgba(255,69,0,0.25);
+    background: rgba(255,69,0,0.08);
+    border: 1px solid rgba(255,69,0,0.3);
     border-radius: 8px;
     color: var(--accent-warm);
     font: inherit;
@@ -1051,18 +866,18 @@ td.points-cell {
     white-space: nowrap;
 }
 .rating-btn:hover {
-    background: rgba(255,69,0,0.15);
+    background: rgba(255,69,0,0.18);
     border-color: var(--accent);
     color: #fff;
 }
 
 .rating-btn-danger {
-    background: rgba(224,57,43,0.06);
-    border-color: rgba(224,57,43,0.3);
-    color: #ff8877;
+    background: rgba(224,57,43,0.08);
+    border-color: rgba(224,57,43,0.35);
+    color: #ff9070;
 }
 .rating-btn-danger:hover {
-    background: rgba(224,57,43,0.18);
+    background: rgba(224,57,43,0.2);
     border-color: var(--danger);
     color: #fff;
 }
@@ -1070,10 +885,8 @@ td.points-cell {
 .rating-btn-text { display: inline; }
 
 /* === ЦВЕТА МЕСТ === */
-
-/* 1 место — АЛМАЗ */
 .rating-row.p1 {
-    background: linear-gradient(90deg, rgba(120,200,255,0.12), rgba(15,6,3,0.6));
+    background: linear-gradient(90deg, rgba(120,200,255,0.14), rgba(15,6,3,0.6));
     border-color: var(--diamond);
     box-shadow: 0 0 30px rgba(120,200,255,0.2);
 }
@@ -1082,13 +895,12 @@ td.points-cell {
     color: var(--diamond);
     box-shadow: 0 0 20px rgba(120,200,255,0.5), inset 0 0 12px rgba(120,200,255,0.2);
 }
-.rating-row.p1 .rating-name { font-size: 1.15rem; color: #c8eaff; }
+.rating-row.p1 .rating-name { font-size: 1.15rem; color: #d8f0ff; }
 .rating-row.p1 .rating-tier { color: var(--diamond); }
 .rating-row.p1 .rating-points { font-size: 1.4rem; color: var(--diamond); }
 
-/* 2–3 место — ЗОЛОТО */
 .rating-row.p2 {
-    background: linear-gradient(90deg, rgba(255,204,51,0.1), rgba(15,6,3,0.6));
+    background: linear-gradient(90deg, rgba(255,204,51,0.12), rgba(15,6,3,0.6));
     border-color: var(--gold-2);
 }
 .rating-row.p2 .rating-circle {
@@ -1096,13 +908,12 @@ td.points-cell {
     color: var(--gold-2);
     box-shadow: 0 0 15px rgba(255,204,51,0.4);
 }
-.rating-row.p2 .rating-name { color: #ffe08a; }
+.rating-row.p2 .rating-name { color: #ffe8a0; }
 .rating-row.p2 .rating-tier { color: var(--gold-2); }
 .rating-row.p2 .rating-points { color: var(--gold-2); }
 
-/* 4–5 место — СЕРЕБРО */
 .rating-row.p3 {
-    background: linear-gradient(90deg, rgba(200,200,208,0.08), rgba(15,6,3,0.6));
+    background: linear-gradient(90deg, rgba(200,200,208,0.1), rgba(15,6,3,0.6));
     border-color: var(--silver);
 }
 .rating-row.p3 .rating-circle {
@@ -1110,13 +921,12 @@ td.points-cell {
     color: var(--silver);
     box-shadow: 0 0 12px rgba(200,200,208,0.35);
 }
-.rating-row.p3 .rating-name { color: #e0e0e8; }
+.rating-row.p3 .rating-name { color: #eef0f5; }
 .rating-row.p3 .rating-tier { color: var(--silver); }
 .rating-row.p3 .rating-points { color: var(--silver); }
 
-/* 6–10 место — БРОНЗА */
 .rating-row.p4 {
-    background: linear-gradient(90deg, rgba(205,127,50,0.08), rgba(15,6,3,0.6));
+    background: linear-gradient(90deg, rgba(205,127,50,0.1), rgba(15,6,3,0.6));
     border-color: var(--bronze);
 }
 .rating-row.p4 .rating-circle {
@@ -1124,40 +934,33 @@ td.points-cell {
     color: var(--bronze);
     box-shadow: 0 0 12px rgba(205,127,50,0.4);
 }
-.rating-row.p4 .rating-name { color: #e8b98a; }
+.rating-row.p4 .rating-name { color: #f0c89a; }
 .rating-row.p4 .rating-tier { color: var(--bronze); }
 .rating-row.p4 .rating-points { color: var(--bronze); }
 
-/* 11–50 место — СТАЛЬ */
 .rating-row.p5 {
-    background: linear-gradient(90deg, rgba(106,122,138,0.06), rgba(15,6,3,0.6));
+    background: linear-gradient(90deg, rgba(106,122,138,0.08), rgba(15,6,3,0.6));
     border-color: var(--steel);
 }
 .rating-row.p5 .rating-circle {
     border-color: var(--steel);
-    color: #8a9aaa;
+    color: #98a8b8;
 }
-.rating-row.p5 .rating-name { color: #b0bcc8; }
-.rating-row.p5 .rating-tier { color: #8a9aaa; }
-.rating-row.p5 .rating-points { color: #8a9aaa; }
+.rating-row.p5 .rating-name { color: #c8d4e0; }
+.rating-row.p5 .rating-tier { color: #98a8b8; }
+.rating-row.p5 .rating-points { color: #98a8b8; }
 
-/* 51+ место — без подсветки */
 .rating-row.p6 { border-color: transparent; }
 .rating-row.p6 .rating-name { color: var(--muted); }
 .rating-row.p6 .rating-points { color: var(--muted); }
 
-/* Адаптив для списка рейтинга */
 @media (max-width: 780px) {
     .rating-row {
         grid-template-columns: 44px 1fr auto;
         gap: 0.7rem;
         padding: 0.55rem 0.8rem 0.55rem 0.6rem;
     }
-    .rating-circle {
-        width: 40px;
-        height: 40px;
-        font-size: 1.15rem;
-    }
+    .rating-circle { width: 40px; height: 40px; font-size: 1.15rem; }
     .rating-row.p1 .rating-circle { font-size: 1.3rem; }
     .rating-name { font-size: 0.92rem; }
     .rating-row.p1 .rating-name { font-size: 1rem; }
@@ -1189,7 +992,7 @@ td.points-cell {
     margin-bottom: 2rem;
 }
 .stat-card {
-    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
+    background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
     border: 1px solid var(--line);
     border-radius: 14px;
     padding: 1.5rem 1.25rem;
@@ -1221,7 +1024,7 @@ td.points-cell {
 .flash-message, .flash-error {
     padding: 0.9rem 1.2rem;
     border-left: 3px solid var(--accent);
-    background: rgba(255,69,0,0.06);
+    background: rgba(255,69,0,0.08);
     color: var(--accent-warm);
     font-size: 0.88rem;
     border-radius: 6px;
@@ -1229,8 +1032,8 @@ td.points-cell {
 }
 .flash-error {
     border-left-color: var(--danger);
-    background: rgba(224,57,43,0.06);
-    color: #ff8877;
+    background: rgba(224,57,43,0.08);
+    color: #ffa090;
 }
 
 /* ============================================================
@@ -1261,7 +1064,7 @@ td.points-cell {
 .login-card {
     width: 100%;
     max-width: 420px;
-    background: linear-gradient(180deg, rgba(26,13,5,0.95), rgba(10,5,3,0.98));
+    background: linear-gradient(180deg, rgba(30,15,8,0.95), rgba(8,4,2,0.98));
     border: 1px solid var(--line);
     border-radius: 20px;
     padding: 2.5rem 2rem;
@@ -1324,7 +1127,7 @@ td.points-cell {
     padding: 1.5rem;
     border: 1px solid var(--line);
     border-radius: 16px;
-    background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95));
+    background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(8,4,2,0.95));
 }
 .admin-panel h3 {
     font-size: 0.7rem;
@@ -1343,11 +1146,11 @@ td.points-cell {
 .danger-zone {
     margin-top: 1.5rem;
     padding-top: 1.5rem;
-    border-top: 1px solid #2a1414;
+    border-top: 1px solid #3a1616;
 }
 .danger-zone h4 {
     font-size: 0.7rem;
-    color: #b8443a;
+    color: #d4614a;
     text-transform: uppercase;
     letter-spacing: 4px;
     font-weight: 500;
@@ -1362,13 +1165,13 @@ td.points-cell {
 }
 
 /* ============================================================
-   ПОДПИСЬ КАРУСЕЛИ
+   ПОДПИСЬ КАРУСЕЛИ (в style.css — для других страниц)
    ============================================================ */
 .carousel-caption {
     flex: 0 0 auto;
     padding: 1.5rem 2rem 1.75rem;
     text-align: center;
-    background: linear-gradient(180deg, #1a0d05, #0a0503);
+    background: linear-gradient(180deg, #150a04, #050101);
     border-top: 1px solid var(--line);
     position: relative;
 }
@@ -1419,7 +1222,7 @@ td.points-cell {
 .tactics-block {
     margin-top: 1rem;
     padding: 1rem 1.25rem;
-    background: linear-gradient(180deg, rgba(26, 13, 5, 0.9), rgba(10, 5, 3, 0.95));
+    background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(8,4,2,0.95));
     border: 1px solid var(--line);
     border-left: 3px solid var(--accent);
     border-radius: 12px;
@@ -1480,7 +1283,7 @@ td.points-cell {
     display: none;
     margin-top: 0.75rem;
     padding: 0.85rem 1.1rem;
-    background: linear-gradient(180deg, rgba(26, 13, 5, 0.95), rgba(10, 5, 3, 0.98));
+    background: linear-gradient(180deg, rgba(30,15,8,0.95), rgba(8,4,2,0.98));
     border: 1px solid var(--accent);
     border-radius: 12px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 69, 0, 0.2);
@@ -1509,8 +1312,8 @@ body.edit-mode .control-panel { display: flex; }
 .control-hint {
     display: none;
     padding: 0.5rem 0.85rem;
-    background: rgba(255, 69, 0, 0.08);
-    border: 1px solid rgba(255, 69, 0, 0.3);
+    background: rgba(255, 69, 0, 0.1);
+    border: 1px solid rgba(255, 69, 0, 0.35);
     border-radius: 8px;
     font-size: 0.8rem;
     color: var(--accent-warm);
@@ -1541,7 +1344,7 @@ body.drawing-mode #drawToggle {
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: rgba(5, 1, 2, 0.75);
+    background: rgba(3, 0, 0, 0.8);
     backdrop-filter: blur(4px);
     align-items: center;
     justify-content: center;
@@ -1557,7 +1360,7 @@ body.drawing-mode #drawToggle {
     width: 100%;
     max-width: 380px;
     padding: 1.5rem 1.75rem;
-    background: linear-gradient(180deg, #1a0d05, #0a0503);
+    background: linear-gradient(180deg, #150a04, #050101);
     border: 1px solid var(--accent);
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9),
@@ -1610,8 +1413,8 @@ body.light-theme {
     --line: #e8dcc8;
     --line-soft: #f0e8db;
     --text: #2a1a0a;
-    --muted: #7a6a54;
-    --dim: #a89880;
+    --muted: #6a5a44;
+    --dim: #9a8a72;
     --panel: #fffbf2;
     background-color: #fbf5ea;
     background-image: none;
