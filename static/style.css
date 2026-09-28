@@ -61,7 +61,7 @@ html, body {
 }
 
 /* ============================================================
-   ФОН: ТЛЕЮЩИЙ ЖАР (вариант 1)
+   ФОН: ТЛЕЮЩИЙ ЖАР
    ============================================================ */
 body {
     position: relative;
@@ -554,6 +554,20 @@ button.side-btn.danger:hover,
     background: var(--accent);
 }
 
+/* Компактные секции */
+.section-tight {
+    margin-bottom: 1.25rem !important;
+}
+.section-tight .section-title {
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.45rem;
+}
+.page-head {
+    padding: 1.25rem 0 1rem !important;
+}
+.page-title { margin-bottom: 0.25rem; }
+.breadcrumbs { padding: 0.6rem 0 0 !important; }
+
 .accordion {
     margin-bottom: 1rem;
     border: 1px solid var(--line);
@@ -750,95 +764,185 @@ td.points-cell {
 }
 
 /* ============================================================
-   ПОДИУМ · ВАРИАНТ 4 — МИНИМАЛИЗМ С ЛИНИЯМИ
+   ТОП-5 ЛИДЕРОВ
    ============================================================ */
-.podium-minimal {
+.leaders-block {
+    margin-bottom: 1.5rem;
+}
+
+.leaders-podium {
     display: grid;
     grid-template-columns: 1fr 1.2fr 1fr;
-    gap: 1.5rem;
+    gap: 1rem;
     align-items: end;
-    margin-bottom: 2rem;
-}
-
-.podium-item-minimal {
-    text-align: center;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--line);
-    position: relative;
-}
-
-.podium-item-minimal.first {
-    border-bottom-color: var(--accent-warm);
-}
-.podium-item-minimal.first::after {
-    content: "";
-    position: absolute;
-    bottom: -1px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent-warm), transparent);
-    box-shadow: 0 0 15px var(--accent-warm);
-}
-
-.podium-rank {
-    font-size: 0.65rem;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    color: var(--dim);
-    font-weight: 600;
     margin-bottom: 1rem;
 }
-.podium-item-minimal.first .podium-rank {
-    color: var(--accent-warm);
+
+.leaders-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
 }
 
-.podium-num {
-    font-family: 'Forum', serif;
-    font-size: 2.5rem;
-    font-weight: 400;
-    line-height: 1;
-    color: var(--text);
-    margin-bottom: 0.5rem;
-    font-variant-numeric: tabular-nums;
+.leader-card {
+    position: relative;
+    background: linear-gradient(180deg, rgba(26,13,5,0.92), rgba(10,5,3,0.96));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    transition: all 0.3s ease;
+    overflow: hidden;
 }
-.podium-item-minimal.first .podium-num {
-    font-size: 3.5rem;
-    color: var(--accent-warm);
-    text-shadow: 0 0 30px rgba(255, 184, 0, 0.6);
+.leader-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
 }
 
-.podium-name {
-    font-size: 0.85rem;
-    color: var(--muted);
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    word-break: break-word;
-}
-.podium-item-minimal.first .podium-name {
-    color: var(--accent-warm);
+.leader-place {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
     font-weight: 600;
-    font-size: 0.95rem;
+    color: var(--dim);
+}
+.leader-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    filter: drop-shadow(0 0 6px rgba(255,180,0,0.4));
 }
 
-body.light-theme .podium-item-minimal {
-    border-bottom-color: #e8dcc8;
+.leader-content {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    flex-wrap: wrap;
 }
-body.light-theme .podium-item-minimal.first {
-    border-bottom-color: #d44000;
+.leader-rank {
+    font-family: 'Forum', serif;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+    min-width: 1.2rem;
 }
-body.light-theme .podium-item-minimal.first::after {
-    background: linear-gradient(90deg, transparent, #d44000, transparent);
-    box-shadow: 0 0 15px #d44000;
+.leader-name {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text);
+    word-break: break-word;
+    flex: 1 1 auto;
 }
-body.light-theme .podium-item-minimal.first .podium-num {
-    color: #d44000;
-    text-shadow: 0 0 25px rgba(212, 64, 0, 0.4);
+.leader-points {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent-warm);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
-body.light-theme .podium-item-minimal.first .podium-rank,
-body.light-theme .podium-item-minimal.first .podium-name {
-    color: #d44000;
+
+/* === 1 место — АЛМАЗ === */
+.leader-card.place-1 {
+    border-color: #8ed6ff;
+    box-shadow: 0 0 40px rgba(120, 200, 255, 0.25),
+                inset 0 0 30px rgba(120, 200, 255, 0.05);
+    padding: 1.5rem 1.25rem 1.25rem;
+    background: linear-gradient(180deg, rgba(30, 18, 12, 0.95), rgba(10, 5, 3, 0.98));
+}
+.leader-card.place-1 .leader-icon {
+    font-size: 1.6rem;
+    filter: drop-shadow(0 0 12px rgba(150, 220, 255, 0.9));
+}
+.leader-card.place-1 .leader-place { color: #8ed6ff; }
+.leader-card.place-1 .leader-rank {
+    font-size: 2.4rem;
+    color: #8ed6ff;
+    text-shadow: 0 0 20px rgba(120, 200, 255, 0.6);
+}
+.leader-card.place-1 .leader-name {
+    font-size: 1.25rem;
+    color: #c8eaff;
+}
+.leader-card.place-1 .leader-points {
+    font-size: 1.2rem;
+    color: #8ed6ff;
+}
+
+/* === 2 место — ЗОЛОТО === */
+.leader-card.place-2 { border-color: #ffb800; }
+.leader-card.place-2 .leader-place { color: #ffb800; }
+.leader-card.place-2 .leader-rank { color: #ffb800; }
+.leader-card.place-2 .leader-name { color: #ffd980; }
+.leader-card.place-2 .leader-points { color: #ffb800; }
+
+/* === 3 место — БРОНЗА === */
+.leader-card.place-3 { border-color: #d99a5a; }
+.leader-card.place-3 .leader-place { color: #d99a5a; }
+.leader-card.place-3 .leader-rank { color: #d99a5a; }
+.leader-card.place-3 .leader-name { color: #e8b98a; }
+.leader-card.place-3 .leader-points { color: #d99a5a; }
+
+/* === 4–5 место — СТАЛЬ === */
+.leader-card.place-4,
+.leader-card.place-5 {
+    border-color: #6a7a8a;
+    opacity: 0.9;
+}
+.leader-card.place-4 .leader-place,
+.leader-card.place-5 .leader-place { color: #8a9aaa; }
+.leader-card.place-4 .leader-rank,
+.leader-card.place-5 .leader-rank { color: #8a9aaa; }
+.leader-card.place-4 .leader-name,
+.leader-card.place-5 .leader-name { color: #b0bcc8; }
+.leader-card.place-4 .leader-points,
+.leader-card.place-5 .leader-points { color: #8a9aaa; }
+
+.leader-card.empty {
+    opacity: 0.4;
+}
+
+/* Мобильный — вертикальный список 1→5 */
+@media (max-width: 780px) {
+    .leaders-podium {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        align-items: stretch;
+    }
+    .leaders-podium .place-1 { order: 1; }
+    .leaders-podium .place-2 { order: 2; }
+    .leaders-podium .place-3 { order: 3; }
+
+    .leaders-bottom {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin-top: 0.6rem;
+    }
+
+    .leader-card {
+        padding: 0.8rem 1rem;
+        border-radius: 12px;
+    }
+    .leader-card.place-1 {
+        padding: 1rem 1rem 0.9rem;
+    }
+    .leader-card.place-1 .leader-rank { font-size: 1.8rem; }
+    .leader-card.place-1 .leader-name { font-size: 1.05rem; }
+    .leader-card.place-1 .leader-points { font-size: 1rem; }
+
+    .leader-card.place-2 .leader-rank,
+    .leader-card.place-3 .leader-rank,
+    .leader-card.place-4 .leader-rank,
+    .leader-card.place-5 .leader-rank { font-size: 1.3rem; }
+
+    .leader-name { font-size: 0.95rem; }
+    .leader-points { font-size: 0.9rem; }
 }
 
 /* ============================================================
@@ -1303,10 +1407,6 @@ body.light-theme .control-panel {
     .header-right { gap: 1.25rem; }
     .nav { gap: 1.75rem; }
     .page-title { font-size: 1.5rem; }
-    .podium-minimal { grid-template-columns: 1fr; gap: 1.25rem; }
-    .podium-item-minimal { padding-bottom: 0.85rem; }
-    .podium-num { font-size: 2rem; }
-    .podium-item-minimal.first .podium-num { font-size: 2.6rem; }
     .admin-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
     .caption-title { font-size: 1.2rem; letter-spacing: 2px; padding: 0 0.75rem; }
