@@ -93,6 +93,19 @@ def init_db():
         )
     """)
     
+    # Добавляем колонку poster_url, если её ещё нет
+    cursor.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'carousel_slides' AND column_name = 'poster_url'
+            ) THEN
+                ALTER TABLE carousel_slides ADD COLUMN poster_url TEXT;
+            END IF;
+        END $$;
+    """)
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservoir_map (
             id SERIAL PRIMARY KEY,
@@ -373,14 +386,14 @@ def delete_vacation_record(record_id):
 
 # ===== КАРУСЕЛЬ =====
 
-def create_slide(title, content, media_type, media_url, position):
+def create_slide(title, content, media_type, media_url, position, poster_url=None):
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
-        cursor.execute("""INSERT INTO carousel_slides (title, content, media_type, media_url, position, is_active, created_at, updated_at)
-                          VALUES (%s, %s, %s, %s, %s, TRUE, %s, %s) RETURNING id""",
-                       (title, content, media_type, media_url, position, now, now))
+        cursor.execute("""INSERT INTO carousel_slides (title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url)
+                          VALUES (%s, %s, %s, %s, %s, TRUE, %s, %s, %s) RETURNING id""",
+                       (title, content, media_type, media_url, position, now, now, poster_url))
         slide_id = cursor.fetchone()[0]
         conn.commit()
         return slide_id
@@ -395,11 +408,11 @@ def get_all_slides(only_active=False):
     conn = get_connection()
     cursor = conn.cursor()
     if only_active:
-        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at
+        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url
                           FROM carousel_slides WHERE is_active = TRUE
                           ORDER BY position ASC, id ASC""")
     else:
-        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at
+        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url
                           FROM carousel_slides ORDER BY position ASC, id ASC""")
     data = cursor.fetchall()
     conn.close()
@@ -408,20 +421,20 @@ def get_all_slides(only_active=False):
 def get_slide_by_id(slide_id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at
+    cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url
                       FROM carousel_slides WHERE id = %s""", (slide_id,))
     data = cursor.fetchone()
     conn.close()
     return data
 
-def update_slide(slide_id, title, content, media_type, media_url, position, is_active):
+def update_slide(slide_id, title, content, media_type, media_url, position, is_active, poster_url=None):
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
         cursor.execute("""UPDATE carousel_slides SET title = %s, content = %s, media_type = %s,
-                          media_url = %s, position = %s, is_active = %s, updated_at = %s WHERE id = %s""",
-                       (title, content, media_type, media_url, position, is_active, now, slide_id))
+                          media_url = %s, position = %s, is_active = %s, updated_at = %s, poster_url = %s WHERE id = %s""",
+                       (title, content, media_type, media_url, position, is_active, now, poster_url, slide_id))
         conn.commit()
         return True
     except Exception as e:
