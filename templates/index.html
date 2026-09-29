@@ -151,9 +151,6 @@
         }
         .empty-carousel p { font-size: 0.9rem; }
 
-        /* ============================================================
-           ПОДПИСЬ: фиксированная высота + плавное затухание текста
-           ============================================================ */
         .carousel-caption {
             flex: 0 0 auto;
             height: 13rem;
@@ -166,11 +163,6 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
-            transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        /* когда подпись «уходит» — становится прозрачной */
-        .carousel-caption.fading {
-            opacity: 0;
         }
 
         .caption-title {
@@ -187,6 +179,9 @@
             overflow-x: hidden;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #f0d0b0;
         }
         .caption-text::-webkit-scrollbar { display: none; }
 
@@ -305,8 +300,9 @@
             }
             .caption-text {
                 flex: 1 1 auto;
-                font-size: 0.78rem;
-                line-height: 1.45;
+                font-size: 0.9rem;
+                line-height: 1.55;
+                color: #f0d0b0;
                 overflow-y: auto;
                 overflow-x: hidden;
                 scrollbar-width: none;
@@ -337,7 +333,7 @@
                 height: 13rem;
             }
             .caption-title { font-size: 0.92rem; }
-            .caption-text { font-size: 0.72rem; }
+            .caption-text { font-size: 0.82rem; }
         }
 
         @media (max-width: 900px) and (max-height: 520px) {
@@ -493,7 +489,7 @@
 
             </div>
 
-            <div class="carousel-caption" id="carouselCaption">
+            <div class="carousel-caption">
                 <div class="caption-title" id="captionTitle">
                     {{ slides[0][1] if slides[0][1] else 'Добро пожаловать!' }}
                 </div>
@@ -559,7 +555,6 @@
     (function carousel() {
         const slides = document.querySelectorAll('.carousel .slide');
         const dotsContainer = document.getElementById('dots');
-        const captionBox = document.getElementById('carouselCaption');
         const captionTitle = document.getElementById('captionTitle');
         const captionText = document.getElementById('captionText');
         const prevBtn = document.getElementById('prevBtn');
@@ -578,7 +573,6 @@
         let current = 0;
         let timer = null;
         let dots = [];
-        let textSwapTimer = null;
 
         if (dotsContainer) {
             slides.forEach((_, i) => {
@@ -590,24 +584,15 @@
             dots = dotsContainer.querySelectorAll('.dot');
         }
 
-        function swapTextImmediate(i) {
-            if (slideData[i] && captionTitle && captionText) {
-                captionTitle.textContent = slideData[i].title || ' ';
-                captionText.textContent = slideData[i].text || '';
-            }
-        }
-
         function goTo(i) {
             current = (i + slides.length) % slides.length;
-
-            // 1. Гасим подпись (текст плавно уходит)
-            if (captionBox) captionBox.classList.add('fading');
-
-            // 2. Меняем картинку на новом слайде — она уже начнёт проявляться
             slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
             dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+            if (slideData[current] && captionTitle && captionText) {
+                captionTitle.textContent = slideData[current].title || ' ';
+                captionText.textContent = slideData[current].text || '';
+            }
 
-            // 3. Запуск видео текущего слайда
             const activeSlide = slides[current];
             if (activeSlide) {
                 const video = activeSlide.querySelector('video');
@@ -616,17 +601,8 @@
                 }
             }
 
-            // 4. Меняем текст, пока подпись ещё прозрачна
-            clearTimeout(textSwapTimer);
-            textSwapTimer = setTimeout(() => {
-                swapTextImmediate(current);
-                // 5. Плавно проявляем подпись обратно
-                if (captionBox) captionBox.classList.remove('fading');
-            }, 1800);
-
             resetTimer();
         }
-
         function next() { goTo(current + 1); }
         function prev() { goTo(current - 1); }
         function startTimer() { timer = setInterval(next, 15000); }
