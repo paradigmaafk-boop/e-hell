@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ display_name }} — Рейтинг | [HEL] Ацкое Пламя</title>
+    <title>{{ display_name }} | [HEL] Ацкое Пламя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -74,10 +74,11 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/duel" class="active">Дуэль</a>
+        <a href="/rating/total" {% if rating_type == 'total' %}class="active"{% endif %}>Рейтинг</a>
+        <a href="/rating/duel" {% if rating_type == 'duel' %}class="active"{% endif %}>Рейтинг Дуэли</a>
+        <a href="/rating/arcadia" {% if rating_type == 'arcadia' %}class="active"{% endif %}>Рейтинг Аркадии</a>
         <a href="/reservoir-map">Резервуар</a>
-        <a href="/turtle-calculator">Черепашка</a>
-        <a href="/hero-calculator">Прокачка</a>
+        <a href="/calculator">Калькулятор</a>
         {% if session['username'] == 'admin' %}
         <a href="/admin" class="nav-admin">⚙ Админ</a>
         {% endif %}
@@ -86,7 +87,7 @@
     <div class="breadcrumbs">
         <a href="/">← На главную</a>
         <span class="sep">·</span>
-        <span class="current">Рейтинг {{ display_name }}</span>
+        <span class="current">{{ display_name }}</span>
     </div>
 
     <div class="page-head">
@@ -94,7 +95,7 @@
         <p class="page-sub">Результаты сезона</p>
     </div>
 
-    {% if session['username'] == 'admin' %}
+    {% if session['username'] == 'admin' and rating_type != 'total' %}
     <section class="section section-tight">
         <div class="section-title">Загрузка рейтинга</div>
         <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form"
@@ -119,7 +120,7 @@
         {% if rating %}
         <div class="rating-list">
 
-            {% for player in rating %}
+            {% for row in rating %}
             {% set place = loop.index %}
 
             {% set css_class = '' %}
@@ -137,39 +138,56 @@
                 {% set css_class = 'stone' %}
             {% endif %}
 
-            <div class="rating-row {{ css_class }}">
+            {% if rating_type == 'total' %}
+                {# row = (nickname, duel_points, arcadia_points, total_points) #}
+                <div class="rating-row {{ css_class }}">
+                    <div class="rating-circle">{{ place }}</div>
 
-                <div class="rating-circle">{{ place }}</div>
+                    <div class="rating-info">
+                        <a href="/player/duel/{{ row[0] }}" class="rating-name">{{ row[0] }}</a>
+                        <div class="rating-tier rating-tier-multi">
+                            <span>Дуэль — {{ row[1] }}</span>
+                            <span>Аркадия — {{ row[2] }}</span>
+                        </div>
+                    </div>
 
-                <div class="rating-info">
-                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="rating-name">{{ player[0] }}</a>
-                    <div class="rating-tier">
-                        {% if place == 1 %}💎 Алмаз
-                        {% elif place <= 3 %}🥇 Золото
-                        {% elif place <= 6 %}🥈 Серебро
-                        {% elif place <= 10 %}🥉 Бронза
-                        {% elif place <= 50 %}⚙️ Сталь
-                        {% else %}🪨 Камень{% endif %}
+                    <div class="rating-points">{{ row[3] }}<small>★</small></div>
+                </div>
+            {% else %}
+                {# row = (nickname, points) #}
+                <div class="rating-row {{ css_class }}">
+                    <div class="rating-circle">{{ place }}</div>
+
+                    <div class="rating-info">
+                        <a href="/player/{{ rating_type }}/{{ row[0] }}" class="rating-name">{{ row[0] }}</a>
+                        <div class="rating-tier">
+                            {% if place == 1 %}💎 Алмаз
+                            {% elif place <= 3 %}🥇 Золото
+                            {% elif place <= 6 %}🥈 Серебро
+                            {% elif place <= 10 %}🥉 Бронза
+                            {% elif place <= 50 %}⚙️ Сталь
+                            {% else %}🪨 Камень{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="rating-points">{{ row[1] }}<small>★</small></div>
+
+                    <div class="rating-actions">
+                        <a href="/player/{{ rating_type }}/{{ row[0] }}" class="rating-btn" title="График">
+                            📈 <span class="rating-btn-text">График</span>
+                        </a>
+                        {% if session['username'] == 'admin' %}
+                        <form action="/delete-player/{{ rating_type }}/{{ row[0] }}" method="POST" style="display: inline; margin: 0;"
+                              onsubmit="return confirm('Удалить игрока {{ row[0] }} и всю его историю?');">
+                            <button type="submit" class="rating-btn rating-btn-danger" title="Удалить">
+                                🗑 <span class="rating-btn-text">Удалить</span>
+                            </button>
+                        </form>
+                        {% endif %}
                     </div>
                 </div>
+            {% endif %}
 
-                <div class="rating-points">{{ player[1] }}<small>★</small></div>
-
-                <div class="rating-actions">
-                    <a href="/player/{{ rating_type }}/{{ player[0] }}" class="rating-btn" title="График">
-                        📈 <span class="rating-btn-text">График</span>
-                    </a>
-                    {% if session['username'] == 'admin' %}
-                    <form action="/delete-player/{{ rating_type }}/{{ player[0] }}" method="POST" style="display: inline; margin: 0;"
-                          onsubmit="return confirm('Удалить игрока {{ player[0] }} и всю его историю?');">
-                        <button type="submit" class="rating-btn rating-btn-danger" title="Удалить">
-                            🗑 <span class="rating-btn-text">Удалить</span>
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
-
-            </div>
             {% endfor %}
 
         </div>
@@ -182,23 +200,27 @@
     <section class="admin-panel">
         <h3>Админ-панель</h3>
         <div class="admin-grid">
-            <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
-            <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
-            <a href="/rating-stats/{{ rating_type }}" class="btn">Статистика</a>
-            <a href="/manage-nicknames/{{ rating_type }}" class="btn">Никнеймы</a>
+            <a href="/rating-stats" class="btn">Статистика</a>
+            <a href="/manage-nicknames" class="btn">Никнеймы</a>
             <a href="/admin/vacations" class="btn">Журнал отпусков</a>
             <a href="/admin/carousel" class="btn">Карусель</a>
+            {% if rating_type != 'total' %}
+            <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
+            <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
+            {% endif %}
         </div>
 
+        {% if rating_type != 'total' %}
         <div class="danger-zone">
             <h4>⚠️ Опасная зона</h4>
             <form action="/reset-rating/{{ rating_type }}" method="POST"
                   onsubmit="return confirm('⚠️ ВНИМАНИЕ!\n\nЭто действие полностью удалит ВСЕ данные рейтинга {{ display_name }}:\n— всех игроков\n— всю историю очков\n\nОтменить это действие НЕВОЗМОЖНО!\n\nПродолжить?');">
                 <button type="submit" class="btn btn-danger">
-                    🗑️ Сбросить весь рейтинг
+                    🗑️ Сбросить рейтинг {{ display_name }}
                 </button>
             </form>
         </div>
+        {% endif %}
     </section>
     {% endif %}
 
