@@ -165,6 +165,20 @@
             justify-content: flex-start;
         }
 
+        /* Обёртка для анимации текста */
+        .caption-wrapper {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            filter: blur(0);
+            transition: opacity 0.9s ease, filter 0.9s ease;
+        }
+        .caption-wrapper.fade-out {
+            opacity: 0;
+            filter: blur(8px);
+        }
+
         .caption-title {
             flex: 0 0 auto;
             margin-bottom: 0.85rem;
@@ -490,12 +504,14 @@
             </div>
 
             <div class="carousel-caption">
-                <div class="caption-title" id="captionTitle">
-                    {{ slides[0][1] if slides[0][1] else 'Добро пожаловать!' }}
+                <div class="caption-wrapper" id="captionWrapper">
+                    <div class="caption-title" id="captionTitle">
+                        {{ slides[0][1] if slides[0][1] else 'Добро пожаловать!' }}
+                    </div>
+                    <p class="caption-text" id="captionText">
+                        {{ slides[0][2] }}
+                    </p>
                 </div>
-                <p class="caption-text" id="captionText">
-                    {{ slides[0][2] }}
-                </p>
             </div>
 
             {% else %}
@@ -555,6 +571,7 @@
     (function carousel() {
         const slides = document.querySelectorAll('.carousel .slide');
         const dotsContainer = document.getElementById('dots');
+        const captionWrapper = document.getElementById('captionWrapper');
         const captionTitle = document.getElementById('captionTitle');
         const captionText = document.getElementById('captionText');
         const prevBtn = document.getElementById('prevBtn');
@@ -570,9 +587,12 @@
             {% endfor %}
         ];
 
+        const TEXT_ANIM_MS = 900;  // 0.9 сек — длительность блюр-растворения текста
+
         let current = 0;
         let timer = null;
         let dots = [];
+        let textAnimBusy = false;
 
         if (dotsContainer) {
             slides.forEach((_, i) => {
@@ -588,11 +608,8 @@
             current = (i + slides.length) % slides.length;
             slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
             dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
-            if (slideData[current] && captionTitle && captionText) {
-                captionTitle.textContent = slideData[current].title || ' ';
-                captionText.textContent = slideData[current].text || '';
-            }
 
+            // Запуск видео текущего слайда
             const activeSlide = slides[current];
             if (activeSlide) {
                 const video = activeSlide.querySelector('video');
@@ -601,8 +618,28 @@
                 }
             }
 
+            // Анимация текста: быстрое блюр-растворение
+            if (captionWrapper && captionTitle && captionText && slideData[current]) {
+                if (textAnimBusy) {
+                    // если уже анимируется — просто обновим сразу
+                    captionTitle.textContent = slideData[current].title || ' ';
+                    captionText.textContent = slideData[current].text || '';
+                } else {
+                    textAnimBusy = true;
+                    captionWrapper.classList.add('fade-out');
+
+                    setTimeout(() => {
+                        captionTitle.textContent = slideData[current].title || ' ';
+                        captionText.textContent = slideData[current].text || '';
+                        captionWrapper.classList.remove('fade-out');
+                        textAnimBusy = false;
+                    }, TEXT_ANIM_MS);
+                }
+            }
+
             resetTimer();
         }
+
         function next() { goTo(current + 1); }
         function prev() { goTo(current - 1); }
         function startTimer() { timer = setInterval(next, 15000); }
