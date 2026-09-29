@@ -127,7 +127,7 @@
                 {% set css_class = 'p1' %}
             {% elif place <= 3 %}
                 {% set css_class = 'p2' %}
-            {% elif place <= 5 %}
+            {% elif place <= 6 %}
                 {% set css_class = 'p3' %}
             {% elif place <= 10 %}
                 {% set css_class = 'p4' %}
@@ -146,7 +146,7 @@
                     <div class="rating-tier">
                         {% if place == 1 %}💎 Алмаз
                         {% elif place <= 3 %}🥇 Золото
-                        {% elif place <= 5 %}🥈 Серебро
+                        {% elif place <= 6 %}🥈 Серебро
                         {% elif place <= 10 %}🥉 Бронза
                         {% elif place <= 50 %}⚙️ Сталь
                         {% else %}🪨 Камень{% endif %}
