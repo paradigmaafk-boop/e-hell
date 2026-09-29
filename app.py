@@ -84,11 +84,7 @@ def get_counter_value(counter_name):
     except:
         return 0
 
-# ============================================================
-# ХЕЛПЕР: считаем событие один раз за сессию
-# ============================================================
 def count_once(counter_name, session_key):
-    """Увеличивает счётчик, только если флага нет в сессии."""
     if session_key not in session:
         session[session_key] = True
         increment_counter(counter_name)
@@ -360,7 +356,6 @@ def player_profile(rating_type, nickname):
         flash('Игрок не найден')
         return redirect(url_for('rating_view', rating_type=rating_type))
 
-    # Считаем уникальные просмотры графиков: один раз на игрока за сессию
     count_once('chart_views', f'chart_viewed_{rating_type}_{nickname}')
 
     dates = [row[0] for row in history]
@@ -569,7 +564,36 @@ def admin_panel():
         return redirect(url_for('index'))
 
     rating_types = get_all_rating_types()
-    return render_template('admin.html', rating_types=rating_types)
+
+    # Текущие значения счётчиков — для отображения на странице
+    stats = {
+        'visits': get_counter_value('visits'),
+        'turtle_calculator': get_counter_value('turtle_calculator'),
+        'hero_calculator': get_counter_value('hero_calculator'),
+        'chart_views': get_counter_value('chart_views'),
+        'admin_actions': get_counter_value('admin_actions'),
+    }
+
+    return render_template('admin.html', rating_types=rating_types, stats=stats)
+
+@app.route('/admin/reset-counters', methods=['POST'])
+def admin_reset_counters():
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ только для администратора!')
+        return redirect(url_for('index'))
+
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE counters SET value = 0")
+        conn.commit()
+        conn.close()
+        flash('Все счётчики обнулены.')
+    except Exception as e:
+        print(f"Error resetting counters: {e}")
+        flash('Ошибка при обнулении счётчиков')
+
+    return redirect(url_for('admin_panel'))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8000)
