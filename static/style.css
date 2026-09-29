@@ -399,15 +399,20 @@ body::before {
     .nav a .nav-short { display: inline; }
 }
 
-/* Кнопка «Админ» в верхнем меню */
+/* Кнопка «Админ» в верхнем меню — компактная круглая иконка */
 .nav a.nav-admin {
     color: #ff8060;
     font-weight: 600;
-    padding: 0.25rem 0.75rem;
+    font-size: 1.05rem;
+    line-height: 1;
+    padding: 0.4rem 0.55rem;
     border: 1px solid rgba(255, 128, 96, 0.45);
-    border-radius: 50px;
+    border-radius: 50%;
     margin-left: auto;
     border-bottom: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 .nav a.nav-admin:hover {
     color: #fff;
