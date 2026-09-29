@@ -390,6 +390,15 @@ body::before {
     border-radius: 2px;
 }
 
+/* Короткие/длинные названия в верхнем меню */
+.nav a .nav-full { display: inline; }
+.nav a .nav-short { display: none; }
+
+@media (max-width: 900px) {
+    .nav a .nav-full { display: none; }
+    .nav a .nav-short { display: inline; }
+}
+
 /* Кнопка «Админ» в верхнем меню */
 .nav a.nav-admin {
     color: #ff8060;
