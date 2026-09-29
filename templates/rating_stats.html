@@ -87,6 +87,14 @@
             <div class="label">Посещений</div>
         </div>
         <div class="stat-card">
+            <div class="number">{{ home_count }}</div>
+            <div class="label">Главная страница</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ reservoir_count }}</div>
+            <div class="label">Раздел Резервуар</div>
+        </div>
+        <div class="stat-card">
             <div class="number">{{ turtle_count }}</div>
             <div class="label">Калькулятор Черепашка</div>
         </div>
@@ -111,6 +119,7 @@
 <script>
     (function () {
         const container = document.getElementById('embers');
+        if (!container) return;
         for (let i = 0; i < 30; i++) {
             const ember = document.createElement('div');
             ember.className = 'ember';
