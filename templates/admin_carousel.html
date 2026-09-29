@@ -8,6 +8,69 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .poster-editor {
+            margin-top: 0.75rem;
+            padding: 1rem;
+            background: rgba(15, 6, 3, 0.5);
+            border: 1px dashed var(--line);
+            border-radius: 10px;
+        }
+        .poster-editor h4 {
+            font-size: 0.78rem;
+            color: var(--accent-warm);
+            margin-bottom: 0.6rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .poster-editor video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            background: #000;
+            display: block;
+            margin-bottom: 0.75rem;
+        }
+        .poster-editor input[type="range"] {
+            width: 100%;
+            max-width: 400px;
+            accent-color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        .poster-editor .poster-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            max-width: 400px;
+        }
+        .poster-editor .poster-time {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-variant-numeric: tabular-nums;
+        }
+        .poster-preview {
+            margin-top: 0.75rem;
+            max-width: 200px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            display: none;
+        }
+        .poster-preview.show { display: block; }
+        .poster-current {
+            margin-top: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+        .poster-current img {
+            width: 80px;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+        }
+    </style>
 </head>
 <body>
 
@@ -91,8 +154,9 @@
 
     <section class="section">
         <div class="section-title">Добавить слайд</div>
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST" enctype="multipart/form-data" id="create-form">
             <input type="hidden" name="action" value="create">
+            <input type="hidden" name="poster_data" id="create-poster-data" value="">
 
             <div class="calc-field" style="margin-bottom: 1rem;">
                 <label>Заголовок (необязательно)</label>
@@ -109,7 +173,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                 <div class="calc-field">
                     <label>Тип медиа</label>
-                    <select name="media_type" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
+                    <select name="media_type" id="create-media-type" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
                         <option value="image">Изображение</option>
                         <option value="video">Видео</option>
                         <option value="none">Без медиа</option>
@@ -123,7 +187,7 @@
 
             <div class="calc-field" style="margin-bottom: 1rem;">
                 <label>Загрузить файл</label>
-                <input type="file" name="media_file" accept="image/*,video/*">
+                <input type="file" name="media_file" id="create-media-file" accept="image/*,video/*">
             </div>
 
             <div class="calc-field" style="margin-bottom: 1.5rem;">
@@ -131,7 +195,24 @@
                 <input type="text" name="media_url" placeholder="https://...">
             </div>
 
-            <button type="submit" class="btn btn-primary">Добавить слайд</button>
+            <!-- Выбор постера для видео -->
+            <div class="poster-editor" id="create-poster-editor" style="display: none;">
+                <h4>🎬 Выбор постера (первого кадра)</h4>
+                <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
+                    Загрузите видео, пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
+                </p>
+                <video id="create-poster-video" controls muted preload="metadata"></video>
+                <input type="range" id="create-poster-range" min="0" max="100" value="0" step="0.1">
+                <div class="poster-controls">
+                    <span class="poster-time" id="create-poster-time">0.0 с</span>
+                    <button type="button" class="btn btn-small" id="create-grab-poster">📸 Взять этот кадр</button>
+                    <button type="button" class="btn btn-small" id="create-clear-poster">✕ Очистить</button>
+                </div>
+                <canvas id="create-poster-canvas" style="display: none;"></canvas>
+                <img id="create-poster-preview" class="poster-preview" alt="Постер">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Добавить слайд</button>
         </form>
     </section>
 
@@ -153,7 +234,10 @@
                     <div style="border-radius: 8px; overflow: hidden; background: #000; height: 140px; display: flex; align-items: center; justify-content: center;">
                         {% if slide[4] %}
                             {% if slide[3] == 'video' %}
-                                <video src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}" muted autoplay loop playsinline style="max-width: 100%; max-height: 100%;"></video>
+                                <video
+                                    src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"
+                                    {% if slide[9] %}poster="{{ slide[9] }}"{% endif %}
+                                    muted autoplay loop playsinline style="max-width: 100%; max-height: 100%;"></video>
                             {% else %}
                                 <img src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}" style="max-width: 100%; max-height: 100%;" alt="">
                             {% endif %}
@@ -166,12 +250,24 @@
                         <p style="color: var(--dim); font-size: 0.8rem;">
                             Тип: {{ slide[3] }} | Обновлен: {{ slide[8][:16] if slide[8] else '—' }}
                         </p>
+                        {% if slide[3] == 'video' and slide[9] %}
+                        <div class="poster-current">
+                            <img src="{{ slide[9] }}" alt="">
+                            <span>Постер установлен</span>
+                        </div>
+                        {% elif slide[3] == 'video' %}
+                        <div class="poster-current">
+                            <span style="color: #d4614a;">⚠ Постер не установлен (показывается градиент)</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
-                <form method="POST" enctype="multipart/form-data" style="border-top: 1px solid var(--line); padding-top: 1.5rem;">
+                <form method="POST" enctype="multipart/form-data" id="update-form-{{ slide[0] }}" style="border-top: 1px solid var(--line); padding-top: 1.5rem;">
                     <input type="hidden" name="action" value="update">
                     <input type="hidden" name="slide_id" value="{{ slide[0] }}">
+                    <input type="hidden" name="poster_data" id="update-poster-data-{{ slide[0] }}" value="">
+                    <input type="hidden" name="remove_poster" id="update-remove-poster-{{ slide[0] }}" value="0">
 
                     <div class="calc-field" style="margin-bottom: 1rem;">
                         <label>Заголовок</label>
@@ -187,7 +283,7 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
                         <div class="calc-field">
                             <label>Тип медиа</label>
-                            <select name="media_type" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
+                            <select name="media_type" id="update-media-type-{{ slide[0] }}" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
                                 <option value="image" {% if slide[3] == 'image' %}selected{% endif %}>Изображение</option>
                                 <option value="video" {% if slide[3] == 'video' %}selected{% endif %}>Видео</option>
                                 <option value="none" {% if slide[3] == 'none' %}selected{% endif %}>Без медиа</option>
@@ -201,7 +297,7 @@
 
                     <div class="calc-field" style="margin-bottom: 1rem;">
                         <label>Заменить медиа</label>
-                        <input type="file" name="media_file" accept="image/*,video/*">
+                        <input type="file" name="media_file" id="update-media-file-{{ slide[0] }}" accept="image/*,video/*">
                     </div>
 
                     <div class="calc-field" style="margin-bottom: 1rem;">
@@ -209,7 +305,30 @@
                         <input type="text" name="media_url" value="{{ slide[4] or '' }}">
                     </div>
 
-                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; font-size: 0.9rem;">
+                    <!-- Выбор постера для видео при обновлении -->
+                    <div class="poster-editor" id="update-poster-editor-{{ slide[0] }}" style="{% if slide[3] != 'video' %}display: none;{% endif %}">
+                        <h4>🎬 Выбор постера (первого кадра)</h4>
+                        <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
+                            {% if slide[3] == 'video' and slide[4] %}
+                                Пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
+                            {% else %}
+                                Загрузите видео, пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
+                            {% endif %}
+                        </p>
+                        <video id="update-poster-video-{{ slide[0] }}" controls muted preload="metadata"
+                            {% if slide[3] == 'video' and slide[4] %}src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"{% endif %}></video>
+                        <input type="range" id="update-poster-range-{{ slide[0] }}" min="0" max="100" value="0" step="0.1">
+                        <div class="poster-controls">
+                            <span class="poster-time" id="update-poster-time-{{ slide[0] }}">0.0 с</span>
+                            <button type="button" class="btn btn-small" id="update-grab-poster-{{ slide[0] }}">📸 Взять этот кадр</button>
+                            <button type="button" class="btn btn-small" id="update-clear-poster-{{ slide[0] }}">✕ Убрать постер</button>
+                        </div>
+                        <canvas id="update-poster-canvas-{{ slide[0] }}" style="display: none;"></canvas>
+                        <img id="update-poster-preview-{{ slide[0] }}" class="poster-preview" alt="Новый постер"
+                            {% if slide[9] %}src="{{ slide[9] }}" style="display:block;"{% endif %}>
+                    </div>
+
+                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; font-size: 0.9rem; margin-top: 1rem;">
                         <input type="checkbox" name="is_active" {% if slide[6] %}checked{% endif %}>
                         Активен
                     </label>
@@ -243,6 +362,7 @@
 <script>
     (function () {
         const container = document.getElementById('embers');
+        if (!container) return;
         for (let i = 0; i < 30; i++) {
             const ember = document.createElement('div');
             ember.className = 'ember';
@@ -282,6 +402,120 @@
         content.classList.toggle('open');
         if (arrow) arrow.classList.toggle('open');
     }
+
+    /* ============================================================
+       Логика выбора постера
+       ============================================================ */
+    function setupPosterEditor(opts) {
+        const {
+            videoEl, rangeEl, timeEl, grabBtn, clearBtn,
+            canvasEl, previewEl, dataInput, removeInput,
+            mediaFileEl, mediaTypeEl
+        } = opts;
+        if (!videoEl) return;
+
+        // Обновление слайдера при загрузке метаданных
+        videoEl.addEventListener('loadedmetadata', () => {
+            rangeEl.max = videoEl.duration || 0;
+            rangeEl.value = 0;
+            timeEl.textContent = '0.0 с';
+        });
+
+        rangeEl.addEventListener('input', () => {
+            const t = parseFloat(rangeEl.value);
+            if (!isNaN(t) && isFinite(t)) {
+                videoEl.currentTime = t;
+                timeEl.textContent = t.toFixed(1) + ' с';
+            }
+        });
+
+        videoEl.addEventListener('timeupdate', () => {
+            const t = videoEl.currentTime;
+            rangeEl.value = t;
+            timeEl.textContent = t.toFixed(1) + ' с';
+        });
+
+        grabBtn.addEventListener('click', () => {
+            const w = videoEl.videoWidth;
+            const h = videoEl.videoHeight;
+            if (!w || !h) {
+                alert('Видео ещё не загрузилось, подождите.');
+                return;
+            }
+            canvasEl.width = w;
+            canvasEl.height = h;
+            const ctx = canvasEl.getContext('2d');
+            ctx.drawImage(videoEl, 0, 0, w, h);
+            const dataUrl = canvasEl.toDataURL('image/jpeg', 0.85);
+
+            dataInput.value = dataUrl;
+            previewEl.src = dataUrl;
+            previewEl.classList.add('show');
+            if (removeInput) removeInput.value = '0';
+        });
+
+        clearBtn.addEventListener('click', () => {
+            dataInput.value = '';
+            previewEl.src = '';
+            previewEl.classList.remove('show');
+            if (removeInput) removeInput.value = '1';
+        });
+
+        // Переключение видимости редактора постера
+        function updateVisibility() {
+            const isVideo = mediaTypeEl.value === 'video';
+            const editor = videoEl.closest('.poster-editor');
+            if (editor) editor.style.display = isVideo ? 'block' : 'none';
+        }
+        if (mediaTypeEl) {
+            mediaTypeEl.addEventListener('change', updateVisibility);
+            updateVisibility();
+        }
+
+        // При выборе нового видео-файла — подгружаем его в редактор
+        if (mediaFileEl) {
+            mediaFileEl.addEventListener('change', () => {
+                const file = mediaFileEl.files[0];
+                if (!file) return;
+                if (file.type.startsWith('video/')) {
+                    videoEl.src = URL.createObjectURL(file);
+                    videoEl.load();
+                }
+            });
+        }
+    }
+
+    // Редактор для "Создать слайд"
+    setupPosterEditor({
+        videoEl: document.getElementById('create-poster-video'),
+        rangeEl: document.getElementById('create-poster-range'),
+        timeEl: document.getElementById('create-poster-time'),
+        grabBtn: document.getElementById('create-grab-poster'),
+        clearBtn: document.getElementById('create-clear-poster'),
+        canvasEl: document.getElementById('create-poster-canvas'),
+        previewEl: document.getElementById('create-poster-preview'),
+        dataInput: document.getElementById('create-poster-data'),
+        removeInput: null,
+        mediaFileEl: document.getElementById('create-media-file'),
+        mediaTypeEl: document.getElementById('create-media-type')
+    });
+
+    // Редакторы для каждого существующего слайда
+    {% for slide in slides %}
+    setupPosterEditor({
+        videoEl: document.getElementById('update-poster-video-{{ slide[0] }}'),
+        rangeEl: document.getElementById('update-poster-range-{{ slide[0] }}'),
+        timeEl: document.getElementById('update-poster-time-{{ slide[0] }}'),
+        grabBtn: document.getElementById('update-grab-poster-{{ slide[0] }}'),
+        clearBtn: document.getElementById('update-clear-poster-{{ slide[0] }}'),
+        canvasEl: document.getElementById('update-poster-canvas-{{ slide[0] }}'),
+        previewEl: document.getElementById('update-poster-preview-{{ slide[0] }}'),
+        dataInput: document.getElementById('update-poster-data-{{ slide[0] }}'),
+        removeInput: document.getElementById('update-remove-poster-{{ slide[0] }}'),
+        mediaFileEl: document.getElementById('update-media-file-{{ slide[0] }}'),
+        mediaTypeEl: document.getElementById('update-media-type-{{ slide[0] }}')
+    });
+    {% endfor %}
 </script>
 
 </body>
