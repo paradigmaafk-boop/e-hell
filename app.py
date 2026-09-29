@@ -5,7 +5,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import pandas as pd
 import psycopg2
 from database import (
-    init_db, check_user, save_rating, get_latest_rating,
+    init_db, check_user, save_rating, get_latest_rating, get_total_rating,
     get_player_history, get_all_players, get_average_history,
     get_underperforming, get_consistently_underperforming,
     get_total_weeks, get_all_time_leaders, get_all_rating_types,
@@ -111,10 +111,15 @@ def rating_view(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
-        return redirect(url_for('rating_view', rating_type='duel'))
+        return redirect(url_for('rating_view', rating_type='total'))
 
-    rating_data = get_latest_rating(rating_type)
     display_name = get_rating_display_name(rating_type)
+
+    if rating_type == 'total':
+        # Суммарный рейтинг: дуэль + аркадия
+        rating_data = get_total_rating()
+    else:
+        rating_data = get_latest_rating(rating_type)
 
     return render_template('rating.html',
                            rating=rating_data,
@@ -185,7 +190,7 @@ def logout():
 def upload_file(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if rating_type not in rt_ids or rating_type == 'total':
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
 
@@ -241,16 +246,14 @@ def upload_file(rating_type):
         flash('Разрешены только .xlsx или .xls')
         return redirect(url_for('rating_view', rating_type=rating_type))
 
-@app.route('/manage-nicknames/<rating_type>', methods=['GET', 'POST'])
-def manage_nicknames(rating_type):
-    rating_types = get_all_rating_types()
-    rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
-        return redirect(url_for('index'))
-
+# ============================================================
+# УПРАВЛЕНИЕ НИКНЕЙМАМИ — БЕЗ rating_type (общие)
+# ============================================================
+@app.route('/manage-nicknames', methods=['GET', 'POST'])
+def manage_nicknames():
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
-        return redirect(url_for('rating_view', rating_type=rating_type))
+        return redirect(url_for('index'))
 
     if request.method == 'POST':
         action = request.form.get('action')
@@ -258,7 +261,7 @@ def manage_nicknames(rating_type):
             current_nickname = request.form.get('current_nickname', '').strip()
             old_nickname = request.form.get('old_nickname', '').strip()
             if current_nickname and old_nickname:
-                if add_nickname_alias(rating_type, current_nickname, old_nickname):
+                if add_nickname_alias(current_nickname, old_nickname):
                     increment_counter('admin_actions')
                     flash(f'Связь добавлена: "{old_nickname}" → "{current_nickname}"')
                 else:
@@ -268,27 +271,26 @@ def manage_nicknames(rating_type):
         elif action == 'delete':
             old_nickname = request.form.get('old_nickname')
             if old_nickname:
-                delete_nickname_alias(rating_type, old_nickname)
+                delete_nickname_alias(old_nickname)
                 increment_counter('admin_actions')
                 flash(f'Связь для "{old_nickname}" удалена')
-        return redirect(url_for('manage_nicknames', rating_type=rating_type))
+        return redirect(url_for('manage_nicknames'))
 
-    aliases = get_nickname_aliases(rating_type)
-    players = get_all_players(rating_type)
-    display_name = get_rating_display_name(rating_type)
+    aliases = get_nickname_aliases()
+    players_duel = get_all_players('duel')
+    players_arcadia = get_all_players('arcadia')
+    players = sorted(set(players_duel + players_arcadia))
 
     return render_template('manage_nicknames.html',
-                           rating_type=rating_type,
-                           display_name=display_name,
                            aliases=aliases,
                            players=players,
-                           rating_types=rating_types)
+                           rating_types=get_all_rating_types())
 
 @app.route('/reset-rating/<rating_type>', methods=['POST'])
 def reset_rating_route(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if rating_type not in rt_ids or rating_type == 'total':
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
     if 'logged_in' not in session or session['username'] != 'admin':
@@ -305,7 +307,7 @@ def reset_rating_route(rating_type):
 def delete_player_route(rating_type, nickname):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if rating_type not in rt_ids or rating_type == 'total':
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
     if 'logged_in' not in session or session['username'] != 'admin':
@@ -318,12 +320,11 @@ def delete_player_route(rating_type, nickname):
         flash(f'Ошибка при удалении игрока "{nickname}"')
     return redirect(url_for('rating_view', rating_type=rating_type))
 
-@app.route('/rating-stats/<rating_type>')
-def rating_stats(rating_type):
+@app.route('/rating-stats')
+def rating_stats():
     count_once('visits', 'counted_visit')
-    rating_types = get_all_rating_types()
-    rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ только для администратора!')
         return redirect(url_for('index'))
 
     visit_count = get_counter_value('visits')
@@ -332,23 +333,19 @@ def rating_stats(rating_type):
     chart_count = get_counter_value('chart_views')
     admin_count = get_counter_value('admin_actions')
 
-    display_name = get_rating_display_name(rating_type)
-
     return render_template('rating_stats.html',
-                           rating_type=rating_type,
-                           display_name=display_name,
                            visit_count=visit_count,
                            turtle_count=turtle_count,
                            hero_count=hero_count,
                            chart_count=chart_count,
                            admin_count=admin_count,
-                           rating_types=rating_types)
+                           rating_types=get_all_rating_types())
 
 @app.route('/player/<rating_type>/<nickname>')
 def player_profile(rating_type, nickname):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if rating_type not in rt_ids or rating_type == 'total':
         return redirect(url_for('index'))
 
     history = get_player_history(rating_type, nickname)
@@ -377,7 +374,7 @@ def player_profile(rating_type, nickname):
 def underperforming(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if rating_type not in rt_ids or rating_type == 'total':
         return redirect(url_for('index'))
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
@@ -395,7 +392,7 @@ def underperforming(rating_type):
 def consistently_underperforming(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if rating_type not in rt_ids or rating_type == 'total':
         return redirect(url_for('index'))
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
@@ -414,7 +411,7 @@ def consistently_underperforming(rating_type):
 def api_player_data(rating_type, nickname):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids:
+    if rating_type not in rt_ids or rating_type == 'total':
         return jsonify({'error': 'Invalid rating type'}), 400
     history = get_player_history(rating_type, nickname)
     avg_data = get_average_history(rating_type)
@@ -425,15 +422,13 @@ def api_player_data(rating_type, nickname):
         'avg_points': [row[1] for row in avg_data]
     })
 
-@app.route('/turtle-calculator')
-def turtle_calculator():
-    count_once('turtle_calculator', 'used_turtle_calc')
-    return render_template('turtle_calculator.html')
-
-@app.route('/hero-calculator')
-def hero_calculator():
-    count_once('hero_calculator', 'used_hero_calc')
-    return render_template('hero_calculator.html')
+# ============================================================
+# КАЛЬКУЛЯТОР — объединены черепашка + прокачка
+# ============================================================
+@app.route('/calculator')
+def calculator():
+    count_once('calculator', 'used_calculator')
+    return render_template('calculator.html')
 
 @app.route('/admin/vacations', methods=['GET', 'POST'])
 def admin_vacations():
