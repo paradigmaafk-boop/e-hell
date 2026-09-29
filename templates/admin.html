@@ -123,12 +123,20 @@
         </div>
     </section>
 
-    <section class="section" style="margin-top: 2rem;">
+        <section class="section" style="margin-top: 2rem;">
         <div class="section-title">Текущая статистика</div>
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="number">{{ stats.visits }}</div>
                 <div class="label">Посещений</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.home_views }}</div>
+                <div class="label">Главная страница</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.reservoir_views }}</div>
+                <div class="label">Раздел Резервуар</div>
             </div>
             <div class="stat-card">
                 <div class="number">{{ stats.turtle_calculator }}</div>
