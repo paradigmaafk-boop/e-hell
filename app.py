@@ -39,7 +39,6 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def save_base64_image(data_url, prefix='poster'):
-    """Сохраняет base64-картинку в static/carousel, возвращает URL."""
     if not data_url or ',' not in data_url:
         return None
     try:
@@ -85,9 +84,18 @@ def get_counter_value(counter_name):
     except:
         return 0
 
+# ============================================================
+# ХЕЛПЕР: считаем событие один раз за сессию
+# ============================================================
+def count_once(counter_name, session_key):
+    """Увеличивает счётчик, только если флага нет в сессии."""
+    if session_key not in session:
+        session[session_key] = True
+        increment_counter(counter_name)
+
 @app.route('/')
 def index():
-    increment_counter('visits')
+    count_once('visits', 'counted_visit')
     slides = get_all_slides(only_active=True)
     rating_types = get_all_rating_types()
 
@@ -103,7 +111,7 @@ def index():
 
 @app.route('/rating/<rating_type>')
 def rating_view(rating_type):
-    increment_counter('visits')
+    count_once('visits', 'counted_visit')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -120,7 +128,7 @@ def rating_view(rating_type):
 
 @app.route('/reservoir-map')
 def reservoir_map():
-    increment_counter('visits')
+    count_once('visits', 'counted_visit')
     map_values = get_all_map_values()
     return render_template('reservoir_map.html', map_values=map_values)
 
@@ -135,6 +143,7 @@ def save_reservoir_map():
             return jsonify({'success': False, 'error': 'Неверные данные'}), 400
 
         if save_map_values(data):
+            increment_counter('admin_actions')
             return jsonify({'success': True})
         else:
             return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
@@ -148,6 +157,7 @@ def reset_reservoir_map():
         return jsonify({'success': False, 'error': 'Доступ запрещён'}), 403
 
     if reset_map_values():
+        increment_counter('admin_actions')
         return jsonify({'success': True})
     else:
         return jsonify({'success': False, 'error': 'Ошибка сброса'}), 500
@@ -161,6 +171,7 @@ def login():
             flash('Заполните все поля!')
             return redirect(url_for('login'))
         if check_user(login, password):
+            session.clear()
             session['logged_in'] = True
             session['username'] = login
             return redirect(url_for('index'))
@@ -171,8 +182,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
-    session.pop('username', None)
+    session.clear()
     return redirect(url_for('index'))
 
 @app.route('/upload/<rating_type>', methods=['POST'])
@@ -222,6 +232,7 @@ def upload_file(rating_type):
 
             save_rating(rating_type, rating_list)
             all_players = get_all_players(rating_type)
+            increment_counter('admin_actions')
             flash(f'Рейтинг обновлен! Добавлено {len(rating_list)} записей. Всего: {len(all_players)} игроков.')
         except Exception as e:
             flash(f'Ошибка: {e}')
@@ -236,7 +247,6 @@ def upload_file(rating_type):
 
 @app.route('/manage-nicknames/<rating_type>', methods=['GET', 'POST'])
 def manage_nicknames(rating_type):
-    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -253,6 +263,7 @@ def manage_nicknames(rating_type):
             old_nickname = request.form.get('old_nickname', '').strip()
             if current_nickname and old_nickname:
                 if add_nickname_alias(rating_type, current_nickname, old_nickname):
+                    increment_counter('admin_actions')
                     flash(f'Связь добавлена: "{old_nickname}" → "{current_nickname}"')
                 else:
                     flash('Ошибка при добавлении связи')
@@ -262,6 +273,7 @@ def manage_nicknames(rating_type):
             old_nickname = request.form.get('old_nickname')
             if old_nickname:
                 delete_nickname_alias(rating_type, old_nickname)
+                increment_counter('admin_actions')
                 flash(f'Связь для "{old_nickname}" удалена')
         return redirect(url_for('manage_nicknames', rating_type=rating_type))
 
@@ -278,7 +290,6 @@ def manage_nicknames(rating_type):
 
 @app.route('/reset-rating/<rating_type>', methods=['POST'])
 def reset_rating_route(rating_type):
-    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -288,6 +299,7 @@ def reset_rating_route(rating_type):
         flash('Доступ только для администратора!')
         return redirect(url_for('rating_view', rating_type=rating_type))
     if reset_rating(rating_type):
+        increment_counter('admin_actions')
         flash('Рейтинг полностью сброшен!')
     else:
         flash('Ошибка при сбросе рейтинга')
@@ -295,7 +307,6 @@ def reset_rating_route(rating_type):
 
 @app.route('/delete-player/<rating_type>/<nickname>', methods=['POST'])
 def delete_player_route(rating_type, nickname):
-    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -305,6 +316,7 @@ def delete_player_route(rating_type, nickname):
         flash('Доступ только для администратора!')
         return redirect(url_for('rating_view', rating_type=rating_type))
     if delete_player(rating_type, nickname):
+        increment_counter('admin_actions')
         flash(f'Игрок "{nickname}" удалён!')
     else:
         flash(f'Ошибка при удалении игрока "{nickname}"')
@@ -312,7 +324,7 @@ def delete_player_route(rating_type, nickname):
 
 @app.route('/rating-stats/<rating_type>')
 def rating_stats(rating_type):
-    increment_counter('visits')
+    count_once('visits', 'counted_visit')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -338,7 +350,6 @@ def rating_stats(rating_type):
 
 @app.route('/player/<rating_type>/<nickname>')
 def player_profile(rating_type, nickname):
-    increment_counter('chart_views')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -348,6 +359,9 @@ def player_profile(rating_type, nickname):
     if not history:
         flash('Игрок не найден')
         return redirect(url_for('rating_view', rating_type=rating_type))
+
+    # Считаем уникальные просмотры графиков: один раз на игрока за сессию
+    count_once('chart_views', f'chart_viewed_{rating_type}_{nickname}')
 
     dates = [row[0] for row in history]
     points = [row[1] for row in history]
@@ -366,7 +380,6 @@ def player_profile(rating_type, nickname):
 
 @app.route('/underperforming/<rating_type>')
 def underperforming(rating_type):
-    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -385,7 +398,6 @@ def underperforming(rating_type):
 
 @app.route('/consistently-underperforming/<rating_type>')
 def consistently_underperforming(rating_type):
-    increment_counter('admin_actions')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -405,7 +417,6 @@ def consistently_underperforming(rating_type):
 
 @app.route('/api/player/<rating_type>/<nickname>')
 def api_player_data(rating_type, nickname):
-    increment_counter('chart_views')
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
     if rating_type not in rt_ids:
@@ -421,17 +432,16 @@ def api_player_data(rating_type, nickname):
 
 @app.route('/turtle-calculator')
 def turtle_calculator():
-    increment_counter('turtle_calculator')
+    count_once('turtle_calculator', 'used_turtle_calc')
     return render_template('turtle_calculator.html')
 
 @app.route('/hero-calculator')
 def hero_calculator():
-    increment_counter('hero_calculator')
+    count_once('hero_calculator', 'used_hero_calc')
     return render_template('hero_calculator.html')
 
 @app.route('/admin/vacations', methods=['GET', 'POST'])
 def admin_vacations():
-    increment_counter('admin_actions')
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
         return redirect(url_for('index'))
@@ -445,6 +455,7 @@ def admin_vacations():
             end_date = request.form.get('end_date', '').strip()
             if player_name and start_date and end_date:
                 if add_vacation_record(player_name, comment, start_date, end_date, session['username']):
+                    increment_counter('admin_actions')
                     flash(f'Запись для "{player_name}" добавлена!')
                 else:
                     flash('Ошибка при добавлении записи')
@@ -454,6 +465,7 @@ def admin_vacations():
             record_id = request.form.get('record_id')
             if record_id:
                 if delete_vacation_record(int(record_id)):
+                    increment_counter('admin_actions')
                     flash('Запись удалена!')
                 else:
                     flash('Ошибка при удалении записи')
@@ -464,7 +476,6 @@ def admin_vacations():
 
 @app.route('/admin/carousel', methods=['GET', 'POST'])
 def admin_carousel():
-    increment_counter('admin_actions')
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
         return redirect(url_for('index'))
@@ -494,6 +505,7 @@ def admin_carousel():
 
             if content:
                 if create_slide(title, content, media_type, media_url, position, poster_url):
+                    increment_counter('admin_actions')
                     flash('Слайд добавлен!')
                 else:
                     flash('Ошибка при добавлении слайда')
@@ -508,7 +520,6 @@ def admin_carousel():
             position = int(request.form.get('position', 0) or 0)
             is_active = request.form.get('is_active') == 'on'
 
-            # Существующий постер по умолчанию
             existing = get_slide_by_id(int(slide_id)) if slide_id else None
             poster_url = existing[9] if existing and len(existing) > 9 else None
 
@@ -527,12 +538,12 @@ def admin_carousel():
                 if new_poster:
                     poster_url = new_poster
 
-            # Флаг «убрать постер»
             if request.form.get('remove_poster') == '1':
                 poster_url = None
 
             if slide_id and content:
                 if update_slide(int(slide_id), title, content, media_type, media_url, position, is_active, poster_url):
+                    increment_counter('admin_actions')
                     flash('Слайд обновлен!')
                 else:
                     flash('Ошибка при обновлении')
@@ -542,6 +553,7 @@ def admin_carousel():
             slide_id = request.form.get('slide_id')
             if slide_id:
                 if delete_slide(int(slide_id)):
+                    increment_counter('admin_actions')
                     flash('Слайд удален!')
                 else:
                     flash('Ошибка при удалении')
@@ -552,7 +564,6 @@ def admin_carousel():
 
 @app.route('/admin')
 def admin_panel():
-    increment_counter('admin_actions')
     if 'logged_in' not in session or session['username'] != 'admin':
         flash('Доступ только для администратора!')
         return redirect(url_for('index'))
