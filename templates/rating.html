@@ -74,9 +74,18 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/total" {% if rating_type == 'total' %}class="active"{% endif %}>Рейтинг</a>
-        <a href="/rating/duel" {% if rating_type == 'duel' %}class="active"{% endif %}>Рейтинг Дуэли</a>
-        <a href="/rating/arcadia" {% if rating_type == 'arcadia' %}class="active"{% endif %}>Рейтинг Аркадии</a>
+        <a href="/rating/total" {% if rating_type == 'total' %}class="active"{% endif %}>
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel" {% if rating_type == 'duel' %}class="active"{% endif %}>
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">Дуэль</span>
+        </a>
+        <a href="/rating/arcadia" {% if rating_type == 'arcadia' %}class="active"{% endif %}>
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
         <a href="/reservoir-map">Резервуар</a>
         <a href="/calculator">Калькулятор</a>
         {% if session['username'] == 'admin' %}
