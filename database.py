@@ -19,7 +19,7 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cursor = conn.cursor()
-    
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -27,19 +27,20 @@ def init_db():
             password TEXT NOT NULL
         )
     """)
-    
+
+    # АЛИАСЫ НИКНЕЙМОВ — БЕЗ привязки к типу рейтинга (общие)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS nickname_aliases (
             id SERIAL PRIMARY KEY,
-            rating_type TEXT NOT NULL,
             current_nickname TEXT NOT NULL,
             old_nickname TEXT NOT NULL,
             created_at TEXT NOT NULL,
-            UNIQUE(rating_type, old_nickname)
+            UNIQUE(old_nickname)
         )
     """)
-    
-    rating_types = ['duel']
+
+    # Отдельные таблицы для каждого типа рейтинга
+    rating_types = ['duel', 'arcadia']
     for rt in rating_types:
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS players_{rt} (
@@ -58,7 +59,7 @@ def init_db():
                 date TEXT NOT NULL
             )
         """)
-    
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS vacation_log (
             id SERIAL PRIMARY KEY,
@@ -70,7 +71,7 @@ def init_db():
             created_by TEXT NOT NULL
         )
     """)
-    
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS counters (
             id SERIAL PRIMARY KEY,
@@ -78,7 +79,7 @@ def init_db():
             value INTEGER DEFAULT 0
         )
     """)
-    
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS carousel_slides (
             id SERIAL PRIMARY KEY,
@@ -92,8 +93,7 @@ def init_db():
             updated_at TEXT NOT NULL
         )
     """)
-    
-    # Добавляем колонку poster_url, если её ещё нет
+
     cursor.execute("""
         DO $$
         BEGIN
@@ -105,7 +105,7 @@ def init_db():
             END IF;
         END $$;
     """)
-    
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservoir_map (
             id SERIAL PRIMARY KEY,
@@ -114,7 +114,7 @@ def init_db():
             updated_at TEXT NOT NULL
         )
     """)
-    
+
     hashed = hashlib.sha256('admin123'.encode()).hexdigest()
     try:
         cursor.execute(
@@ -123,7 +123,7 @@ def init_db():
         )
     except:
         pass
-    
+
     conn.commit()
     conn.close()
 
@@ -136,26 +136,31 @@ def check_user(username, password):
     conn.close()
     return user is not None
 
-def add_nickname_alias(rating_type, current_nickname, old_nickname):
+# ============================================================
+# АЛИАСЫ НИКНЕЙМОВ — ОБЩИЕ ДЛЯ ВСЕХ РЕЙТИНГОВ
+# ============================================================
+def add_nickname_alias(current_nickname, old_nickname):
     conn = get_connection()
     cursor = conn.cursor()
     created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
-        cursor.execute("SELECT id FROM nickname_aliases WHERE rating_type = %s AND old_nickname = %s",
-                       (rating_type, old_nickname))
+        cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (old_nickname,))
         existing = cursor.fetchone()
         if existing:
             cursor.execute("""UPDATE nickname_aliases SET current_nickname = %s, created_at = %s
-                              WHERE rating_type = %s AND old_nickname = %s""",
-                           (current_nickname, created_at, rating_type, old_nickname))
+                              WHERE old_nickname = %s""",
+                           (current_nickname, created_at, old_nickname))
         else:
-            cursor.execute("""INSERT INTO nickname_aliases (rating_type, current_nickname, old_nickname, created_at)
-                              VALUES (%s, %s, %s, %s)""",
-                           (rating_type, current_nickname, old_nickname, created_at))
-        cursor.execute(f"UPDATE history_{rating_type} SET nickname = %s WHERE nickname = %s",
-                       (current_nickname, old_nickname))
-        cursor.execute(f"UPDATE players_{rating_type} SET nickname = %s WHERE nickname = %s",
-                       (current_nickname, old_nickname))
+            cursor.execute("""INSERT INTO nickname_aliases (current_nickname, old_nickname, created_at)
+                              VALUES (%s, %s, %s)""",
+                           (current_nickname, old_nickname, created_at))
+
+        # Обновляем nickname во всех таблицах history_ и players_
+        for rt in ['duel', 'arcadia']:
+            cursor.execute(f"UPDATE history_{rt} SET nickname = %s WHERE nickname = %s",
+                           (current_nickname, old_nickname))
+            cursor.execute(f"UPDATE players_{rt} SET nickname = %s WHERE nickname = %s",
+                           (current_nickname, old_nickname))
         conn.commit()
         return True
     except Exception as e:
@@ -165,39 +170,40 @@ def add_nickname_alias(rating_type, current_nickname, old_nickname):
     finally:
         conn.close()
 
-def get_nickname_aliases(rating_type):
+def get_nickname_aliases():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""SELECT current_nickname, old_nickname, created_at FROM nickname_aliases
-                      WHERE rating_type = %s ORDER BY created_at DESC""", (rating_type,))
+                      ORDER BY created_at DESC""")
     data = cursor.fetchall()
     conn.close()
     return data
 
-def delete_nickname_alias(rating_type, old_nickname):
+def delete_nickname_alias(old_nickname):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM nickname_aliases WHERE rating_type = %s AND old_nickname = %s",
-                   (rating_type, old_nickname))
+    cursor.execute("DELETE FROM nickname_aliases WHERE old_nickname = %s", (old_nickname,))
     conn.commit()
     conn.close()
 
-def resolve_nickname(rating_type, nickname):
+def resolve_nickname(nickname):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""SELECT current_nickname FROM nickname_aliases
-                      WHERE rating_type = %s AND old_nickname = %s
-                      ORDER BY created_at DESC LIMIT 1""", (rating_type, nickname))
+                      WHERE old_nickname = %s ORDER BY created_at DESC LIMIT 1""", (nickname,))
     result = cursor.fetchone()
     conn.close()
     return result[0] if result else nickname
 
+# ============================================================
+# СОХРАНЕНИЕ РЕЙТИНГА (duel / arcadia)
+# ============================================================
 def save_rating(rating_type, data_list):
     conn = get_connection()
     cursor = conn.cursor()
     today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     for nickname, points in data_list:
-        resolved_nickname = resolve_nickname(rating_type, nickname)
+        resolved_nickname = resolve_nickname(nickname)
         cursor.execute(f"SELECT id, points FROM players_{rating_type} WHERE nickname = %s", (resolved_nickname,))
         existing = cursor.fetchone()
         if existing:
@@ -216,6 +222,38 @@ def get_latest_rating(rating_type):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(f"SELECT nickname, points FROM players_{rating_type} ORDER BY points DESC")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+# ============================================================
+# СУММАРНЫЙ РЕЙТИНГ: сумма очков дуэли и аркадии
+# ============================================================
+def get_total_rating():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        WITH players AS (
+            SELECT nickname FROM players_duel
+            UNION
+            SELECT nickname FROM players_arcadia
+        ),
+        duel AS (
+            SELECT nickname, points FROM players_duel
+        ),
+        arcadia AS (
+            SELECT nickname, points FROM players_arcadia
+        )
+        SELECT
+            p.nickname,
+            COALESCE(d.points, 0) AS duel_points,
+            COALESCE(a.points, 0) AS arcadia_points,
+            COALESCE(d.points, 0) + COALESCE(a.points, 0) AS total_points
+        FROM players p
+        LEFT JOIN duel d ON d.nickname = p.nickname
+        LEFT JOIN arcadia a ON a.nickname = p.nickname
+        ORDER BY total_points DESC, p.nickname ASC
+    """)
     data = cursor.fetchall()
     conn.close()
     return data
@@ -324,8 +362,8 @@ def delete_player(rating_type, nickname):
     try:
         cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nickname,))
         cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
-        cursor.execute("DELETE FROM nickname_aliases WHERE rating_type = %s AND (current_nickname = %s OR old_nickname = %s)",
-                       (rating_type, nickname, nickname))
+        cursor.execute("DELETE FROM nickname_aliases WHERE current_nickname = %s OR old_nickname = %s",
+                       (nickname, nickname))
         conn.commit()
         return True
     except Exception as e:
@@ -337,11 +375,17 @@ def delete_player(rating_type, nickname):
 
 def get_all_rating_types():
     return [
-        {'id': 'duel', 'name': 'Дуэль', 'icon': '⚔️', 'color': '#ff8a1f'}
+        {'id': 'total',   'name': 'Рейтинг',         'icon': '🏆', 'color': '#ffb800'},
+        {'id': 'duel',    'name': 'Рейтинг Дуэли',   'icon': '⚔️', 'color': '#ff8a1f'},
+        {'id': 'arcadia', 'name': 'Рейтинг Аркадии', 'icon': '🌿', 'color': '#4caf50'},
     ]
 
 def get_rating_display_name(rating_type):
-    names = {'duel': 'Дуэль'}
+    names = {
+        'duel': 'Рейтинг Дуэли',
+        'arcadia': 'Рейтинг Аркадии',
+        'total': 'Рейтинг',
+    }
     return names.get(rating_type, rating_type)
 
 def add_vacation_record(player_name, comment, start_date, end_date, created_by):
@@ -385,7 +429,6 @@ def delete_vacation_record(record_id):
         conn.close()
 
 # ===== КАРУСЕЛЬ =====
-
 def create_slide(title, content, media_type, media_url, position, poster_url=None):
     conn = get_connection()
     cursor = conn.cursor()
@@ -458,8 +501,7 @@ def delete_slide(slide_id):
     finally:
         conn.close()
 
-# ===== КАРТА БОЯ (РЕЗЕРВУАР) =====
-
+# ===== КАРТА БОЯ =====
 def get_all_map_values():
     conn = get_connection()
     cursor = conn.cursor()
