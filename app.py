@@ -1,4 +1,5 @@
 import os
+import base64
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import pandas as pd
@@ -37,6 +38,29 @@ init_db()
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def save_base64_image(data_url, prefix='poster'):
+    """Сохраняет base64-картинку в static/carousel, возвращает URL."""
+    if not data_url or ',' not in data_url:
+        return None
+    try:
+        header, encoded = data_url.split(',', 1)
+        if 'image' not in header:
+            return None
+        img_bytes = base64.b64decode(encoded)
+        ext = 'jpg'
+        if 'png' in header:
+            ext = 'png'
+        elif 'webp' in header:
+            ext = 'webp'
+        unique_name = f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}"
+        filepath = os.path.join(CAROUSEL_FOLDER, unique_name)
+        with open(filepath, 'wb') as f:
+            f.write(img_bytes)
+        return f"/static/carousel/{unique_name}"
+    except Exception as e:
+        print(f"Error saving base64 image: {e}")
+        return None
+
 def increment_counter(counter_name):
     try:
         conn = get_connection()
@@ -67,7 +91,6 @@ def index():
     slides = get_all_slides(only_active=True)
     rating_types = get_all_rating_types()
 
-    # Проверяем, что файлы на месте — если нет, пишем в лог
     for slide in slides:
         if slide[4] and slide[4].startswith('/static/carousel/'):
             rel_path = slide[4].replace('/static/', 'static/', 1)
@@ -453,7 +476,9 @@ def admin_carousel():
             content = request.form.get('content', '').strip()
             media_type = request.form.get('media_type', 'image')
             media_url = request.form.get('media_url', '').strip()
+            poster_url = None
             position = int(request.form.get('position', 0) or 0)
+
             if 'media_file' in request.files:
                 file = request.files['media_file']
                 if file and file.filename:
@@ -462,8 +487,13 @@ def admin_carousel():
                     filepath = os.path.join(CAROUSEL_FOLDER, unique_name)
                     file.save(filepath)
                     media_url = f"/static/carousel/{unique_name}"
+
+            poster_data = request.form.get('poster_data', '').strip()
+            if poster_data:
+                poster_url = save_base64_image(poster_data, prefix='poster')
+
             if content:
-                if create_slide(title, content, media_type, media_url, position):
+                if create_slide(title, content, media_type, media_url, position, poster_url):
                     flash('Слайд добавлен!')
                 else:
                     flash('Ошибка при добавлении слайда')
@@ -477,6 +507,11 @@ def admin_carousel():
             media_url = request.form.get('media_url', '').strip()
             position = int(request.form.get('position', 0) or 0)
             is_active = request.form.get('is_active') == 'on'
+
+            # Существующий постер по умолчанию
+            existing = get_slide_by_id(int(slide_id)) if slide_id else None
+            poster_url = existing[9] if existing and len(existing) > 9 else None
+
             if 'media_file' in request.files:
                 file = request.files['media_file']
                 if file and file.filename:
@@ -485,8 +520,19 @@ def admin_carousel():
                     filepath = os.path.join(CAROUSEL_FOLDER, unique_name)
                     file.save(filepath)
                     media_url = f"/static/carousel/{unique_name}"
+
+            poster_data = request.form.get('poster_data', '').strip()
+            if poster_data:
+                new_poster = save_base64_image(poster_data, prefix='poster')
+                if new_poster:
+                    poster_url = new_poster
+
+            # Флаг «убрать постер»
+            if request.form.get('remove_poster') == '1':
+                poster_url = None
+
             if slide_id and content:
-                if update_slide(int(slide_id), title, content, media_type, media_url, position, is_active):
+                if update_slide(int(slide_id), title, content, media_type, media_url, position, is_active, poster_url):
                     flash('Слайд обновлен!')
                 else:
                     flash('Ошибка при обновлении')
