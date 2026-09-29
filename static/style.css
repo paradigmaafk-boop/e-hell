@@ -974,7 +974,7 @@ td.points-cell {
 .rating-row.p6 .rating-name { color: var(--muted); }
 .rating-row.p6 .rating-points { color: var(--muted); }
 
-/* === КАМЕННАЯ ЛИГА (51+, не в зоне риска) === */
+/* === КАМЕННАЯ ЛИГА (51+) === */
 .rating-row.stone {
     background: linear-gradient(90deg, rgba(120, 110, 95, 0.1), rgba(15,6,3,0.6));
     border-color: #7a6a55;
@@ -987,25 +987,6 @@ td.points-cell {
 .rating-row.stone .rating-name { color: #d8c8b0; }
 .rating-row.stone .rating-tier { color: #a89880; }
 .rating-row.stone .rating-points { color: #a89880; }
-
-/* === ЗОНА РИСКА (последние 15%) === */
-.rating-row.risk {
-    background: linear-gradient(90deg, rgba(224, 57, 43, 0.15), rgba(15,6,3,0.6));
-    border-color: #e0392b;
-    box-shadow: 0 0 20px rgba(224, 57, 43, 0.2);
-}
-.rating-row.risk .rating-circle {
-    border-color: #e0392b;
-    color: #ff8060;
-    box-shadow: 0 0 15px rgba(224, 57, 43, 0.5);
-}
-.rating-row.risk .rating-name { color: #ffb8a0; }
-.rating-row.risk .rating-tier {
-    color: #ff8060;
-    font-weight: 700;
-    text-shadow: 0 0 8px rgba(224, 57, 43, 0.5);
-}
-.rating-row.risk .rating-points { color: #ff8060; }
 
 /* Мобильный */
 @media (max-width: 780px) {
@@ -1493,19 +1474,6 @@ body.light-theme .control-panel {
 }
 body.light-theme .rating-row {
     background: rgba(255,251,242,0.6);
-}
-
-/* Светлая тема — зона риска */
-body.light-theme .rating-row.risk {
-    background: linear-gradient(90deg, rgba(224, 57, 43, 0.08), rgba(255,251,242,0.6));
-    border-color: #d03020;
-}
-body.light-theme .rating-row.risk .rating-name { color: #a02010; }
-body.light-theme .rating-row.risk .rating-tier { color: #d03020; }
-body.light-theme .rating-row.risk .rating-points { color: #d03020; }
-body.light-theme .rating-row.risk .rating-circle {
-    border-color: #d03020;
-    color: #d03020;
 }
 
 /* Светлая тема — каменная лига */
