@@ -123,6 +123,39 @@
         </div>
     </section>
 
+    <section class="section" style="margin-top: 2rem;">
+        <div class="section-title">Текущая статистика</div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">{{ stats.visits }}</div>
+                <div class="label">Посещений</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.turtle_calculator }}</div>
+                <div class="label">Калькулятор Черепашка</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.hero_calculator }}</div>
+                <div class="label">Калькулятор Прокачка</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.chart_views }}</div>
+                <div class="label">Просмотры графиков</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">{{ stats.admin_actions }}</div>
+                <div class="label">Действий админа</div>
+            </div>
+        </div>
+
+        <form action="/admin/reset-counters" method="POST" style="margin-top: 1.25rem;"
+              onsubmit="return confirm('⚠️ Обнулить ВСЕ счётчики статистики?\n\nПосещения, просмотры графиков, действия админа — всё станет 0.\n\nЭто действие нельзя отменить.');">
+            <button type="submit" class="btn btn-danger" style="padding: 0.9rem 1.4rem; font-weight: 600;">
+                🗑️ Обнулить статистику посещений
+            </button>
+        </form>
+    </section>
+
     <section class="admin-panel" style="margin-top: 2rem;">
         <div class="danger-zone" style="margin-top: 0; padding-top: 0; border-top: none;">
             <h4>⚠️ Опасная зона</h4>
