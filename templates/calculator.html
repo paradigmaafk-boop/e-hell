@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=400">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            {% if session['logged_in'] %}
+                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                <a href="/logout" class="link-btn">Выйти</a>
+            {% else %}
+                <a href="/login" class="link-btn">Войти</a>
+            {% endif %}
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total">Рейтинг</a>
+        <a href="/rating/duel">Рейтинг Дуэли</a>
+        <a href="/rating/arcadia">Рейтинг Аркадии</a>
+        <a href="/reservoir-map">Резервуар</a>
+        <a href="/calculator" class="active">Калькулятор</a>
+        {% if session['username'] == 'admin' %}
+        <a href="/admin" class="nav-admin">⚙ Админ</a>
+        {% endif %}
+    </nav>
+
+    <div class="page-head">
+        <h1 class="page-title">Калькулятор</h1>
+        <p class="page-sub">Все калькуляторы — черепашка и прокачка</p>
+    </div>
+
+    <section class="section">
+        <div class="section-title">Калькулятор Турбочерепашки</div>
+
+        <div style="background: linear-gradient(180deg, rgba(26,13,5,0.9), rgba(10,5,3,0.95)); border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
+            <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 0.4rem;">
+                <b style="color: var(--accent-warm);">Ускорения</b> — данные вносятся в минутах
+            </p>
+            <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 0.4rem;">
+                <b style="color: var(--accent-warm);">Ускорения тренировки</b> — учтен бафф VIP 10 (6 солдатиков в минуту)
+            </p>
+            <p style="color: var(--muted); font-size: 0.9rem;">
+                Результаты могут отличаться в зависимости от уровня VIP игрока
+            </p>
+        </div>
+
+        <div class="calc-grid">
+            <div class="calc-field"><label>Ускорения общие</label><input type="number" id="accel_general" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Ускорения строительства</label><input type="number" id="accel_build" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Ускорения исследований</label><input type="number" id="accel_research" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Ускорения тренировки</label><input type="number" id="accel_training" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Фрагменты легендарных героев</label><input type="number" id="frag_legend" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Фрагменты эпических героев</label><input type="number" id="frag_epic" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Простые болты</label><input type="number" id="bolt_simple" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Эпические болты</label><input type="number" id="bolt_epic" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Легендарные болты</label><input type="number" id="bolt_legend" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Книги для навыков</label><input type="number" id="skill_books" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Легендарный призыв</label><input type="number" id="recruit_legend" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Продвинутый призыв</label><input type="number" id="recruit_adv" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Простой призыв</label><input type="number" id="recruit_simple" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Клетки титана</label><input type="number" id="titan_cells" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Сыворотки титана</label><input type="number" id="titan_serum" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Чертежи коллекции</label><input type="number" id="collection_blueprint" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Фрагменты коллекции</label><input type="number" id="collection_frag" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Молот перековки</label><input type="number" id="hammer_forge" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Изолента для перековки</label><input type="number" id="tape_forge" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Повышение звёздного рейтинга</label><input type="number" id="star_rating" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Алмазы из наборов</label><input type="number" id="diamonds_packs" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Биогенный белок</label><input type="number" id="bio_protein" placeholder="0" min="0"></div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
+            <button type="button" class="btn btn-primary" onclick="calculateTurtle()">Рассчитать</button>
+            <button type="button" class="btn" onclick="resetTurtleForm()">Очистить</button>
+        </div>
+
+        <div id="turtleResultContainer" class="calc-result">
+            <span class="total-label">Суммарная ценность ресурсов</span>
+            <div class="total" id="turtleResultTotal">0</div>
+        </div>
+    </section>
+
+    <section class="section" style="margin-top: 3rem;">
+        <div class="section-title">Калькулятор прокачки</div>
+
+        <div class="accordion">
+            <div class="accordion-head" onclick="toggleAccordion(this)">
+                <h3>Звёзды легендарных героев</h3>
+                <span class="arrow open">▼</span>
+            </div>
+            <div class="accordion-body open">
+                <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    Введите текущую звезду и лепесток, а также желаемое количество звёзд (1–10)
+                </p>
+                <div class="calc-grid">
+                    <div class="calc-field"><label>Текущая звезда</label><input type="number" id="hero_star_current" value="1" min="1" max="10"></div>
+                    <div class="calc-field"><label>Текущий лепесток (1–6)</label><input type="number" id="hero_star_petal" value="1" min="1" max="6"></div>
+                    <div class="calc-field"><label>Желаемая звезда</label><input type="number" id="hero_star_target" value="10" min="1" max="10"></div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-primary" onclick="calculateHeroStars()">Рассчитать</button>
+                    <button type="button" class="btn" onclick="resetHeroStars()">Сбросить</button>
+                </div>
+                <div id="heroStarResult" class="calc-result">
+                    <span class="total-label">Нужно фрагментов героев</span>
+                    <div class="total" id="heroStarTotal">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-head" onclick="toggleAccordion(this)">
+                <h3>Калькулятор навыков</h3>
+                <span class="arrow open">▼</span>
+            </div>
+            <div class="accordion-body open">
+                <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    Введите текущий и желаемый уровень каждого навыка (1–40)
+                </p>
+                <div class="calc-grid">
+                    <div class="calc-field"><label>Навык 1</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" id="skill1_current" value="1" min="1" max="40">
+                            <span style="color: var(--dim);">→</span>
+                            <input type="number" id="skill1_target" value="40" min="1" max="40">
+                        </div>
+                    </div>
+                    <div class="calc-field"><label>Навык 2</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" id="skill2_current" value="1" min="1" max="40">
+                            <span style="color: var(--dim);">→</span>
+                            <input type="number" id="skill2_target" value="40" min="1" max="40">
+                        </div>
+                    </div>
+                    <div class="calc-field"><label>Навык 3</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" id="skill3_current" value="1" min="1" max="40">
+                            <span style="color: var(--dim);">→</span>
+                            <input type="number" id="skill3_target" value="40" min="1" max="40">
+                        </div>
+                    </div>
+                    <div class="calc-field"><label>Навык 4</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" id="skill4_current" value="1" min="1" max="40">
+                            <span style="color: var(--dim);">→</span>
+                            <input type="number" id="skill4_target" value="40" min="1" max="40">
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-primary" onclick="calculateSkills()">Рассчитать</button>
+                    <button type="button" class="btn" onclick="resetSkills()">Сбросить</button>
+                </div>
+                <div id="skillResult" class="calc-result">
+                    <span class="total-label">Всего нужно книг</span>
+                    <div class="total" id="skillTotal">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-head" onclick="toggleAccordion(this)">
+                <h3>Калькулятор титана (звёзды)</h3>
+                <span class="arrow open">▼</span>
+            </div>
+            <div class="accordion-body open">
+                <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+                    Введите текущую звезду и лепесток, а также желаемое количество звёзд (1–60)
+                </p>
+                <div class="calc-grid">
+                    <div class="calc-field"><label>Текущая звезда</label><input type="number" id="titan_current_star" value="1" min="1" max="60"></div>
+                    <div class="calc-field"><label>Текущий лепесток (1–6)</label><input type="number" id="titan_current_petal" value="1" min="1" max="6"></div>
+                    <div class="calc-field"><label>Желаемая звезда</label><input type="number" id="titan_target_star" value="60" min="1" max="60"></div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-primary" onclick="calculateTitan()">Рассчитать</button>
+                    <button type="button" class="btn" onclick="resetTitan()">Сбросить</button>
+                </div>
+                <div id="titanResult" class="calc-result">
+                    <span class="total-label">Нужно клеток титана</span>
+                    <div class="total" id="titanTotal">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-head" onclick="toggleAccordion(this)">
+                <h3>Эксклюзивное снаряжение</h3>
+                <span class="arrow open">▼</span>
+            </div>
+            <div class="accordion-body open">
+                <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Прокачка с 1 по 15 уровень</p>
+                <div class="calc-grid">
+                    <div class="calc-field"><label>Снаряжение</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="number" id="gear_current" value="1" min="1" max="15">
+                            <span style="color: var(--dim);">→</span>
+                            <input type="number" id="gear_target" value="15" min="1" max="15">
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-primary" onclick="calculateGear()">Рассчитать</button>
+                    <button type="button" class="btn" onclick="resetGear()">Сбросить</button>
+                </div>
+                <div id="gearResult" class="calc-result">
+                    <span class="total-label">Нужно фрагментов снаряжения</span>
+                    <div class="total" id="gearTotal">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-head" onclick="toggleAccordion(this)">
+                <h3>Усиление легендарного снаряжения</h3>
+                <span class="arrow open">▼</span>
+            </div>
+            <div class="accordion-body open">
+                <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: 0.9rem;">Прокачка с 0 по 10 звёзд</p>
+                <div class="calc-grid">
+                    <div class="calc-field"><label>Текущее количество звёзд</label><input type="number" id="legendary_current" value="0" min="0" max="10"></div>
+                    <div class="calc-field"><label>Желаемое количество звёзд</label><input type="number" id="legendary_target" value="10" min="0" max="10"></div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-primary" onclick="calculateLegendary()">Рассчитать</button>
+                    <button type="button" class="btn" onclick="resetLegendary()">Сбросить</button>
+                </div>
+                <div id="legendaryResult" class="calc-result">
+                    <span class="total-label">Нужно фрагментов</span>
+                    <div class="total" id="legendaryTotal">0</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+
+    function toggleAccordion(header) {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector('.arrow');
+        content.classList.toggle('open');
+        if (arrow) arrow.classList.toggle('open');
+    }
+
+    // ====== ЧЕРЕПАШКА ======
+    const turtleItems = [
+        { id: 'accel_general', multiplier: 700 },
+        { id: 'accel_build', multiplier: 700 },
+        { id: 'accel_research', multiplier: 700 },
+        { id: 'accel_training', multiplier: 6.5 * 540 },
+        { id: 'frag_legend', multiplier: 35000 },
+        { id: 'frag_epic', multiplier: 9000 },
+        { id: 'bolt_simple', multiplier: 4000 },
+        { id: 'bolt_epic', multiplier: 16000 },
+        { id: 'bolt_legend', multiplier: 80000 },
+        { id: 'skill_books', multiplier: 2500 },
+        { id: 'recruit_legend', multiplier: 20000 },
+        { id: 'recruit_adv', multiplier: 8000 },
+        { id: 'recruit_simple', multiplier: 2000 },
+        { id: 'titan_cells', multiplier: 20000 },
+        { id: 'titan_serum', multiplier: 10 },
+        { id: 'collection_blueprint', multiplier: 150000 },
+        { id: 'collection_frag', multiplier: 3000 },
+        { id: 'hammer_forge', multiplier: 8000 },
+        { id: 'tape_forge', multiplier: 600000 },
+        { id: 'star_rating', multiplier: 2200000 },
+        { id: 'diamonds_packs', multiplier: 400 },
+        { id: 'bio_protein', multiplier: 12000 }
+    ];
+
+    function calculateTurtle() {
+        let total = 0;
+        turtleItems.forEach(item => {
+            const input = document.getElementById(item.id);
+            const value = parseFloat(input.value) || 0;
+            total += value * item.multiplier;
+        });
+        document.getElementById('turtleResultTotal').textContent = Math.round(total).toLocaleString();
+        document.getElementById('turtleResultContainer').classList.add('show');
+        document.getElementById('turtleResultContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function resetTurtleForm() {
+        turtleItems.forEach(item => {
+            document.getElementById(item.id).value = '';
+        });
+        document.getElementById('turtleResultContainer').classList.remove('show');
+    }
+
+    // ====== ПРОКАЧКА ======
+    const heroStarData = {
+        1: [2, 2, 2, 3, 3, 3], 2: [5, 5, 5, 5, 10, 10], 3: [15, 15, 15, 20, 20, 20],
+        4: [25, 25, 25, 25, 25, 25], 5: [30, 30, 30, 30, 30, 30], 6: [40, 40, 40, 40, 40, 40],
+        7: [45, 45, 45, 45, 45, 45], 8: [50, 50, 50, 50, 50, 50], 9: [55, 55, 55, 55, 55, 55],
+        10: [60, 60, 60, 60, 60, 60]
+    };
+
+    function getHeroStarCost(current, petal, target) {
+        if (current > target) return 0;
+        if (current === target && petal === 1) return 0;
+        let total = 0, star = current, p = petal;
+        while (star < target) {
+            const data = heroStarData[star];
+            if (!data) break;
+            for (let i = p - 1; i < 6; i++) total += data[i];
+            star++; p = 1;
+        }
+        if (star === target) {
+            const data = heroStarData[star];
+            if (data) for (let i = p - 1; i < 6; i++) total += data[i];
+        }
+        return total;
+    }
+
+    function calculateHeroStars() {
+        const c = Math.max(1, Math.min(10, parseInt(document.getElementById('hero_star_current').value) || 1));
+        const p = Math.max(1, Math.min(6, parseInt(document.getElementById('hero_star_petal').value) || 1));
+        const t = Math.max(1, Math.min(10, parseInt(document.getElementById('hero_star_target').value) || 1));
+        document.getElementById('heroStarTotal').textContent = getHeroStarCost(c, p, t);
+        document.getElementById('heroStarResult').classList.add('show');
+    }
+
+    function resetHeroStars() {
+        document.getElementById('hero_star_current').value = 1;
+        document.getElementById('hero_star_petal').value = 1;
+        document.getElementById('hero_star_target').value = 10;
+        document.getElementById('heroStarResult').classList.remove('show');
+    }
+
+    const skillCost = {
+        1:1,2:3,3:6,4:10,5:20,6:30,7:40,8:50,9:70,10:90,
+        11:110,12:130,13:150,14:180,15:210,16:240,17:270,18:300,19:335,20:370,
+        21:405,22:440,23:475,24:510,25:545,26:580,27:615,28:650,29:685,30:850,
+        31:990,32:1140,33:1300,34:1470,35:1650,36:1840,37:2040,38:2245,39:2460
+    };
+
+    function getSkillCost(c, t) {
+        if (c >= t) return 0;
+        let total = 0;
+        for (let i = c; i < t; i++) total += skillCost[i] || 0;
+        return total;
+    }
+
+    function calculateSkills() {
+        let total = 0;
+        for (let i = 1; i <= 4; i++) {
+            const c = Math.max(1, Math.min(40, parseInt(document.getElementById('skill' + i + '_current').value) || 1));
+            const t = Math.max(1, Math.min(40, parseInt(document.getElementById('skill' + i + '_target').value) || 1));
+            total += getSkillCost(c, t);
+        }
+        document.getElementById('skillTotal').textContent = total;
+        document.getElementById('skillResult').classList.add('show');
+    }
+
+    function resetSkills() {
+        for (let i = 1; i <= 4; i++) {
+            document.getElementById('skill' + i + '_current').value = 1;
+            document.getElementById('skill' + i + '_target').value = 40;
+        }
+        document.getElementById('skillResult').classList.remove('show');
+    }
+
+    const titanData = {
+        1:[4,4,4,4,4,6], 2:[6,6,6,6,6,8], 3:[8,8,8,8,8,10], 4:[10,10,10,10,10,12],
+        5:[12,12,12,12,12,14], 6:[14,14,14,14,14,16], 7:[16,16,16,16,16,18],
+        8:[18,18,18,18,18,20], 9:[20,20,20,20,20,22], 10:[22,22,22,22,22,24],
+        11:[24,24,24,24,24,26], 12:[26,26,26,26,26,28], 13:[28,28,28,28,28,30],
+        14:[30,30,30,30,30,32], 15:[32,32,32,32,32,34], 16:[36,36,36,36,36,38],
+        17:[38,38,38,38,38,40], 18:[40,40,40,40,40,42], 19:[42,42,42,42,42,44],
+        20:[44,44,44,44,44,46], 21:[46,46,46,46,46,48], 22:[48,48,48,48,48,50],
+        23:[50,50,50,50,50,52], 24:[52,52,52,52,52,56], 25:[60,60,60,60,60,64],
+        26:[64,64,64,64,64,68], 27:[68,68,68,68,68,72], 28:[72,72,72,72,72,76],
+        29:[76,76,76,76,76,80], 30:[76,76,76,76,76,80], 31:[80,80,80,80,80,84],
+        32:[84,84,84,84,84,88], 33:[88,88,88,88,88,92], 34:[92,92,92,92,92,96],
+        35:[96,96,96,96,96,100], 36:[100,100,100,100,100,104], 37:[104,104,104,104,104,108],
+        38:[108,108,108,108,108,112], 39:[112,112,112,112,112,116], 40:[116,116,116,116,116,120],
+        41:[120,120,120,120,120,124], 42:[124,124,124,124,124,128], 43:[128,128,128,128,128,132],
+        44:[132,132,132,132,132,136], 45:[136,136,136,136,136,140], 46:[140,140,140,140,140,144],
+        47:[144,144,144,144,144,148], 48:[148,148,148,148,148,152], 49:[152,152,152,152,152,156],
+        50:[156,156,156,156,156,160], 51:[160,160,160,160,160,164], 52:[164,164,164,164,164,168],
+        53:[168,168,168,168,168,172], 54:[172,172,172,172,172,176], 55:[176,176,176,176,176,180],
+        56:[180,180,180,180,180,184], 57:[184,184,184,184,184,188], 58:[188,188,188,188,188,192],
+        59:[192,192,192,192,192,196], 60:[196,196,196,196,196,200]
+    };
+
+    function getTitanCost(c, p, t) {
+        if (c > t) return 0;
+        if (c === t && p === 1) return 0;
+        let total = 0, star = c, petal = p;
+        while (star < t) {
+            const data = titanData[star];
+            if (!data) break;
+            for (let i = petal - 1; i < 6; i++) total += data[i];
+            star++; petal = 1;
+        }
+        if (star === t) {
+            const data = titanData[star];
+            if (data) for (let i = petal - 1; i < 6; i++) total += data[i];
+        }
+        return total;
+    }
+
+    function calculateTitan() {
+        const c = Math.max(1, Math.min(60, parseInt(document.getElementById('titan_current_star').value) || 1));
+        const p = Math.max(1, Math.min(6, parseInt(document.getElementById('titan_current_petal').value) || 1));
+        const t = Math.max(1, Math.min(60, parseInt(document.getElementById('titan_target_star').value) || 1));
+        document.getElementById('titanTotal').textContent = getTitanCost(c, p, t);
+        document.getElementById('titanResult').classList.add('show');
+    }
+
+    function resetTitan() {
+        document.getElementById('titan_current_star').value = 1;
+        document.getElementById('titan_current_petal').value = 1;
+        document.getElementById('titan_target_star').value = 60;
+        document.getElementById('titanResult').classList.remove('show');
+    }
+
+    const gearCost = {1:5,2:10,3:20,4:25,5:30,6:30,7:30,8:30,9:30,10:30,11:30,12:40,13:40,14:40};
+
+    function calculateGear() {
+        const c = Math.max(1, Math.min(15, parseInt(document.getElementById('gear_current').value) || 1));
+        const t = Math.max(1, Math.min(15, parseInt(document.getElementById('gear_target').value) || 1));
+        let total = 0;
+        for (let i = c; i < t; i++) total += gearCost[i] || 0;
+        document.getElementById('gearTotal').textContent = total;
+        document.getElementById('gearResult').classList.add('show');
+    }
+
+    function resetGear() {
+        document.getElementById('gear_current').value = 1;
+        document.getElementById('gear_target').value = 15;
+        document.getElementById('gearResult').classList.remove('show');
+    }
+
+    const legendaryCost = {0:1,1:1,2:1,3:2,4:2,5:3,6:3,7:3,8:4,9:5};
+
+    function calculateLegendary() {
+        const c = Math.max(0, Math.min(10, parseInt(document.getElementById('legendary_current').value) || 0));
+        const t = Math.max(0, Math.min(10, parseInt(document.getElementById('legendary_target').value) || 0));
+        let total = 0;
+        for (let i = c; i < t; i++) total += legendaryCost[i] || 0;
+        document.getElementById('legendaryTotal').textContent = total;
+        document.getElementById('legendaryResult').classList.add('show');
+    }
+
+    function resetLegendary() {
+        document.getElementById('legendary_current').value = 0;
+        document.getElementById('legendary_target').value = 10;
+        document.getElementById('legendaryResult').classList.remove('show');
+    }
+
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value < 0) this.value = 0;
+        });
+    });
+</script>
+
+</body>
+</html>
