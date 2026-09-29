@@ -56,21 +56,19 @@
             min-height: 0;
         }
 
+        /* Без масштабирования — только плавное проявление */
         .slide {
             position: absolute;
             inset: 0;
             opacity: 0;
-            transform: scale(1.04);
-            transition: opacity 3.6s cubic-bezier(0.4, 0, 0.2, 1),
-                        transform 4.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 3.6s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            will-change: opacity, transform;
+            will-change: opacity;
         }
         .slide.active {
             opacity: 1;
-            transform: scale(1);
         }
         .slide img, .slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -165,7 +163,6 @@
             justify-content: flex-start;
         }
 
-        /* Обёртка для анимации текста */
         .caption-wrapper {
             flex: 1 1 auto;
             display: flex;
@@ -426,10 +423,11 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/duel">Дуэль</a>
+        <a href="/rating/total">Рейтинг</a>
+        <a href="/rating/duel">Рейтинг Дуэли</a>
+        <a href="/rating/arcadia">Рейтинг Аркадии</a>
         <a href="/reservoir-map">Резервуар</a>
-        <a href="/turtle-calculator">Черепашка</a>
-        <a href="/hero-calculator">Прокачка</a>
+        <a href="/calculator">Калькулятор</a>
         {% if session['username'] == 'admin' %}
         <a href="/admin" class="nav-admin">⚙ Админ</a>
         {% endif %}
@@ -440,20 +438,24 @@
         <aside class="side-nav">
             <div class="side-title">Разделы</div>
 
+            <a href="/rating/total" class="side-btn">
+                Рейтинг
+                <span class="arrow">→</span>
+            </a>
             <a href="/rating/duel" class="side-btn">
-                Рейтинг Дуэль
+                Рейтинг Дуэли
+                <span class="arrow">→</span>
+            </a>
+            <a href="/rating/arcadia" class="side-btn">
+                Рейтинг Аркадии
                 <span class="arrow">→</span>
             </a>
             <a href="/reservoir-map" class="side-btn">
                 Карта Резервуара
                 <span class="arrow">→</span>
             </a>
-            <a href="/turtle-calculator" class="side-btn">
-                Калькулятор Черепашки
-                <span class="arrow">→</span>
-            </a>
-            <a href="/hero-calculator" class="side-btn">
-                Калькулятор Прокачки
+            <a href="/calculator" class="side-btn">
+                Калькулятор
                 <span class="arrow">→</span>
             </a>
 
@@ -587,7 +589,7 @@
             {% endfor %}
         ];
 
-        const TEXT_ANIM_MS = 900;  // 0.9 сек — длительность блюр-растворения текста
+        const TEXT_ANIM_MS = 900;
 
         let current = 0;
         let timer = null;
@@ -609,7 +611,6 @@
             slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
             dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
 
-            // Запуск видео текущего слайда
             const activeSlide = slides[current];
             if (activeSlide) {
                 const video = activeSlide.querySelector('video');
@@ -618,10 +619,8 @@
                 }
             }
 
-            // Анимация текста: быстрое блюр-растворение
             if (captionWrapper && captionTitle && captionText && slideData[current]) {
                 if (textAnimBusy) {
-                    // если уже анимируется — просто обновим сразу
                     captionTitle.textContent = slideData[current].title || ' ';
                     captionText.textContent = slideData[current].text || '';
                 } else {
