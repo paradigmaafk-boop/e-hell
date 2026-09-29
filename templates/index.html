@@ -74,16 +74,9 @@
         }
         .slide img, .slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        /* Пока видео не загрузилось — не показываем чёрный кадр */
-        .slide video:not(.video-ready) {
-            opacity: 0;
-        }
-        .slide video {
-            transition: opacity 0.6s ease;
-        }
-        .slide video.video-ready {
-            opacity: 1;
-        }
+        .slide video:not(.video-ready) { opacity: 0; }
+        .slide video { transition: opacity 0.6s ease; }
+        .slide video.video-ready { opacity: 1; }
 
         .slide-bg {
             width: 100%; height: 100%;
@@ -419,6 +412,9 @@
         <a href="/reservoir-map">Резервуар</a>
         <a href="/turtle-calculator">Черепашка</a>
         <a href="/hero-calculator">Прокачка</a>
+        {% if session['username'] == 'admin' %}
+        <a href="/admin" class="nav-admin">⚙ Админ</a>
+        {% endif %}
     </nav>
 
     <div class="main-grid">
@@ -539,7 +535,6 @@
         }, 4000);
     }
 
-    // Прячем видео, пока не загрузилось — вместо чёрного показывается poster или .slide-bg
     document.querySelectorAll('.carousel video').forEach(video => {
         if (video.readyState >= 3) {
             video.classList.add('video-ready');
@@ -594,7 +589,6 @@
                 captionText.textContent = slideData[current].text || '';
             }
 
-            // Запуск видео текущего слайда
             const activeSlide = slides[current];
             if (activeSlide) {
                 const video = activeSlide.querySelector('video');
