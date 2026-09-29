@@ -154,7 +154,15 @@
 
                     <div class="rating-info">
                         <a href="/player/duel/{{ row[0] }}" class="rating-name">{{ row[0] }}</a>
-                        <div class="rating-tier rating-tier-multi">
+                        <div class="rating-tier">
+                            {% if place == 1 %}💎 Алмаз
+                            {% elif place <= 3 %}🥇 Золото
+                            {% elif place <= 6 %}🥈 Серебро
+                            {% elif place <= 10 %}🥉 Бронза
+                            {% elif place <= 50 %}⚙️ Сталь
+                            {% else %}🪨 Камень{% endif %}
+                        </div>
+                        <div class="rating-tier-multi">
                             <span>Дуэль — {{ row[1] }}</span>
                             <span>Аркадия — {{ row[2] }}</span>
                         </div>
@@ -205,7 +213,7 @@
         {% endif %}
     </section>
 
-    {% if session['username'] == 'admin' %}
+    {% if session['username'] == 'admin' and rating_type == 'duel' %}
     <section class="admin-panel">
         <h3>Админ-панель</h3>
         <div class="admin-grid">
@@ -213,13 +221,10 @@
             <a href="/manage-nicknames" class="btn">Никнеймы</a>
             <a href="/admin/vacations" class="btn">Журнал отпусков</a>
             <a href="/admin/carousel" class="btn">Карусель</a>
-            {% if rating_type != 'total' %}
             <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
             <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
-            {% endif %}
         </div>
 
-        {% if rating_type != 'total' %}
         <div class="danger-zone">
             <h4>⚠️ Опасная зона</h4>
             <form action="/reset-rating/{{ rating_type }}" method="POST"
@@ -229,7 +234,6 @@
                 </button>
             </form>
         </div>
-        {% endif %}
     </section>
     {% endif %}
 
