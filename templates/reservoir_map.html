@@ -486,10 +486,23 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/duel">Дуэль</a>
+        <a href="/rating/total">
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel">
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">Дуэль</span>
+        </a>
+        <a href="/rating/arcadia">
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
         <a href="/reservoir-map" class="active">Резервуар</a>
-        <a href="/turtle-calculator">Черепашка</a>
-        <a href="/hero-calculator">Прокачка</a>
+        <a href="/calculator">Калькулятор</a>
+        {% if session['username'] == 'admin' %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
     </nav>
 
     <div class="breadcrumbs">
@@ -1144,7 +1157,7 @@
         let isDrawing = false;
         let currentColor = '#ff8a1f';
         let currentPath = null;
-        let currentPathLockedAxis = null; // 'h' или 'v' — ориентация последнего сегмента
+        let currentPathLockedAxis = null;
         let previewPathEl = null;
         let startDotEl = null;
         let lastClickTime = 0;
@@ -1188,9 +1201,6 @@
             return el.closest('[data-connector-key]');
         }
 
-        // === Построение ортогонального пути с прямыми углами ===
-        // Первый сегмент идёт от исходной точки либо горизонтально, либо вертикально —
-        // в зависимости от того, какое смещение больше. Далее — строго чередуется.
         function buildOrthogonalPath(startPt, endPt, firstAxis) {
             const dx = endPt.x - startPt.x;
             const dy = endPt.y - startPt.y;
@@ -1200,13 +1210,11 @@
                 axis = Math.abs(dx) >= Math.abs(dy) ? 'h' : 'v';
             }
             const result = [];
-            // Первый сегмент
             if (axis === 'h') {
                 result.push({ x: endPt.x, y: startPt.y });
             } else {
                 result.push({ x: startPt.x, y: endPt.y });
             }
-            // Второй сегмент — до конца
             const corner = result[0];
             if (Math.abs(endPt.x - corner.x) > 0.3 || Math.abs(endPt.y - corner.y) > 0.3) {
                 result.push({ x: endPt.x, y: endPt.y });
@@ -1345,7 +1353,6 @@
             const connectorKey = connector ? connector.dataset.connectorKey : null;
 
             if (!currentPath) {
-                // старт
                 const rawPoint = connectorKey
                     ? { key: connectorKey, x: p.x, y: p.y }
                     : { x: p.x, y: p.y };
@@ -1398,7 +1405,6 @@
             const extra = buildOrthogonalPath(lastPt, p, currentPathLockedAxis);
             if (extra.length === 0) return;
 
-            // Определяем ориентацию последнего добавленного сегмента
             const lastSegEnd = extra[extra.length - 1];
             const prevSegStart = extra.length >= 2 ? extra[extra.length - 2] : lastPt;
             const segDx = Math.abs(lastSegEnd.x - prevSegStart.x);
@@ -1425,7 +1431,6 @@
             field.addEventListener('mousemove', onFieldMove);
         }
 
-        // === Клик по стрелке в режиме редактирования — открыть модалку удаления ===
         if (svgLayer) {
             svgLayer.addEventListener('click', (e) => {
                 if (!isEditing || isDrawing) return;
@@ -1443,7 +1448,6 @@
             });
         }
 
-        // === Правый клик по объекту — массовое удаление связанных стрелок ===
         function onConnectorContextMenu(e) {
             if (!isEditing || isDrawing) return;
             const el = e.target.closest('[data-connector-key]');
