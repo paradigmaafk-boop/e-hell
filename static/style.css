@@ -1470,33 +1470,41 @@ body.drawing-mode #drawToggle {
     flex: 1;
     padding: 0.7rem 1rem;
 }
-body.light-theme .modal-box {
-    background: linear-gradient(180deg, #fffbf2, #fdf7ec);
-}
-body.light-theme .modal-title {
-    color: #d44000;
-    text-shadow: 0 0 12px rgba(212, 64, 0, 0.35);
-}
 
 /* ============================================================
    СВЕТЛАЯ ТЕМА
    ============================================================ */
 body.light-theme {
     --bg: #fbf5ea;
-    --line: #e8dcc8;
-    --line-soft: #f0e8db;
-    --text: #2a1a0a;
-    --muted: #6a5a44;
-    --dim: #9a8a72;
-    --panel: #fffbf2;
+    --panel: #fffaf2;
+    --line: #c9b89c;
+    --line-soft: #ddcdb3;
+    --text: #1f1206;
+    --muted: #5a3a1c;
+    --dim: #8a6a3c;
+    --accent: #b33000;
+    --accent-warm: #b87700;
+    --gold: #a86a00;
+    --danger: #c0281c;
+    --success: #2e7d32;
+    --diamond: #2a78b8;
+    --gold-2: #a86a00;
+    --silver: #7a7a80;
+    --bronze: #8c5a22;
+    --steel: #4a5a68;
+
     background-color: #fbf5ea;
     background-image: none;
     animation: none;
+    color: var(--text);
 }
+
 body.light-theme::before,
 body.light-theme::after {
     display: none;
 }
+
+/* ============ КАРТОЧКИ / ПАНЕЛИ ============ */
 body.light-theme .admin-panel,
 body.light-theme .stat-card,
 body.light-theme .login-card,
@@ -1504,23 +1512,511 @@ body.light-theme .accordion,
 body.light-theme .carousel-caption,
 body.light-theme .tactics-block,
 body.light-theme .control-panel {
-    background: linear-gradient(180deg, #fffbf2, #fdf7ec);
-}
-body.light-theme .rating-row {
-    background: rgba(255,251,242,0.6);
+    background: #fffaf2;
+    border-color: var(--line);
+    box-shadow: 0 4px 18px rgba(70, 40, 20, 0.1);
 }
 
-/* Светлая тема — каменная лига */
-body.light-theme .rating-row.stone {
-    background: linear-gradient(90deg, rgba(120, 110, 95, 0.08), rgba(255,251,242,0.6));
-    border-color: #a89880;
+/* ============ ШАПКА И МЕНЮ ============ */
+body.light-theme .brand-name {
+    background: linear-gradient(90deg, #8a1a00 0%, #b34a00 30%, #b87700 50%, #b34a00 70%, #8a1a00 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 6px rgba(180, 60, 0, 0.25));
 }
-body.light-theme .rating-row.stone .rating-name { color: #5a4a35; }
-body.light-theme .rating-row.stone .rating-tier { color: #7a6a55; }
-body.light-theme .rating-row.stone .rating-points { color: #7a6a55; }
+
+body.light-theme .user {
+    color: var(--muted);
+}
+body.light-theme .user b {
+    color: var(--text);
+}
+
+body.light-theme .link-btn {
+    color: #5a3a1c;
+}
+body.light-theme .link-btn:hover {
+    color: #b33000;
+    text-shadow: none;
+}
+
+body.light-theme .moon,
+body.light-theme .theme-toggle {
+    color: #b33000;
+}
+body.light-theme .moon:hover,
+body.light-theme .theme-toggle:hover {
+    filter: drop-shadow(0 0 6px rgba(180, 50, 0, 0.5));
+}
+
+body.light-theme .nav {
+    border-bottom-color: var(--line);
+}
+body.light-theme .nav a {
+    color: #6a4620;
+}
+body.light-theme .nav a:hover {
+    color: #b33000;
+}
+body.light-theme .nav a.active {
+    color: #b33000;
+    border-bottom-color: #b33000;
+}
+body.light-theme .nav a.active::after {
+    background: #b33000;
+}
+
+body.light-theme .nav a.nav-admin {
+    color: #b33000;
+    border-color: rgba(179, 48, 0, 0.5);
+}
+body.light-theme .nav a.nav-admin:hover {
+    color: #fff;
+    background: #b33000;
+    border-color: #b33000;
+}
+
+body.light-theme .side-title {
+    color: #8a6a3c;
+}
+body.light-theme .side-title.danger {
+    color: #b33000;
+}
+
+body.light-theme a.side-btn,
+body.light-theme button.side-btn,
+body.light-theme .side-btn {
+    background: #fffaf2;
+    border-color: var(--line);
+    color: #4a2c10 !important;
+}
+body.light-theme a.side-btn:visited,
+body.light-theme a.side-btn:link {
+    color: #4a2c10 !important;
+}
+body.light-theme a.side-btn:hover,
+body.light-theme button.side-btn:hover,
+body.light-theme .side-btn:hover {
+    color: #1f1206 !important;
+    border-color: #b33000;
+    background: rgba(179, 48, 0, 0.08);
+}
+body.light-theme a.side-btn.active,
+body.light-theme .side-btn.active {
+    border-color: #b33000;
+    background: linear-gradient(180deg, rgba(179, 48, 0, 0.12), rgba(184, 119, 0, 0.05));
+    color: #b33000 !important;
+}
+body.light-theme .side-btn .arrow {
+    color: #8a6a3c;
+}
+body.light-theme .side-btn:hover .arrow,
+body.light-theme .side-btn.active .arrow {
+    color: #b33000;
+}
+
+body.light-theme a.side-btn.danger,
+body.light-theme button.side-btn.danger,
+body.light-theme .side-btn.danger {
+    border-color: #e0b0a8;
+    color: #b33000 !important;
+    background: rgba(179, 48, 0, 0.04);
+}
+body.light-theme a.side-btn.danger:hover,
+body.light-theme .side-btn.danger:hover {
+    border-color: #c0281c;
+    color: #c0281c !important;
+    background: rgba(179, 48, 0, 0.1);
+}
+
+body.light-theme .breadcrumbs a {
+    color: #6a4620;
+}
+body.light-theme .breadcrumbs a:hover {
+    color: #b33000;
+}
+body.light-theme .breadcrumbs .current {
+    color: #1f1206;
+}
+
+body.light-theme .page-title {
+    background: linear-gradient(90deg, #8a1a00 0%, #b34a00 30%, #b87700 50%, #b34a00 70%, #8a1a00 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.light-theme .page-sub {
+    color: #6a4620;
+}
+body.light-theme .section-title {
+    color: #8a6a3c;
+    border-bottom-color: var(--line);
+}
+body.light-theme .section-title::after {
+    background: #b33000;
+}
+
+/* ============ КНОПКИ ============ */
+body.light-theme .btn {
+    color: #1f1206;
+    border-color: #c9b89c;
+    background: #fffaf2;
+}
+body.light-theme .btn:hover {
+    border-color: #b33000;
+    color: #b33000;
+}
+body.light-theme .btn-primary {
+    background: linear-gradient(135deg, #b33000, #b87700);
+    border-color: #b33000;
+    color: #fff8f0;
+    font-weight: 700;
+}
+body.light-theme .btn-primary:hover {
+    color: #fff8f0;
+}
+body.light-theme .btn-danger {
+    border-color: #e0b0a8;
+    color: #b33000;
+    background: #fffaf2;
+}
+body.light-theme .btn-danger:hover {
+    border-color: #c0281c;
+    color: #c0281c;
+    background: rgba(179, 48, 0, 0.08);
+}
+
+/* ============ ФОРМЫ ============ */
+body.light-theme .calc-field label,
+body.light-theme .input-field label {
+    color: #5a3a1c;
+}
+body.light-theme .calc-field input,
+body.light-theme .calc-field textarea,
+body.light-theme .calc-field select,
+body.light-theme .input-field input {
+    background: #ffffff;
+    color: #1f1206;
+    border-color: #c9b89c;
+}
+body.light-theme .calc-field input:focus,
+body.light-theme .calc-field textarea:focus,
+body.light-theme .calc-field select:focus,
+body.light-theme .input-field input:focus {
+    border-color: #b33000;
+    box-shadow: 0 0 0 3px rgba(179, 48, 0, 0.15);
+}
+
+body.light-theme .calc-result {
+    background: linear-gradient(180deg, rgba(179, 48, 0, 0.06), rgba(184, 119, 0, 0.02));
+    border-color: #b33000;
+}
+body.light-theme .total-label {
+    color: #8a6a3c;
+}
+body.light-theme .total {
+    color: #b33000;
+}
+
+/* ============ РЕЙТИНГ ============ */
+body.light-theme .rating-row {
+    background: #fffaf2;
+    border-color: #ddcdb3;
+}
+body.light-theme .rating-circle {
+    background: #fff;
+    border-color: #c9b89c;
+    color: #5a3a1c;
+}
+body.light-theme .rating-name {
+    color: #1f1206;
+}
+body.light-theme .rating-name:hover {
+    color: #b33000;
+}
+body.light-theme .rating-tier {
+    color: #8a6a3c;
+}
+body.light-theme .rating-tier-multi {
+    color: #6a4620;
+}
+body.light-theme .rating-points {
+    color: #b87700;
+}
+body.light-theme .rating-points small {
+    color: #8a6a3c;
+}
+
+body.light-theme .rating-row.p1 {
+    background: linear-gradient(90deg, rgba(42, 120, 184, 0.1), #fffaf2);
+    border-color: #2a78b8;
+}
+body.light-theme .rating-row.p1 .rating-circle {
+    border-color: #2a78b8;
+    color: #1a5a90;
+    box-shadow: 0 0 12px rgba(42, 120, 184, 0.35);
+}
+body.light-theme .rating-row.p1 .rating-name { color: #1a5a90; }
+body.light-theme .rating-row.p1 .rating-tier { color: #2a78b8; }
+body.light-theme .rating-row.p1 .rating-points { color: #1a5a90; }
+
+body.light-theme .rating-row.p2 {
+    background: linear-gradient(90deg, rgba(168, 106, 0, 0.1), #fffaf2);
+    border-color: #a86a00;
+}
+body.light-theme .rating-row.p2 .rating-circle {
+    border-color: #a86a00;
+    color: #7a4a00;
+}
+body.light-theme .rating-row.p2 .rating-name { color: #7a4a00; }
+body.light-theme .rating-row.p2 .rating-tier { color: #a86a00; }
+body.light-theme .rating-row.p2 .rating-points { color: #7a4a00; }
+
+body.light-theme .rating-row.p3 {
+    background: linear-gradient(90deg, rgba(122, 122, 128, 0.08), #fffaf2);
+    border-color: #7a7a80;
+}
+body.light-theme .rating-row.p3 .rating-circle {
+    border-color: #7a7a80;
+    color: #4a4a50;
+}
+body.light-theme .rating-row.p3 .rating-name { color: #4a4a50; }
+body.light-theme .rating-row.p3 .rating-tier { color: #6a6a70; }
+body.light-theme .rating-row.p3 .rating-points { color: #4a4a50; }
+
+body.light-theme .rating-row.p4 {
+    background: linear-gradient(90deg, rgba(140, 90, 34, 0.08), #fffaf2);
+    border-color: #8c5a22;
+}
+body.light-theme .rating-row.p4 .rating-circle {
+    border-color: #8c5a22;
+    color: #6a4018;
+}
+body.light-theme .rating-row.p4 .rating-name { color: #6a4018; }
+body.light-theme .rating-row.p4 .rating-tier { color: #8c5a22; }
+body.light-theme .rating-row.p4 .rating-points { color: #6a4018; }
+
+body.light-theme .rating-row.p5 {
+    background: linear-gradient(90deg, rgba(74, 90, 104, 0.06), #fffaf2);
+    border-color: #4a5a68;
+}
+body.light-theme .rating-row.p5 .rating-circle {
+    border-color: #4a5a68;
+    color: #2a3a48;
+}
+body.light-theme .rating-row.p5 .rating-name { color: #2a3a48; }
+body.light-theme .rating-row.p5 .rating-tier { color: #4a5a68; }
+body.light-theme .rating-row.p5 .rating-points { color: #2a3a48; }
+
+body.light-theme .rating-row.stone {
+    background: linear-gradient(90deg, rgba(110, 100, 88, 0.08), #fffaf2);
+    border-color: #8a7a60;
+}
 body.light-theme .rating-row.stone .rating-circle {
-    border-color: #a89880;
-    color: #7a6a55;
+    border-color: #8a7a60;
+    color: #4a3e28;
+}
+body.light-theme .rating-row.stone .rating-name { color: #4a3e28; }
+body.light-theme .rating-row.stone .rating-tier { color: #6a5a40; }
+body.light-theme .rating-row.stone .rating-points { color: #4a3e28; }
+
+body.light-theme .rating-btn {
+    background: rgba(179, 48, 0, 0.06);
+    border-color: rgba(179, 48, 0, 0.35);
+    color: #b33000;
+}
+body.light-theme .rating-btn:hover {
+    background: #b33000;
+    border-color: #b33000;
+    color: #fff8f0;
+}
+body.light-theme .rating-btn-danger {
+    background: rgba(192, 40, 28, 0.06);
+    border-color: rgba(192, 40, 28, 0.35);
+    color: #c0281c;
+}
+body.light-theme .rating-btn-danger:hover {
+    background: #c0281c;
+    border-color: #c0281c;
+    color: #fff8f0;
+}
+
+/* ============ ТАБЛИЦЫ ============ */
+body.light-theme table {
+    color: #1f1206;
+}
+body.light-theme th {
+    color: #6a4620;
+}
+body.light-theme tr:hover td {
+    background: rgba(179, 48, 0, 0.04);
+}
+body.light-theme td.name-cell a {
+    color: #1f1206;
+}
+body.light-theme td.name-cell a:hover {
+    color: #b33000;
+}
+body.light-theme td.points-cell {
+    color: #b87700;
+}
+
+/* ============ FLASH ============ */
+body.light-theme .flash-message {
+    background: rgba(179, 48, 0, 0.06);
+    color: #b33000;
+    border-left-color: #b33000;
+}
+body.light-theme .flash-error {
+    background: rgba(192, 40, 28, 0.06);
+    color: #c0281c;
+}
+
+/* ============ КАРУСЕЛЬ ============ */
+body.light-theme .carousel {
+    background: #fffaf2;
+    border-color: #c9b89c;
+}
+body.light-theme .carousel-caption {
+    background: #fffaf2;
+    border-top-color: #c9b89c;
+}
+body.light-theme .caption-title {
+    background: linear-gradient(90deg, #8a1a00 0%, #b34a00 30%, #b87700 50%, #b34a00 70%, #8a1a00 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.light-theme .caption-text {
+    color: #3a2410;
+}
+body.light-theme .nav-arrow {
+    background: rgba(255, 250, 242, 0.9);
+    border-color: #b33000;
+    color: #b33000;
+}
+body.light-theme .nav-arrow:hover {
+    background: #b33000;
+    color: #fff8f0;
+}
+body.light-theme .dot {
+    background: rgba(179, 48, 0, 0.3);
+}
+body.light-theme .dot.active {
+    background: #b33000;
+}
+
+/* ============ МОДАЛКА ============ */
+body.light-theme .modal-box {
+    background: #fffaf2;
+    border-color: #b33000;
+}
+body.light-theme .modal-title {
+    color: #b33000;
+    text-shadow: none;
+}
+body.light-theme .modal-text {
+    color: #5a3a1c;
+}
+
+/* ============ КАРТА РЕЗЕРВУАРА ============ */
+body.light-theme .map-wrap {
+    background: #fffaf2;
+    border-color: #c9b89c;
+}
+body.light-theme .draggable-panel {
+    background: #fffaf2;
+    border-color: #c9b89c;
+    color: #1f1206;
+}
+body.light-theme .draggable-panel .panel-title {
+    color: #8a6a3c;
+}
+body.light-theme .draggable-panel .panel-players {
+    color: #1f1206;
+}
+body.light-theme .point-icon {
+    background: linear-gradient(180deg, #fff5e6, #ffe7c4);
+    border-color: #c9b89c;
+}
+body.light-theme .point-name,
+body.light-theme .point-owner {
+    background: #fffaf2;
+    color: #1f1206;
+    border-color: #c9b89c;
+}
+body.light-theme .point-owner {
+    color: #b33000;
+    border-color: rgba(179, 48, 0, 0.4);
+}
+body.light-theme .tactics-text {
+    color: #1f1206;
+}
+body.light-theme .tactics-label {
+    color: #b33000;
+    text-shadow: none;
+}
+body.light-theme .tactics-hint {
+    color: #8a6a3c;
+}
+body.light-theme .control-panel {
+    background: #fffaf2;
+    border-color: #b33000;
+}
+body.light-theme .control-label,
+body.light-theme .control-status {
+    color: #5a3a1c;
+}
+body.light-theme .control-hint {
+    background: rgba(179, 48, 0, 0.08);
+    border-color: rgba(179, 48, 0, 0.3);
+    color: #b33000;
+}
+
+/* ============ АДМИН-ПАНЕЛЬ ============ */
+body.light-theme .admin-panel h3 {
+    color: #8a6a3c;
+}
+body.light-theme .danger-zone {
+    border-top-color: #e0b0a8;
+}
+body.light-theme .danger-zone h4 {
+    color: #b33000;
+}
+
+/* ============ ЛОГИН ============ */
+body.light-theme .login-card h1 {
+    background: linear-gradient(90deg, #8a1a00, #b87700, #b34a00, #b87700, #8a1a00);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.light-theme .login-card .sub {
+    color: #5a3a1c;
+}
+
+/* ============ ЭМОДЗИ/ИКОНКИ В СВЕТЛОЙ ТЕМЕ ============ */
+body.light-theme .brand-emblem svg {
+    animation: none;
+    filter: none;
+}
+body.light-theme .brand-emblem .ring-outer,
+body.light-theme .brand-emblem .ring-inner,
+body.light-theme .brand-emblem .beam,
+body.light-theme .brand-emblem .beam-diag {
+    filter: none;
+}
+
+/* ============ ПЛЕЙСХОЛДЕРЫ В СВЕТЛОЙ ТЕМЕ ============ */
+body.light-theme input::placeholder,
+body.light-theme textarea::placeholder {
+    color: #8a6a3c;
+    opacity: 1;
 }
 
 /* ============================================================
