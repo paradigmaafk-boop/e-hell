@@ -8,6 +8,77 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .roles-block {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(40,20,10,0.85), rgba(12,6,3,0.95));
+        }
+        .roles-block h3 {
+            font-size: 0.72rem;
+            color: var(--accent-warm);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(255,184,0,0.4);
+        }
+        .role-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            background: rgba(10,5,3,0.6);
+            border: 1px solid var(--line-soft);
+            margin-bottom: 0.5rem;
+        }
+        .role-row .name {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.92rem;
+            flex-wrap: wrap;
+        }
+        .role-row .name .nick {
+            font-size: 0.78rem;
+            color: var(--dim);
+        }
+        .role-row form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .role-row select {
+            padding: 0.4rem 0.7rem;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            background: var(--panel);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.82rem;
+        }
+        .role-pill {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .role-player { background: rgba(120,180,255,0.15); color: #8ed6ff; border: 1px solid rgba(120,180,255,0.4); }
+        .role-admin { background: rgba(255,184,0,0.15); color: #ffb800; border: 1px solid rgba(255,184,0,0.4); }
+        .role-super_admin { background: rgba(255,69,0,0.18); color: #ff4500; border: 1px solid rgba(255,69,0,0.5); }
+        body.light-theme .roles-block { background: #fff8ec; }
+        body.light-theme .role-row { background: #fff5e6; }
+        @media (max-width: 780px) {
+            .role-row { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
@@ -62,7 +133,8 @@
         </a>
         <div class="header-right">
             <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-            <a href="/logout" class="link-btn">Выйти</a>
+            <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
@@ -82,9 +154,7 @@
         </a>
         <a href="/reservoir-map">Резервуар</a>
         <a href="/calculator">Калькулятор</a>
-        {% if session['username'] == 'admin' %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
-        {% endif %}
     </nav>
 
     <div class="breadcrumbs">
@@ -139,6 +209,47 @@
             </a>
         </div>
     </section>
+
+    {% if is_super_admin and admin_players %}
+    <section class="roles-block">
+        <h3>🛡 Управление ролями</h3>
+        <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem;">
+            Выдавайте и снимайте права администратора. Себе роль изменить нельзя.
+        </p>
+
+        {% for u in admin_players %}
+            {% set uid = u[0] %}
+            {% set uname = u[1] %}
+            {% set unick = u[2] %}
+            {% set urole = u[3] %}
+            {% if uid != current_user_id %}
+            <div class="role-row">
+                <div class="name">
+                    <b>{{ uname }}</b>
+                    {% if unick %}<span class="nick">· {{ unick }}</span>{% endif %}
+                    <span class="role-pill role-{{ urole }}">
+                        {% if urole == 'super_admin' %}Супер-админ
+                        {% elif urole == 'admin' %}Админ
+                        {% else %}Игрок{% endif %}
+                    </span>
+                </div>
+                <form method="POST" action="/admin/roles/update">
+                    <input type="hidden" name="user_id" value="{{ uid }}">
+                    <select name="new_role">
+                        <option value="player" {% if urole == 'player' %}selected{% endif %}>Игрок</option>
+                        <option value="admin" {% if urole == 'admin' %}selected{% endif %}>Админ</option>
+                        <option value="super_admin" {% if urole == 'super_admin' %}selected{% endif %}>Супер-админ</option>
+                    </select>
+                    <button type="submit" class="btn btn-small"
+                            onclick="return confirm('Изменить роль пользователя {{ uname }}?');">
+                        Применить
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </section>
+    {% endif %}
 
     <section class="admin-panel" style="margin-top: 2rem;">
         <div class="danger-zone" style="margin-top: 0; padding-top: 0; border-top: none;">
