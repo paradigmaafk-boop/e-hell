@@ -215,6 +215,16 @@
         body.light-theme .carousel { background: #fffbf2; }
         body.light-theme .flash-top { background: rgba(255,251,242,0.95); }
 
+        /* Выравнивание ссылок в шапке по одной высоте */
+        .header-link {
+            display: inline-flex;
+            align-items: center;
+            line-height: 1;
+            height: 1.6rem;
+            padding: 0;
+            vertical-align: middle;
+        }
+
         @media (min-width: 901px) {
             .nav { display: none !important; }
             .carousel-stage {
@@ -408,14 +418,11 @@
         <div class="header-right">
             {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                {% if session.get('role') in ['admin', 'super_admin'] %}
-                    <a href="/admin" class="link-btn" style="color: var(--accent-warm);">⚙ Админ</a>
-                {% endif %}
-                <a href="/cabinet" class="link-btn">👤 Кабинет</a>
-                <a href="/logout" class="link-btn">Выйти</a>
+                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
-                <a href="/register" class="link-btn" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
-                <a href="/login" class="link-btn">Войти</a>
+                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
+                <a href="/login" class="link-btn header-link">Войти</a>
             {% endif %}
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
@@ -481,10 +488,6 @@
 
                 <a href="/admin" class="side-btn">
                     Панель администратора
-                    <span class="arrow">→</span>
-                </a>
-                <a href="/admin/players" class="side-btn">
-                    Управление игроками
                     <span class="arrow">→</span>
                 </a>
             {% endif %}
