@@ -68,10 +68,23 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/duel">Дуэль</a>
+        <a href="/rating/total">
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel">
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">Дуэль</span>
+        </a>
+        <a href="/rating/arcadia">
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
         <a href="/reservoir-map">Резервуар</a>
-        <a href="/turtle-calculator">Черепашка</a>
-        <a href="/hero-calculator">Прокачка</a>
+        <a href="/calculator">Калькулятор</a>
+        {% if session['username'] == 'admin' %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
     </nav>
 
     <div class="breadcrumbs">
@@ -96,11 +109,11 @@
     <section class="section">
         <div class="section-title">Разделы управления</div>
         <div class="admin-grid" style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
-            <a href="/rating-stats/duel" class="side-btn">
+            <a href="/rating-stats" class="side-btn">
                 Статистика сайта
                 <span class="arrow">→</span>
             </a>
-            <a href="/manage-nicknames/duel" class="side-btn">
+            <a href="/manage-nicknames" class="side-btn">
                 Управление никнеймами
                 <span class="arrow">→</span>
             </a>
