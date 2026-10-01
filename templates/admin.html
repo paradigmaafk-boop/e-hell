@@ -75,6 +75,53 @@
         .role-super_admin { background: rgba(255,69,0,0.18); color: #ff4500; border: 1px solid rgba(255,69,0,0.5); }
         body.light-theme .roles-block { background: #fff8ec; }
         body.light-theme .role-row { background: #fff5e6; }
+
+        .apples-admin-block {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255,60,60,0.35);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(40,15,15,0.85), rgba(12,6,3,0.95));
+        }
+        .apples-admin-block h3 {
+            font-size: 0.72rem;
+            color: #ff8a8a;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 600;
+            margin-bottom: 0.85rem;
+        }
+        .apples-admin-block p {
+            color: var(--muted);
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        body.light-theme .apples-admin-block { background: #fff5e6; }
+
+        .tooltip-admin-block {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(40,20,10,0.85), rgba(12,6,3,0.95));
+        }
+        .tooltip-admin-block h3 {
+            font-size: 0.72rem;
+            color: var(--accent-warm);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 600;
+            margin-bottom: 0.85rem;
+        }
+        .tooltip-admin-block p {
+            color: var(--muted);
+            font-size: 0.88rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        body.light-theme .tooltip-admin-block { background: #fff8ec; }
+
         @media (max-width: 780px) {
             .role-row { grid-template-columns: 1fr; }
         }
@@ -210,6 +257,28 @@
         </div>
     </section>
 
+    {% if is_super_admin %}
+    <section class="tooltip-admin-block">
+        <h3>ℹ Тултип в рейтинге</h3>
+        <p>
+            Настройте текст, который появится при нажатии на значок «?» рядом с заголовком «Общий рейтинг».
+        </p>
+        <a href="/admin/rating-tooltip" class="btn btn-primary">✏ Установить текст для тултипа в рейтинге</a>
+    </section>
+
+    <section class="apples-admin-block">
+        <h3>🍎 Управление яблоками</h3>
+        <p>
+            Сброс всех яблок, которые игроки подарили друг другу за сезон.
+            Обычно делается вместе со сбросом рейтинга в конце сезона.
+        </p>
+        <form method="POST" action="/admin/reset-apples"
+              onsubmit="return confirm('⚠️ Сбросить ВСЕ яблоки?\n\nЭто удалит все подарки за сезон. Действие необратимо.');">
+            <button type="submit" class="btn btn-danger">🍎 Сбросить все яблоки</button>
+        </form>
+    </section>
+    {% endif %}
+
     {% if is_super_admin and admin_players %}
     <section class="roles-block">
         <h3>🛡 Управление ролями</h3>
@@ -255,10 +324,10 @@
         <div class="danger-zone" style="margin-top: 0; padding-top: 0; border-top: none;">
             <h4>⚠️ Опасная зона</h4>
             <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem;">
-                Сброс рейтинга полностью удалит всех игроков и всю историю очков. Действие необратимо.
+                Сброс рейтинга полностью удалит всех игроков, всю историю очков и все яблоки. Действие необратимо.
             </p>
             <form action="/reset-rating/duel" method="POST"
-                  onsubmit="return confirm('⚠️ ВНИМАНИЕ!\n\nЭто действие полностью удалит ВСЕ данные рейтинга Дуэль:\n— всех игроков\n— всю историю очков\n\nОтменить это действие НЕВОЗМОЖНО!\n\nПродолжить?');">
+                  onsubmit="return confirm('⚠️ ВНИМАНИЕ!\n\nЭто действие полностью удалит ВСЕ данные рейтинга Дуэль:\n— всех игроков\n— всю историю очков\n— все яблоки за сезон\n\nОтменить это действие НЕВОЗМОЖНО!\n\nПродолжить?');">
                 <button type="submit" class="btn btn-danger">
                     🗑️ Сбросить весь рейтинг Дуэль
                 </button>
