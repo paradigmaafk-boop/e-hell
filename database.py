@@ -2,7 +2,7 @@ import os
 import psycopg2
 import psycopg2.extras
 import hashlib
-from datetime import datetime
+from datetime import datetime, timedelta
 
 DB_HOST = os.environ.get('DB_HOST')
 DB_PORT = os.environ.get('DB_PORT', '5432')
@@ -37,8 +37,6 @@ def init_db():
             created_at TEXT NOT NULL
         )
     """)
-
-    # Если таблица была старой (без новых колонок) — аккуратно добавим
     cursor.execute("""
         DO $$
         BEGIN
@@ -56,7 +54,6 @@ def init_db():
             END IF;
         END $$;
     """)
-
     cursor.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS idx_users_linked_nickname
         ON users (linked_nickname)
@@ -146,10 +143,38 @@ def init_db():
         )
     """)
 
+    # === ЯБЛОКИ (иммунитет) ===
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS apples (
+            id SERIAL PRIMARY KEY,
+            from_user_id INTEGER NOT NULL,
+            to_nickname TEXT NOT NULL,
+            week_key TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_apples_from_week
+        ON apples (from_user_id, week_key)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_apples_to_nickname
+        ON apples (to_nickname)
+    """)
+
+    # === НАСТРОЙКИ САЙТА (для тултипа и т.п.) ===
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS site_settings (
+            id SERIAL PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+
     # === СУПЕР-АДМИН по умолчанию ===
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     hashed = _hash('admin123')
-    # если уже есть пользователь admin — обновим ему роль на super_admin
     cursor.execute("SELECT id FROM users WHERE username = %s", ('admin',))
     row = cursor.fetchone()
     if row:
@@ -159,6 +184,14 @@ def init_db():
             INSERT INTO users (username, password, linked_nickname, role, created_at)
             VALUES (%s, %s, NULL, 'super_admin', %s)
         """, ('admin', hashed, now))
+
+    # Дефолтный текст тултипа
+    cursor.execute("SELECT id FROM site_settings WHERE key = 'rating_tooltip_text'")
+    if not cursor.fetchone():
+        cursor.execute("""
+            INSERT INTO site_settings (key, value, updated_at)
+            VALUES ('rating_tooltip_text', %s, %s)
+        """, ('Это рейтинг союза. Каждую неделю игроки могут дарить яблоки 🍎 тем, кто находится ниже топ-50, чтобы помочь им избежать исключения. Победитель по яблокам в конце сезона получает иммунитет.', now))
 
     conn.commit()
     conn.close()
@@ -176,7 +209,7 @@ def check_user(username, password):
                    (username, _hash(password)))
     row = cursor.fetchone()
     conn.close()
-    return row  # (id, username, role) или None
+    return row
 
 
 def get_user_by_id(user_id):
@@ -370,9 +403,11 @@ def add_nickname_alias(current_nickname, old_nickname):
             cursor.execute(f"UPDATE players_{rt} SET nickname = %s WHERE nickname = %s",
                            (current_nickname, old_nickname))
 
-        # Обновим привязки у пользователей
         cursor.execute("""UPDATE users SET linked_nickname = %s
                           WHERE linked_nickname = %s""",
+                       (current_nickname, old_nickname))
+        cursor.execute("""UPDATE apples SET to_nickname = %s
+                          WHERE to_nickname = %s""",
                        (current_nickname, old_nickname))
         conn.commit()
         return True
@@ -587,6 +622,7 @@ def delete_player(rating_type, nickname):
         cursor.execute("DELETE FROM nickname_aliases WHERE current_nickname = %s OR old_nickname = %s",
                        (nickname, nickname))
         cursor.execute("UPDATE users SET linked_nickname = NULL WHERE linked_nickname = %s", (nickname,))
+        cursor.execute("DELETE FROM apples WHERE to_nickname = %s", (nickname,))
         conn.commit()
         return True
     except Exception as e:
@@ -612,6 +648,137 @@ def get_rating_display_name(rating_type):
         'total': 'Рейтинг',
     }
     return names.get(rating_type, rating_type)
+
+
+# ============================================================
+# ЯБЛОКИ (иммунитет)
+# ============================================================
+
+def get_week_key(dt=None):
+    """ISO-неделя, например 2026-W14."""
+    dt = dt or datetime.now()
+    year, week, _ = dt.isocalendar()
+    return f"{year}-W{week:02d}"
+
+
+def get_apples_given_this_week(user_id):
+    """Сколько яблок пользователь подарил на текущей ISO-неделе."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    week = get_week_key()
+    cursor.execute("""SELECT COUNT(*) FROM apples
+                      WHERE from_user_id = %s AND week_key = %s""",
+                   (user_id, week))
+    n = cursor.fetchone()[0]
+    conn.close()
+    return n or 0
+
+
+def give_apple(from_user_id, to_nickname):
+    """Пытается подарить яблоко. Возвращает (ok, message, remaining)."""
+    week = get_week_key()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # проверка: не себе
+        cursor.execute("SELECT linked_nickname FROM users WHERE id = %s", (from_user_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False, "Пользователь не найден.", 0
+        from_nickname = row[0]
+        if from_nickname and from_nickname == to_nickname:
+            return False, "Нельзя дарить яблоко самому себе.", 0
+
+        # проверка лимита
+        cursor.execute("""SELECT COUNT(*) FROM apples
+                          WHERE from_user_id = %s AND week_key = %s""",
+                       (from_user_id, week))
+        given = cursor.fetchone()[0] or 0
+        if given >= 5:
+            return False, "Вы уже подарили 5 яблок на этой неделе.", 0
+
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute("""INSERT INTO apples (from_user_id, to_nickname, week_key, created_at)
+                          VALUES (%s, %s, %s, %s)""",
+                       (from_user_id, to_nickname, week, now))
+        conn.commit()
+        remaining = 5 - (given + 1)
+        return True, f"Вы подарили яблоко игроку «{to_nickname}».", remaining
+    except Exception as e:
+        print(f"give_apple error: {e}")
+        conn.rollback()
+        return False, "Ошибка при дарении.", 0
+    finally:
+        conn.close()
+
+
+def get_apples_received_map():
+    """dict: nickname -> количество полученных яблок (за весь сезон)."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT to_nickname, COUNT(*) FROM apples
+                      GROUP BY to_nickname""")
+    data = cursor.fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in data}
+
+
+def get_apples_received_for(nickname):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM apples WHERE to_nickname = %s", (nickname,))
+    n = cursor.fetchone()[0]
+    conn.close()
+    return n or 0
+
+
+def reset_apples():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM apples")
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"reset_apples error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+# ============================================================
+# НАСТРОЙКИ САЙТА
+# ============================================================
+
+def get_setting(key, default=''):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM site_settings WHERE key = %s", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else default
+
+
+def set_setting(key, value):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            INSERT INTO site_settings (key, value, updated_at)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (key) DO UPDATE SET value = %s, updated_at = %s
+        """, (key, value, now, value, now))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"set_setting error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
 
 
 # ============================================================
