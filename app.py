@@ -20,6 +20,11 @@ from database import (
     register_user, update_user_username, update_user_password,
     update_user_role, link_user_nickname, unlink_user_nickname,
     delete_user, get_linked_nicknames, count_super_admins,
+    # === яблоки ===
+    give_apple, get_apples_given_this_week, get_apples_received_map,
+    get_apples_received_for, reset_apples, get_week_key,
+    # === настройки ===
+    get_setting, set_setting,
 )
 from werkzeug.utils import secure_filename
 
@@ -37,6 +42,8 @@ if not os.path.exists(UPLOAD_FOLDER):
 CAROUSEL_FOLDER = os.path.join('static', 'carousel')
 if not os.path.exists(CAROUSEL_FOLDER):
     os.makedirs(CAROUSEL_FOLDER)
+
+APPLES_PER_WEEK = 5
 
 init_db()
 
@@ -56,7 +63,6 @@ def login_required(f):
 
 
 def linked_required(f):
-    """Пускает только привязанных к нику. Если не привязан — редирект на /register/link."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get('user_id'):
@@ -171,7 +177,6 @@ def count_once(counter_name, session_key):
 
 
 def get_player_rank_data(linked_nickname):
-    """Возвращает dict с place/css_class/tier_label/icon/очками или None."""
     if not linked_nickname:
         return None
     total = get_total_rating()
@@ -233,11 +238,77 @@ def rating_view(rating_type):
     else:
         rating_data = get_latest_rating(rating_type)
 
+    # === ЯБЛОКИ (только для общего рейтинга) ===
+    apples_map = {}
+    my_apples_left = 0
+    is_logged_player = False
+    my_linked_nickname = None
+
+    if rating_type == 'total':
+        apples_map = get_apples_received_map()
+
+        if session.get('user_id'):
+            user = get_user_by_id(session['user_id'])
+            if user and user[3]:  # привязан к нику
+                is_logged_player = True
+                my_linked_nickname = user[3]
+                given = get_apples_given_this_week(session['user_id'])
+                my_apples_left = max(0, APPLES_PER_WEEK - given)
+
+    # Индекс топ-50
+    top50_nicks = set()
+    if rating_type == 'total':
+        for i, row in enumerate(rating_data[:50], start=1):
+            top50_nicks.add(row[0])
+
+    tooltip_text = get_setting('rating_tooltip_text', '')
+
     return render_template('rating.html',
                            rating=rating_data,
                            rating_type=rating_type,
                            display_name=display_name,
-                           rating_types=rating_types)
+                           rating_types=rating_types,
+                           apples_map=apples_map,
+                           my_apples_left=my_apples_left,
+                           is_logged_player=is_logged_player,
+                           my_linked_nickname=my_linked_nickname,
+                           top50_nicks=top50_nicks,
+                           tooltip_text=tooltip_text,
+                           apples_per_week=APPLES_PER_WEEK)
+
+
+@app.route('/give-apple', methods=['POST'])
+def give_apple_route():
+    if not session.get('user_id'):
+        return jsonify({'success': False, 'error': 'Войдите, чтобы дарить яблоки.'}), 401
+
+    user = get_user_by_id(session['user_id'])
+    if not user:
+        return jsonify({'success': False, 'error': 'Пользователь не найден.'}), 401
+    if not user[3]:
+        return jsonify({'success': False, 'error': 'Сначала привяжите себя к нику.'}), 403
+
+    to_nickname = (request.json or {}).get('nickname', '').strip()
+    if not to_nickname:
+        return jsonify({'success': False, 'error': 'Не указан ник.'}), 400
+
+    # Проверка: не топ-50
+    total = get_total_rating()
+    top50 = {row[0] for row in total[:50]}
+    if to_nickname in top50:
+        return jsonify({'success': False, 'error': 'Этому игроку не нужен иммунитет — он в топ-50.'}), 400
+
+    ok, message, remaining = give_apple(session['user_id'], to_nickname)
+    if ok:
+        total_received = get_apples_received_for(to_nickname)
+        return jsonify({
+            'success': True,
+            'message': message,
+            'remaining': remaining,
+            'received': total_received
+        })
+    else:
+        return jsonify({'success': False, 'error': message}), 400
 
 
 @app.route('/player/<rating_type>/<nickname>')
@@ -287,7 +358,6 @@ def login():
             session['user_id'] = row[0]
             session['username'] = row[1]
             session['role'] = row[2]
-            # если не привязан — на привязку (кроме супер-админа, если он без ника — можно дать пройти)
             user = get_user_by_id(row[0])
             if user and not user[3] and row[2] != 'super_admin':
                 flash('Сначала привяжите себя к нику в рейтинге.')
@@ -356,12 +426,10 @@ def register_link():
         session.clear()
         return redirect(url_for('register'))
 
-    # уже привязан — в кабинет
     if user[3]:
         return redirect(url_for('cabinet'))
 
     if request.method == 'POST':
-        # Обработка отмены регистрации (удаляем только что созданный аккаунт)
         if request.form.get('action') == 'cancel':
             delete_user(session['user_id'])
             session.clear()
@@ -456,6 +524,11 @@ def cabinet():
 
     display_name = linked_nickname if linked_nickname else username
 
+    # === ЯБЛОКИ для кабинета ===
+    given_this_week = get_apples_given_this_week(user_id)
+    apples_left = max(0, APPLES_PER_WEEK - given_this_week)
+    apples_received = get_apples_received_for(linked_nickname) if linked_nickname else 0
+
     return render_template('cabinet.html',
                            player={
                                'id': user_id,
@@ -469,7 +542,10 @@ def cabinet():
                            is_admin=is_admin(),
                            is_super_admin=is_super_admin(),
                            preview_options=preview_options,
-                           preview_active=preview_active)
+                           preview_active=preview_active,
+                           apples_left=apples_left,
+                           apples_received=apples_received,
+                           apples_per_week=APPLES_PER_WEEK)
 
 
 # ============================================================
@@ -522,6 +598,33 @@ def admin_panel():
                            admin_players=admin_players,
                            is_super_admin=is_super_admin(),
                            current_user_id=session['user_id'])
+
+
+@app.route('/admin/rating-tooltip', methods=['GET', 'POST'])
+@super_admin_required
+def admin_rating_tooltip():
+    if request.method == 'POST':
+        text = request.form.get('tooltip_text', '').strip()
+        if set_setting('rating_tooltip_text', text):
+            increment_counter('admin_actions')
+            flash('Текст тултипа сохранён!')
+        else:
+            flash('Ошибка при сохранении.')
+        return redirect(url_for('admin_rating_tooltip'))
+
+    current = get_setting('rating_tooltip_text', '')
+    return render_template('admin_tooltip.html', tooltip_text=current)
+
+
+@app.route('/admin/reset-apples', methods=['POST'])
+@super_admin_required
+def admin_reset_apples():
+    if reset_apples():
+        increment_counter('admin_actions')
+        flash('Все яблоки сброшены!')
+    else:
+        flash('Ошибка при сбросе яблок.')
+    return redirect(url_for('admin_panel'))
 
 
 @app.route('/admin/players')
@@ -588,19 +691,15 @@ def admin_players_delete(user_id):
     if not target:
         flash('Пользователь не найден.')
         return redirect(url_for('admin_players'))
-
     if user_id == session['user_id']:
         flash('Нельзя удалить самого себя.')
         return redirect(url_for('admin_players'))
-
     if target[4] == 'super_admin':
         flash('Нельзя удалить супер-администратора.')
         return redirect(url_for('admin_players'))
-
     if target[4] == 'admin' and not is_super_admin():
         flash('Только супер-администратор может удалять администраторов.')
         return redirect(url_for('admin_players'))
-
     if delete_user(user_id):
         increment_counter('admin_actions')
         flash('Аккаунт удалён.')
@@ -616,14 +715,12 @@ def admin_players_change_username(user_id):
     if not target:
         flash('Пользователь не найден.')
         return redirect(url_for('admin_players'))
-
     if target[4] == 'super_admin' and not is_super_admin():
         flash('Только супер-администратор может менять супер-администратора.')
         return redirect(url_for('admin_players'))
     if target[4] == 'admin' and not is_super_admin() and user_id != session['user_id']:
         flash('Только супер-администратор может менять других администраторов.')
         return redirect(url_for('admin_players'))
-
     new_username = request.form.get('new_username', '').strip()
     if not new_username or len(new_username) < 2:
         flash('Новый логин слишком короткий!')
@@ -645,14 +742,12 @@ def admin_players_change_password(user_id):
     if not target:
         flash('Пользователь не найден.')
         return redirect(url_for('admin_players'))
-
     if target[4] == 'super_admin' and not is_super_admin():
         flash('Только супер-администратор может менять пароль супер-администратора.')
         return redirect(url_for('admin_players'))
     if target[4] == 'admin' and not is_super_admin() and user_id != session['user_id']:
         flash('Только супер-администратор может менять пароли других администраторов.')
         return redirect(url_for('admin_players'))
-
     new_password = request.form.get('new_password', '').strip()
     if not new_password or len(new_password) < 4:
         flash('Пароль слишком короткий!')
@@ -672,16 +767,13 @@ def admin_players_change_role(user_id):
     if not target:
         flash('Пользователь не найден.')
         return redirect(url_for('admin_players'))
-
     new_role = request.form.get('new_role', '').strip()
     if new_role not in ('player', 'admin'):
         flash('Неверная роль.')
         return redirect(url_for('admin_players'))
-
     if user_id == session['user_id']:
         flash('Нельзя менять роль самому себе.')
         return redirect(url_for('admin_players'))
-
     if update_user_role(user_id, new_role):
         increment_counter('admin_actions')
         flash(f'Роль пользователя «{target[1]}» изменена на «{new_role}».')
@@ -800,6 +892,9 @@ def reset_rating_route(rating_type):
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
     if reset_rating(rating_type):
+        # Обнуляем счётчики яблок при сбросе рейтинга Дуэли
+        if rating_type == 'duel':
+            reset_apples()
         increment_counter('admin_actions')
         flash('Рейтинг полностью сброшен!')
     else:
