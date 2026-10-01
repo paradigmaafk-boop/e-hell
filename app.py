@@ -14,7 +14,14 @@ from database import (
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
     get_all_map_values, save_map_values, reset_map_values,
-    get_connection
+    get_connection,
+    # === аккаунты игроков ===
+    register_player_account, get_player_account_by_username,
+    get_player_account_by_id, get_all_player_accounts,
+    check_player_credentials, get_linked_nicknames,
+    get_total_rating_for_registration, link_player_nickname,
+    unlink_player_nickname, delete_player_account,
+    update_player_account_username, update_player_account_password,
 )
 from werkzeug.utils import secure_filename
 
@@ -89,6 +96,37 @@ def count_once(counter_name, session_key):
         session[session_key] = True
         increment_counter(counter_name)
 
+def get_player_rank_data(linked_nickname):
+    """Возвращает (place, css_class, tier_label, icon) для ника из общего рейтинга."""
+    if not linked_nickname:
+        return None
+    total = get_total_rating()
+    for idx, row in enumerate(total, start=1):
+        if row[0] == linked_nickname:
+            place = idx
+            if place == 1:
+                css = 'p1'; tier = 'Алмаз'; icon = '💎'
+            elif place <= 3:
+                css = 'p2'; tier = 'Золото'; icon = '🥇'
+            elif place <= 6:
+                css = 'p3'; tier = 'Серебро'; icon = '🥈'
+            elif place <= 10:
+                css = 'p4'; tier = 'Бронза'; icon = '🥉'
+            elif place <= 50:
+                css = 'p5'; tier = 'Сталь'; icon = '⚙️'
+            else:
+                css = 'stone'; tier = 'Камень'; icon = '🪨'
+            return {
+                'place': place,
+                'css_class': css,
+                'tier_label': tier,
+                'icon': icon,
+                'duel_points': row[1],
+                'arcadia_points': row[2],
+                'total_points': row[3],
+            }
+    return None
+
 @app.route('/')
 def index():
     count_once('visits', 'counted_visit')
@@ -116,7 +154,6 @@ def rating_view(rating_type):
     display_name = get_rating_display_name(rating_type)
 
     if rating_type == 'total':
-        # Суммарный рейтинг: дуэль + аркадия
         rating_data = get_total_rating()
     else:
         rating_data = get_latest_rating(rating_type)
@@ -137,12 +174,10 @@ def reservoir_map():
 def save_reservoir_map():
     if 'logged_in' not in session or session['username'] != 'admin':
         return jsonify({'success': False, 'error': 'Доступ запрещён'}), 403
-
     try:
         data = request.get_json()
         if not data or not isinstance(data, dict):
             return jsonify({'success': False, 'error': 'Неверные данные'}), 400
-
         if save_map_values(data):
             increment_counter('admin_actions')
             return jsonify({'success': True})
@@ -156,7 +191,6 @@ def save_reservoir_map():
 def reset_reservoir_map():
     if 'logged_in' not in session or session['username'] != 'admin':
         return jsonify({'success': False, 'error': 'Доступ запрещён'}), 403
-
     if reset_map_values():
         increment_counter('admin_actions')
         return jsonify({'success': True})
@@ -185,6 +219,229 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
+# ============================================================
+# АККАУНТЫ ИГРОКОВ — РЕГИСТРАЦИЯ И КАБИНЕТ
+# ============================================================
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if session.get('player_id'):
+        return redirect(url_for('cabinet'))
+
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        password2 = request.form.get('password2', '').strip()
+
+        if not username or not password:
+            flash('Заполните все поля!')
+            return redirect(url_for('register'))
+        if password != password2:
+            flash('Пароли не совпадают!')
+            return redirect(url_for('register'))
+        if len(username) < 2:
+            flash('Логин должен быть не короче 2 символов!')
+            return redirect(url_for('register'))
+        if len(password) < 4:
+            flash('Пароль должен быть не короче 4 символов!')
+            return redirect(url_for('register'))
+
+        new_id = register_player_account(username, password)
+        if not new_id:
+            flash('Такой логин уже занят! Попробуйте другой.')
+            return redirect(url_for('register'))
+
+        session['player_id'] = new_id
+        session['player_username'] = username
+        flash('Аккаунт создан! Теперь выберите себя в списке рейтинга.')
+        return redirect(url_for('register_link'))
+    return render_template('register.html')
+
+@app.route('/register/link', methods=['GET', 'POST'])
+def register_link():
+    if not session.get('player_id'):
+        return redirect(url_for('register'))
+
+    player_id = session['player_id']
+    player = get_player_account_by_id(player_id)
+    if not player:
+        session.pop('player_id', None)
+        return redirect(url_for('register'))
+
+    # Если уже есть привязка — в кабинет
+    if player[3]:
+        return redirect(url_for('cabinet'))
+
+    if request.method == 'POST':
+        nickname = request.form.get('nickname', '').strip()
+        if not nickname:
+            flash('Выберите себя в списке!')
+            return redirect(url_for('register_link'))
+
+        linked = get_linked_nicknames()
+        if nickname in linked:
+            flash('Этот ник уже привязан к другому аккаунту.')
+            return redirect(url_for('register_link'))
+
+        if link_player_nickname(player_id, nickname):
+            flash(f'Отлично! Вы привязаны к нику «{nickname}».')
+            return redirect(url_for('cabinet'))
+        else:
+            flash('Ошибка при привязке. Попробуйте ещё раз.')
+            return redirect(url_for('register_link'))
+
+    all_nicks = get_total_rating_for_registration()
+    linked = get_linked_nicknames()
+    available = [n for n in all_nicks if n not in linked]
+
+    return render_template('register_link.html',
+                           username=player[1],
+                           available=available)
+
+@app.route('/cabinet')
+def cabinet():
+    if not session.get('player_id'):
+        return redirect(url_for('register'))
+
+    player = get_player_account_by_id(session['player_id'])
+    if not player:
+        session.pop('player_id', None)
+        return redirect(url_for('register'))
+
+    linked_nickname = player[3]
+    rank_data = get_player_rank_data(linked_nickname) if linked_nickname else None
+
+    # Публичное имя для отображения = linked_nickname, если оно есть, иначе username
+    display_name = linked_nickname if linked_nickname else player[1]
+
+    return render_template('cabinet.html',
+                           player={
+                               'id': player[0],
+                               'username': player[1],
+                               'linked_nickname': player[3],
+                               'created_at': player[4],
+                           },
+                           display_name=display_name,
+                           rank_data=rank_data)
+
+@app.route('/cabinet/logout')
+def cabinet_logout():
+    session.pop('player_id', None)
+    session.pop('player_username', None)
+    flash('Вы вышли из личного кабинета.')
+    return redirect(url_for('index'))
+
+# ============================================================
+# АДМИН — УПРАВЛЕНИЕ ИГРОКАМИ
+# ============================================================
+
+@app.route('/admin/players')
+def admin_players():
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ только для администратора!')
+        return redirect(url_for('index'))
+
+    accounts = get_all_player_accounts()
+    linked = get_linked_nicknames()
+
+    players_view = []
+    for acc in accounts:
+        rank_data = get_player_rank_data(acc[2]) if acc[2] else None
+        players_view.append({
+            'id': acc[0],
+            'username': acc[1],
+            'linked_nickname': acc[2],
+            'created_at': acc[3],
+            'rank_data': rank_data,
+        })
+
+    all_nicks = get_total_rating_for_registration()
+
+    return render_template('admin_players.html',
+                           players=players_view,
+                           linked=linked,
+                           all_nicks=all_nicks)
+
+@app.route('/admin/players/unlink/<int:player_id>', methods=['POST'])
+def admin_players_unlink(player_id):
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ запрещён!')
+        return redirect(url_for('index'))
+    if unlink_player_nickname(player_id):
+        increment_counter('admin_actions')
+        flash('Связь с ником удалена.')
+    else:
+        flash('Ошибка при отвязке.')
+    return redirect(url_for('admin_players'))
+
+@app.route('/admin/players/link/<int:player_id>', methods=['POST'])
+def admin_players_link(player_id):
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ запрещён!')
+        return redirect(url_for('index'))
+    nickname = request.form.get('nickname', '').strip()
+    if not nickname:
+        flash('Выберите ник!')
+        return redirect(url_for('admin_players'))
+    linked = get_linked_nicknames()
+    if nickname in linked:
+        flash('Этот ник уже привязан к другому аккаунту.')
+        return redirect(url_for('admin_players'))
+    if link_player_nickname(player_id, nickname):
+        increment_counter('admin_actions')
+        flash(f'Привязано: {nickname}')
+    else:
+        flash('Ошибка при привязке.')
+    return redirect(url_for('admin_players'))
+
+@app.route('/admin/players/delete/<int:player_id>', methods=['POST'])
+def admin_players_delete(player_id):
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ запрещён!')
+        return redirect(url_for('index'))
+    if delete_player_account(player_id):
+        increment_counter('admin_actions')
+        flash('Аккаунт игрока удалён.')
+    else:
+        flash('Ошибка при удалении.')
+    return redirect(url_for('admin_players'))
+
+@app.route('/admin/players/change-username/<int:player_id>', methods=['POST'])
+def admin_players_change_username(player_id):
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ запрещён!')
+        return redirect(url_for('index'))
+    new_username = request.form.get('new_username', '').strip()
+    if not new_username or len(new_username) < 2:
+        flash('Новый логин слишком короткий!')
+        return redirect(url_for('admin_players'))
+    if update_player_account_username(player_id, new_username):
+        increment_counter('admin_actions')
+        flash(f'Логин изменён на «{new_username}».')
+    else:
+        flash('Ошибка: возможно, такой логин уже занят.')
+    return redirect(url_for('admin_players'))
+
+@app.route('/admin/players/change-password/<int:player_id>', methods=['POST'])
+def admin_players_change_password(player_id):
+    if 'logged_in' not in session or session['username'] != 'admin':
+        flash('Доступ запрещён!')
+        return redirect(url_for('index'))
+    new_password = request.form.get('new_password', '').strip()
+    if not new_password or len(new_password) < 4:
+        flash('Пароль слишком короткий!')
+        return redirect(url_for('admin_players'))
+    if update_player_account_password(player_id, new_password):
+        increment_counter('admin_actions')
+        flash('Пароль изменён.')
+    else:
+        flash('Ошибка при смене пароля.')
+    return redirect(url_for('admin_players'))
+
+# ============================================================
+# ДАЛЬШЕ — СУЩЕСТВУЮЩИЕ РОУТЫ (БЕЗ ИЗМЕНЕНИЙ)
+# ============================================================
 
 @app.route('/upload/<rating_type>', methods=['POST'])
 def upload_file(rating_type):
@@ -246,9 +503,6 @@ def upload_file(rating_type):
         flash('Разрешены только .xlsx или .xls')
         return redirect(url_for('rating_view', rating_type=rating_type))
 
-# ============================================================
-# УПРАВЛЕНИЕ НИКНЕЙМАМИ — БЕЗ rating_type (общие)
-# ============================================================
 @app.route('/manage-nicknames', methods=['GET', 'POST'])
 def manage_nicknames():
     if 'logged_in' not in session or session['username'] != 'admin':
@@ -422,9 +676,6 @@ def api_player_data(rating_type, nickname):
         'avg_points': [row[1] for row in avg_data]
     })
 
-# ============================================================
-# КАЛЬКУЛЯТОР — объединены черепашка + прокачка
-# ============================================================
 @app.route('/calculator')
 def calculator():
     count_once('calculator', 'used_calculator')
