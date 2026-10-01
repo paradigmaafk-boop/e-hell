@@ -8,6 +8,211 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .tooltip-trigger {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1.5px solid var(--accent);
+            color: var(--accent-warm);
+            font-size: 0.78rem;
+            font-weight: 700;
+            background: rgba(255,69,0,0.08);
+            cursor: pointer;
+            margin-left: 0.6rem;
+            transition: all 0.25s ease;
+            vertical-align: middle;
+            font-family: 'Inter', sans-serif;
+            line-height: 1;
+            padding: 0;
+        }
+        .tooltip-trigger:hover {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255,69,0,0.6);
+            transform: scale(1.08);
+        }
+
+        .tooltip-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(3, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            animation: fadeInModal 0.2s ease;
+        }
+        .tooltip-modal.show { display: flex; }
+        @keyframes fadeInModal {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        .tooltip-modal-box {
+            width: 100%;
+            max-width: 520px;
+            padding: 1.75rem 1.85rem;
+            background: linear-gradient(180deg, #150a04, #050101);
+            border: 1px solid var(--accent);
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,69,0,0.35);
+            animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.9); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .tooltip-modal-title {
+            font-family: 'Forum', serif;
+            font-size: 1.35rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent-warm);
+            text-align: center;
+            margin-bottom: 1.25rem;
+            text-shadow: 0 0 12px rgba(255,184,0,0.5);
+        }
+        .tooltip-modal-text {
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.65;
+            white-space: pre-line;
+            word-break: break-word;
+            margin-bottom: 1.5rem;
+        }
+        .tooltip-modal-actions {
+            display: flex;
+            justify-content: center;
+        }
+        .tooltip-modal-actions .btn {
+            min-width: 140px;
+        }
+        body.light-theme .tooltip-modal-box { background: #fffaf2; }
+
+        /* Яблоки */
+        .apples-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            margin-left: 0.6rem;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(255, 60, 60, 0.08);
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ff8a8a;
+            font-variant-numeric: tabular-nums;
+            vertical-align: middle;
+        }
+        .apples-badge.zero {
+            opacity: 0.45;
+            background: transparent;
+            border-color: var(--line-soft);
+            color: var(--dim);
+        }
+        .apple-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 60, 60, 0.45);
+            background: rgba(255, 60, 60, 0.08);
+            color: #ff5a5a;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            padding: 0;
+            margin-left: 0.4rem;
+            flex-shrink: 0;
+        }
+        .apple-btn:hover:not(:disabled) {
+            background: rgba(255, 60, 60, 0.2);
+            border-color: #ff3c3c;
+            box-shadow: 0 0 15px rgba(255, 60, 60, 0.5);
+            transform: scale(1.1);
+        }
+        .apple-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+        .apple-btn.sent {
+            background: rgba(60, 200, 100, 0.15);
+            border-color: rgba(60, 200, 100, 0.6);
+            color: #5eda8a;
+            cursor: default;
+        }
+        .apple-counter-plate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.9rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(40,20,10,0.85), rgba(15,8,3,0.95));
+            border: 1px solid rgba(255, 60, 60, 0.35);
+            box-shadow: 0 0 20px rgba(255, 60, 60, 0.15);
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+        .apple-counter-plate .counter-num {
+            font-family: 'Forum', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ff5a5a;
+            font-variant-numeric: tabular-nums;
+        }
+        .apple-counter-plate .counter-num.zero {
+            color: var(--dim);
+        }
+        .apple-counter-plate .counter-label {
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+        body.light-theme .apple-counter-plate {
+            background: #fff5e6;
+        }
+
+        .apple-toast {
+            position: fixed;
+            top: 5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            padding: 0.9rem 1.5rem;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+        .apple-toast.ok {
+            background: rgba(20,40,20,0.95);
+            border: 1px solid rgba(60,200,100,0.6);
+            color: #7cf0a5;
+        }
+        .apple-toast.err {
+            background: rgba(40,15,15,0.95);
+            border: 1px solid rgba(224,57,43,0.6);
+            color: #ffa090;
+        }
+
+        .rating-title-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
 <body>
 
@@ -31,8 +236,6 @@
         </radialGradient>
     </defs>
 </svg>
-
-<div class="embers" id="embers"></div>
 
 <div class="wrap">
 
@@ -63,11 +266,16 @@
             </div>
         </a>
         <div class="header-right">
-            {% if session['logged_in'] %}
+            {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                <a href="/logout" class="link-btn">Выйти</a>
+                {% if session.get('role') in ['admin', 'super_admin'] %}
+                    <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
+                {% endif %}
+                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
-                <a href="/login" class="link-btn">Войти</a>
+                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
+                <a href="/login" class="link-btn header-link">Войти</a>
             {% endif %}
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
@@ -88,7 +296,7 @@
         </a>
         <a href="/reservoir-map">Резервуар</a>
         <a href="/calculator">Калькулятор</a>
-        {% if session['username'] == 'admin' %}
+        {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
     </nav>
@@ -104,7 +312,25 @@
         <p class="page-sub">Результаты сезона</p>
     </div>
 
-    {% if session['username'] == 'admin' and rating_type != 'total' %}
+    {% if session.get('user_id') and rating_type == 'total' and is_logged_player %}
+    <div class="apple-counter-plate">
+        <span style="font-size: 1.4rem;">🍎</span>
+        <span class="counter-label">У вас осталось</span>
+        <span class="counter-num {% if my_apples_left == 0 %}zero{% endif %}">{{ my_apples_left }}</span>
+        <span class="counter-label">из {{ apples_per_week }} яблок на этой неделе</span>
+    </div>
+    {% endif %}
+
+    {% if session.get('user_id') and rating_type != 'total' %}
+    {% endif %}
+
+    {% if session.get('user_id') and rating_type == 'total' and not is_logged_player %}
+    <div class="flash-message" style="margin-bottom: 1.5rem;">
+        Вы вошли, но ещё не привязаны к нику в рейтинге. Дарить яблоки пока нельзя.
+    </div>
+    {% endif %}
+
+    {% if session.get('username') == 'admin' and rating_type != 'total' %}
     <section class="section section-tight">
         <div class="section-title">Загрузка рейтинга</div>
         <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form"
@@ -124,7 +350,12 @@
     {% endif %}
 
     <section class="section section-tight">
-        <div class="section-title">Общий рейтинг</div>
+        <div class="section-title rating-title-row">
+            <span>Общий рейтинг</span>
+            {% if rating_type == 'total' and tooltip_text %}
+            <button class="tooltip-trigger" id="tooltipTrigger" title="Что это?">?</button>
+            {% endif %}
+        </div>
 
         {% if rating %}
         <div class="rating-list">
@@ -148,12 +379,23 @@
             {% endif %}
 
             {% if rating_type == 'total' %}
-                {# row = (nickname, duel_points, arcadia_points, total_points) #}
+                {% set nick = row[0] %}
+                {% set apples = apples_map.get(nick, 0) %}
+                {% set in_top50 = nick in top50_nicks %}
+                {% set can_give = (session.get('user_id') is not none) and is_logged_player and (not in_top50) and (my_apples_left > 0) and (nick != my_linked_nickname) %}
+
                 <div class="rating-row {{ css_class }}">
                     <div class="rating-circle">{{ place }}</div>
 
                     <div class="rating-info">
-                        <a href="/player/duel/{{ row[0] }}" class="rating-name">{{ row[0] }}</a>
+                        <a href="/player/duel/{{ row[0] }}" class="rating-name">
+                            {{ row[0] }}
+                            {% if apples > 0 %}
+                                <span class="apples-badge">
+                                    🍎 {{ apples }}
+                                </span>
+                            {% endif %}
+                        </a>
                         <div class="rating-tier">
                             {% if place == 1 %}💎 Алмаз
                             {% elif place <= 3 %}🥇 Золото
@@ -169,9 +411,26 @@
                     </div>
 
                     <div class="rating-points">{{ row[3] }}<small>★</small></div>
+
+                    <div class="rating-actions" style="align-items: center;">
+                        {% if not in_top50 %}
+                            {% if session.get('user_id') is none %}
+                                <a href="/login" class="apple-btn" title="Войдите, чтобы дарить яблоки" style="text-decoration:none;">🍎</a>
+                            {% elif not is_logged_player %}
+                                <button class="apple-btn" disabled title="Сначала привяжите себя к нику">🍎</button>
+                            {% elif nick == my_linked_nickname %}
+                                <button class="apple-btn" disabled title="Нельзя дарить яблоко самому себе">🍎</button>
+                            {% elif my_apples_left <= 0 %}
+                                <button class="apple-btn" disabled title="Лимит яблок на эту неделю исчерпан">🍎</button>
+                            {% else %}
+                                <button class="apple-btn give-apple-btn"
+                                        data-nickname="{{ nick }}"
+                                        title="Подарить яблоко">🍎</button>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             {% else %}
-                {# row = (nickname, points) #}
                 <div class="rating-row {{ css_class }}">
                     <div class="rating-circle">{{ place }}</div>
 
@@ -193,7 +452,7 @@
                         <a href="/player/{{ rating_type }}/{{ row[0] }}" class="rating-btn" title="График">
                             📈 <span class="rating-btn-text">График</span>
                         </a>
-                        {% if session['username'] == 'admin' %}
+                        {% if session.get('username') == 'admin' %}
                         <form action="/delete-player/{{ rating_type }}/{{ row[0] }}" method="POST" style="display: inline; margin: 0;"
                               onsubmit="return confirm('Удалить игрока {{ row[0] }} и всю его историю?');">
                             <button type="submit" class="rating-btn rating-btn-danger" title="Удалить">
@@ -213,7 +472,7 @@
         {% endif %}
     </section>
 
-    {% if session['username'] == 'admin' and rating_type == 'duel' %}
+    {% if session.get('role') == 'super_admin' and rating_type == 'duel' %}
     <section class="admin-panel">
         <h3>Админ-панель</h3>
         <div class="admin-grid">
@@ -224,20 +483,23 @@
             <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
             <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
         </div>
-
-        <div class="danger-zone">
-            <h4>⚠️ Опасная зона</h4>
-            <form action="/reset-rating/{{ rating_type }}" method="POST"
-                  onsubmit="return confirm('⚠️ ВНИМАНИЕ!\n\nЭто действие полностью удалит ВСЕ данные рейтинга {{ display_name }}:\n— всех игроков\n— всю историю очков\n\nОтменить это действие НЕВОЗМОЖНО!\n\nПродолжить?');">
-                <button type="submit" class="btn btn-danger">
-                    🗑️ Сбросить рейтинг {{ display_name }}
-                </button>
-            </form>
-        </div>
     </section>
     {% endif %}
 
 </div>
+
+<!-- Модалка тултипа -->
+{% if rating_type == 'total' and tooltip_text %}
+<div class="tooltip-modal" id="tooltipModal">
+    <div class="tooltip-modal-box">
+        <div class="tooltip-modal-title">ℹ О рейтинге</div>
+        <div class="tooltip-modal-text">{{ tooltip_text }}</div>
+        <div class="tooltip-modal-actions">
+            <button type="button" class="btn btn-primary" id="tooltipClose">Понятно</button>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 <script>
     (function () {
@@ -278,11 +540,95 @@
 
     const fileInput = document.getElementById('fileInput');
     const fileNameSpan = document.getElementById('fileName');
-    if (fileInput) {
+    if (fileInput && fileNameSpan) {
         fileInput.addEventListener('change', (e) => {
             fileNameSpan.textContent = e.target.files.length > 0 ? e.target.files[0].name : 'Файл не выбран';
         });
     }
+
+    // === Тултип ===
+    const tooltipTrigger = document.getElementById('tooltipTrigger');
+    const tooltipModal = document.getElementById('tooltipModal');
+    const tooltipClose = document.getElementById('tooltipClose');
+    if (tooltipTrigger && tooltipModal) {
+        tooltipTrigger.addEventListener('click', () => tooltipModal.classList.add('show'));
+        tooltipClose.addEventListener('click', () => tooltipModal.classList.remove('show'));
+        tooltipModal.addEventListener('click', (e) => {
+            if (e.target === tooltipModal) tooltipModal.classList.remove('show');
+        });
+    }
+
+    // === Яблоки ===
+    function showAppleToast(msg, ok) {
+        const t = document.createElement('div');
+        t.className = 'apple-toast ' + (ok ? 'ok' : 'err');
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+            t.style.transition = 'opacity 0.5s ease';
+            t.style.opacity = '0';
+            setTimeout(() => t.remove(), 500);
+        }, 2500);
+    }
+
+    let applesLeft = {{ my_apples_left|int }};
+
+    document.querySelectorAll('.give-apple-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const nickname = btn.dataset.nickname;
+            if (!confirm('Подарить яблоко игроку «' + nickname + '»?')) return;
+
+            btn.disabled = true;
+            try {
+                const res = await fetch('/give-apple', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nickname })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showAppleToast('🍎 ' + data.message, true);
+                    // обновим бейдж яблок рядом с ником
+                    const row = btn.closest('.rating-row');
+                    if (row) {
+                        const nameLink = row.querySelector('.rating-name');
+                        let badge = nameLink.querySelector('.apples-badge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'apples-badge';
+                            nameLink.appendChild(badge);
+                        }
+                        badge.textContent = '🍎 ' + data.received;
+
+                        btn.classList.add('sent');
+                        btn.textContent = '✓';
+                        btn.title = 'Яблоко отправлено';
+                    }
+                    applesLeft = data.remaining;
+                    // обновим плашку сверху
+                    const counterNum = document.querySelector('.apple-counter-plate .counter-num');
+                    if (counterNum) {
+                        counterNum.textContent = applesLeft;
+                        if (applesLeft <= 0) counterNum.classList.add('zero');
+                    }
+                    // если яблок больше нет — отключаем все остальные кнопки
+                    if (applesLeft <= 0) {
+                        document.querySelectorAll('.give-apple-btn:not(.sent)').forEach(b => {
+                            b.disabled = true;
+                            b.title = 'Лимит яблок на эту неделю исчерпан';
+                        });
+                    }
+                } else {
+                    showAppleToast('✗ ' + data.error, false);
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showAppleToast('✗ Ошибка сети', false);
+                btn.disabled = false;
+            }
+        });
+    });
 </script>
 
 </body>
