@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .cab-page {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1.5rem 3rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cab-hero {
+            position: relative;
+            padding: 2.5rem 1.75rem 2rem;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(30,15,8,0.95), rgba(8,4,2,0.98));
+            border: 1px solid var(--line);
+            overflow: hidden;
+            text-align: center;
+        }
+        .cab-hero::before {
+            content: "";
+            position: absolute;
+            inset: -40%;
+            background: radial-gradient(circle at 50% 50%, var(--rank-glow, rgba(255,69,0,0.35)), transparent 60%);
+            opacity: 0.75;
+            z-index: 0;
+            animation: cabPulse 5s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes cabPulse {
+            0%   { transform: scale(1);    opacity: 0.6; }
+            100% { transform: scale(1.08); opacity: 0.9; }
+        }
+
+        .cab-hero > * { position: relative; z-index: 1; }
+
+        .cab-tier-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            border-radius: 999px;
+            background: rgba(10,5,3,0.7);
+            border: 1px solid var(--rank-color, var(--accent));
+            color: var(--rank-color, var(--accent-warm));
+            font-size: 0.78rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 0 20px var(--rank-glow, rgba(255,69,0,0.5));
+        }
+        .cab-tier-badge .tier-icon { font-size: 1.1rem; }
+
+        .cab-nickname {
+            font-family: 'Forum', serif;
+            font-size: 2.6rem;
+            font-weight: 400;
+            letter-spacing: 4px;
+            line-height: 1.15;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            color: var(--rank-color, var(--text));
+            text-shadow: 0 0 24px var(--rank-glow, rgba(255,69,0,0.5));
+            word-break: break-word;
+        }
+        .cab-nickname.no-link {
+            color: var(--muted);
+            text-shadow: none;
+            font-size: 2rem;
+        }
+
+        .cab-sub {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .cab-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        .cab-stat {
+            padding: 1rem;
+            border-radius: 12px;
+            background: rgba(10,5,3,0.55);
+            border: 1px solid var(--line);
+            text-align: center;
+        }
+        .cab-stat .num {
+            font-family: 'Forum', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--rank-color, var(--accent-warm));
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 0.3rem;
+            line-height: 1;
+        }
+        .cab-stat .lbl {
+            font-size: 0.7rem;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .cab-info {
+            margin-top: 2rem;
+            padding: 1.25rem 1.5rem;
+            border-radius: 14px;
+            background: rgba(10,5,3,0.55);
+            border: 1px solid var(--line);
+        }
+        .cab-info h3 {
+            font-size: 0.7rem;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 500;
+            margin-bottom: 0.85rem;
+        }
+        .cab-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--line-soft);
+            font-size: 0.9rem;
+        }
+        .cab-info-row:last-child { border-bottom: none; }
+        .cab-info-row .k { color: var(--muted); }
+        .cab-info-row .v { color: var(--text); font-weight: 500; }
+
+        .cab-actions {
+            margin-top: 2rem;
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .cab-actions .btn { flex: 1; min-width: 200px; }
+
+        .cab-empty-warn {
+            margin-top: 1.5rem;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            background: rgba(224,57,43,0.08);
+            border: 1px solid rgba(224,57,43,0.35);
+            color: #ffa090;
+            font-size: 0.88rem;
+            text-align: center;
+        }
+
+        /* Цвета для каждого ранга */
+        .rank-p1 {
+            --rank-color: #8ed6ff;
+            --rank-glow: rgba(142,214,255,0.45);
+        }
+        .rank-p2 {
+            --rank-color: #ffcc33;
+            --rank-glow: rgba(255,204,51,0.45);
+        }
+        .rank-p3 {
+            --rank-color: #c8c8d0;
+            --rank-glow: rgba(200,200,208,0.4);
+        }
+        .rank-p4 {
+            --rank-color: #cd7f32;
+            --rank-glow: rgba(205,127,50,0.4);
+        }
+        .rank-p5 {
+            --rank-color: #98a8b8;
+            --rank-glow: rgba(106,122,138,0.35);
+        }
+        .rank-stone {
+            --rank-color: #a89880;
+            --rank-glow: rgba(120,110,95,0.3);
+        }
+
+        body.light-theme .cab-hero { background: #fffaf2; }
+        body.light-theme .cab-stat { background: #fff8ec; }
+        body.light-theme .cab-info { background: #fff8ec; }
+        body.light-theme .cab-tier-badge { background: #fff8ec; }
+
+        @media (max-width: 600px) {
+            .cab-nickname { font-size: 1.8rem; letter-spacing: 2px; }
+            .cab-nickname.no-link { font-size: 1.5rem; }
+            .cab-hero { padding: 1.75rem 1rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="cab-page">
+
+    <header class="header" style="margin-bottom: 1.5rem;">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ player.username }}</b></span>
+            <a href="/cabinet/logout" class="link-btn">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="cab-hero {% if rank_data %}{{ 'rank-' + rank_data.css_class }}{% endif %}">
+
+        {% if rank_data %}
+            <div class="cab-tier-badge">
+                <span class="tier-icon">{{ rank_data.icon }}</span>
+                <span>{{ rank_data.tier_label }} · {{ rank_data.place }} место</span>
+            </div>
+            <h1 class="cab-nickname">{{ display_name }}</h1>
+            <p class="cab-sub">Добро пожаловать в личный кабинет, воин Пламени.</p>
+
+            <div class="cab-stats">
+                <div class="cab-stat">
+                    <div class="num">{{ rank_data.place }}</div>
+                    <div class="lbl">Место в общем</div>
+                </div>
+                <div class="cab-stat">
+                    <div class="num">{{ rank_data.duel_points }}</div>
+                    <div class="lbl">Дуэль</div>
+                </div>
+                <div class="cab-stat">
+                    <div class="num">{{ rank_data.arcadia_points }}</div>
+                    <div class="lbl">Аркадия</div>
+                </div>
+                <div class="cab-stat">
+                    <div class="num">{{ rank_data.total_points }}</div>
+                    <div class="lbl">Всего очков</div>
+                </div>
+            </div>
+        {% else %}
+            <div class="cab-tier-badge" style="border-color: var(--dim); color: var(--muted); box-shadow: none;">
+                <span class="tier-icon">❔</span>
+                <span>Ранг не определён</span>
+            </div>
+            <h1 class="cab-nickname no-link">{{ player.username }}</h1>
+            <p class="cab-sub">Вы ещё не привязаны ни к одному нику в рейтинге.</p>
+
+            <div class="cab-empty-warn">
+                Обратитесь к администратору, чтобы он привязал ваш аккаунт к строке рейтинга.
+            </div>
+        {% endif %}
+
+    </section>
+
+    <section class="cab-info">
+        <h3>Информация об аккаунте</h3>
+        <div class="cab-info-row">
+            <span class="k">Логин</span>
+            <span class="v">{{ player.username }}</span>
+        </div>
+        <div class="cab-info-row">
+            <span class="k">Отображаемый ник</span>
+            <span class="v">{{ player.linked_nickname or '— не привязан —' }}</span>
+        </div>
+        <div class="cab-info-row">
+            <span class="k">Дата регистрации</span>
+            <span class="v">{{ player.created_at[:16] if player.created_at else '—' }}</span>
+        </div>
+    </section>
+
+    <div class="cab-actions">
+        <a href="/rating/total" class="btn btn-primary">🏆 Общий рейтинг</a>
+        <a href="/rating/duel" class="btn">⚔️ Рейтинг Дуэли</a>
+        <a href="/rating/arcadia" class="btn">🌿 Рейтинг Аркадии</a>
+    </div>
+
+    {% if player.linked_nickname %}
+    <div class="cab-actions">
+        <a href="/player/duel/{{ player.linked_nickname }}" class="btn">📈 Мой график — Дуэль</a>
+        <a href="/player/arcadia/{{ player.linked_nickname }}" class="btn">📈 Мой график — Аркадия</a>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+</script>
+
+</body>
+</html>
