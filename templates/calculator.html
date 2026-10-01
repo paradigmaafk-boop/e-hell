@@ -8,6 +8,27 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=400">
+    <style>
+        .x2-badge {
+            display: inline-block;
+            background: linear-gradient(180deg, #ff5a1f, #d63a00);
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+            box-shadow: 0 0 8px rgba(255, 90, 31, 0.55);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.4);
+            line-height: 1.3;
+        }
+        body.light-theme .x2-badge {
+            background: linear-gradient(180deg, #d63a00, #a82800);
+            box-shadow: 0 0 8px rgba(214, 58, 0, 0.4);
+        }
+    </style>
 </head>
 <body>
 
@@ -98,33 +119,50 @@
                 <b style="color: var(--accent-warm);">Ускорения тренировки</b> — учтен бафф VIP 10 (6 солдатиков в минуту)
             </p>
             <p style="color: var(--muted); font-size: 0.9rem;">
-                Результаты могут отличаться в зависимости от уровня VIP игрока
+                Результаты могут отличаться в зависимости от уровня VIP игрока. Параметры с плашкой <span class="x2-badge">×2</span> дают удвоенные очки.
             </p>
         </div>
 
         <div class="calc-grid">
+            <!-- Ускорения -->
             <div class="calc-field"><label>Ускорения общие</label><input type="number" id="accel_general" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Ускорения строительства</label><input type="number" id="accel_build" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Ускорения строительства <span class="x2-badge">×2</span></label><input type="number" id="accel_build" placeholder="0" min="0"></div>
             <div class="calc-field"><label>Ускорения исследований</label><input type="number" id="accel_research" placeholder="0" min="0"></div>
             <div class="calc-field"><label>Ускорения тренировки</label><input type="number" id="accel_training" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Фрагменты легендарных героев</label><input type="number" id="frag_legend" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Фрагменты эпических героев</label><input type="number" id="frag_epic" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Простые болты</label><input type="number" id="bolt_simple" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Эпические болты</label><input type="number" id="bolt_epic" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Легендарные болты</label><input type="number" id="bolt_legend" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Книги для навыков</label><input type="number" id="skill_books" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Легендарный призыв</label><input type="number" id="recruit_legend" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Продвинутый призыв</label><input type="number" id="recruit_adv" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Простой призыв</label><input type="number" id="recruit_simple" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Клетки титана</label><input type="number" id="titan_cells" placeholder="0" min="0"></div>
+
+            <!-- Герои и фрагменты -->
+            <div class="calc-field"><label>Фрагменты легендарного героя <span class="x2-badge">×2</span></label><input type="number" id="frag_legend" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Фрагменты эпического героя</label><input type="number" id="frag_epic" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Фрагменты редкого героя</label><input type="number" id="frag_rare" placeholder="0" min="0"></div>
+
+            <!-- Обломки снаряжения -->
+            <div class="calc-field"><label>Обломки снаряжения (100 опыта)</label><input type="number" id="scrap_100" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Обломки снаряжения (400 опыта)</label><input type="number" id="scrap_400" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Обломки снаряжения (2 000 опыта)</label><input type="number" id="scrap_2000" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Обломки снаряжения (10 000 опыта)</label><input type="number" id="scrap_10000" placeholder="0" min="0"></div>
+
+            <!-- Призывы и жетоны -->
+            <div class="calc-field"><label>Купоны героя <span class="x2-badge">×2</span></label><input type="number" id="recruit_legend" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Жетоны продвинутого призыва</label><input type="number" id="recruit_adv" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Жетоны стандартного призыва</label><input type="number" id="recruit_simple" placeholder="0" min="0"></div>
+
+            <!-- Прочее -->
+            <div class="calc-field"><label>Общие детали</label><input type="number" id="common_parts" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Точные чертежи <span class="x2-badge">×2</span></label><input type="number" id="precise_blueprints" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Руководства по навыкам героя</label><input type="number" id="skill_books" placeholder="0" min="0"></div>
+
+            <!-- Титан -->
+            <div class="calc-field"><label>Клетки титана <span class="x2-badge">×2</span></label><input type="number" id="titan_cells" placeholder="0" min="0"></div>
             <div class="calc-field"><label>Сыворотки титана</label><input type="number" id="titan_serum" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Чертежи коллекции</label><input type="number" id="collection_blueprint" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Фрагменты коллекции</label><input type="number" id="collection_frag" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Молот перековки</label><input type="number" id="hammer_forge" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Изолента для перековки</label><input type="number" id="tape_forge" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Повышение звёздного рейтинга</label><input type="number" id="star_rating" placeholder="0" min="0"></div>
+
+            <!-- Перековка и снаряжение -->
+            <div class="calc-field"><label>Молот перековки <span class="x2-badge">×2</span></label><input type="number" id="hammer_forge" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Изолента для перековки <span class="x2-badge">×2</span></label><input type="number" id="tape_forge" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Усиление снаряжения (сплав) <span class="x2-badge">×2</span></label><input type="number" id="gear_upgrade" placeholder="0" min="0"></div>
+
+            <!-- Прочее -->
             <div class="calc-field"><label>Алмазы из наборов</label><input type="number" id="diamonds_packs" placeholder="0" min="0"></div>
-            <div class="calc-field"><label>Биогенный белок</label><input type="number" id="bio_protein" placeholder="0" min="0"></div>
+            <div class="calc-field"><label>Биогенный белок <span class="x2-badge">×2</span></label><input type="number" id="bio_protein" placeholder="0" min="0"></div>
         </div>
 
         <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
@@ -315,28 +353,45 @@
 
     // ====== ЧЕРЕПАШКА ======
     const turtleItems = [
-        { id: 'accel_general', multiplier: 700 },
-        { id: 'accel_build', multiplier: 700 },
-        { id: 'accel_research', multiplier: 700 },
-        { id: 'accel_training', multiplier: 6.5 * 540 },
-        { id: 'frag_legend', multiplier: 35000 },
-        { id: 'frag_epic', multiplier: 9000 },
-        { id: 'bolt_simple', multiplier: 4000 },
-        { id: 'bolt_epic', multiplier: 16000 },
-        { id: 'bolt_legend', multiplier: 80000 },
-        { id: 'skill_books', multiplier: 2500 },
-        { id: 'recruit_legend', multiplier: 20000 },
-        { id: 'recruit_adv', multiplier: 8000 },
-        { id: 'recruit_simple', multiplier: 2000 },
-        { id: 'titan_cells', multiplier: 20000 },
-        { id: 'titan_serum', multiplier: 10 },
-        { id: 'collection_blueprint', multiplier: 150000 },
-        { id: 'collection_frag', multiplier: 3000 },
-        { id: 'hammer_forge', multiplier: 8000 },
-        { id: 'tape_forge', multiplier: 600000 },
-        { id: 'star_rating', multiplier: 2200000 },
-        { id: 'diamonds_packs', multiplier: 400 },
-        { id: 'bio_protein', multiplier: 12000 }
+        // Ускорения
+        { id: 'accel_general',    multiplier: 700 },
+        { id: 'accel_build',      multiplier: 1400 },
+        { id: 'accel_research',   multiplier: 700 },
+        { id: 'accel_training',   multiplier: 6.5 * 540 },
+
+        // Герои
+        { id: 'frag_legend',      multiplier: 70000 },
+        { id: 'frag_epic',        multiplier: 9000 },
+        { id: 'frag_rare',        multiplier: 3000 },
+
+        // Обломки снаряжения
+        { id: 'scrap_100',        multiplier: 4000 },
+        { id: 'scrap_400',        multiplier: 16000 },
+        { id: 'scrap_2000',       multiplier: 80000 },
+        { id: 'scrap_10000',      multiplier: 400000 },
+
+        // Призывы
+        { id: 'recruit_legend',   multiplier: 40000 },
+        { id: 'recruit_adv',      multiplier: 8000 },
+        { id: 'recruit_simple',   multiplier: 2000 },
+
+        // Прочее
+        { id: 'common_parts',       multiplier: 3000 },
+        { id: 'precise_blueprints', multiplier: 300000 },
+        { id: 'skill_books',        multiplier: 2500 },
+
+        // Титан
+        { id: 'titan_cells',      multiplier: 40000 },
+        { id: 'titan_serum',      multiplier: 1000 },
+
+        // Перековка и снаряжение
+        { id: 'hammer_forge',     multiplier: 16000 },
+        { id: 'tape_forge',       multiplier: 1200000 },
+        { id: 'gear_upgrade',     multiplier: 4400000 },
+
+        // Прочее
+        { id: 'diamonds_packs',   multiplier: 400 },
+        { id: 'bio_protein',      multiplier: 24000 }
     ];
 
     function calculateTurtle() {
