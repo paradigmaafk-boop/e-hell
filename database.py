@@ -28,7 +28,7 @@ def init_db():
         )
     """)
 
-    # АЛИАСЫ НИКНЕЙМОВ — БЕЗ привязки к типу рейтинга (общие)
+    # АЛИАСЫ НИКНЕЙМОВ — общие для всех рейтингов
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS nickname_aliases (
             id SERIAL PRIMARY KEY,
@@ -115,6 +115,22 @@ def init_db():
         )
     """)
 
+    # === АККАУНТЫ ИГРОКОВ (личные кабинеты) ===
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS player_accounts (
+            id SERIAL PRIMARY KEY,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            linked_nickname TEXT,
+            created_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_player_accounts_linked_nickname
+        ON player_accounts (linked_nickname)
+        WHERE linked_nickname IS NOT NULL
+    """)
+
     hashed = hashlib.sha256('admin123'.encode()).hexdigest()
     try:
         cursor.execute(
@@ -137,7 +153,7 @@ def check_user(username, password):
     return user is not None
 
 # ============================================================
-# АЛИАСЫ НИКНЕЙМОВ — ОБЩИЕ ДЛЯ ВСЕХ РЕЙТИНГОВ
+# АЛИАСЫ НИКНЕЙМОВ
 # ============================================================
 def add_nickname_alias(current_nickname, old_nickname):
     conn = get_connection()
@@ -155,12 +171,17 @@ def add_nickname_alias(current_nickname, old_nickname):
                               VALUES (%s, %s, %s)""",
                            (current_nickname, old_nickname, created_at))
 
-        # Обновляем nickname во всех таблицах history_ и players_
         for rt in ['duel', 'arcadia']:
             cursor.execute(f"UPDATE history_{rt} SET nickname = %s WHERE nickname = %s",
                            (current_nickname, old_nickname))
             cursor.execute(f"UPDATE players_{rt} SET nickname = %s WHERE nickname = %s",
                            (current_nickname, old_nickname))
+
+        # Если у какого-то аккаунта игрока был привязан старый ник — обновим и его
+        cursor.execute("""UPDATE player_accounts SET linked_nickname = %s
+                          WHERE linked_nickname = %s""",
+                       (current_nickname, old_nickname))
+
         conn.commit()
         return True
     except Exception as e:
@@ -196,7 +217,7 @@ def resolve_nickname(nickname):
     return result[0] if result else nickname
 
 # ============================================================
-# СОХРАНЕНИЕ РЕЙТИНГА (duel / arcadia)
+# СОХРАНЕНИЕ РЕЙТИНГА
 # ============================================================
 def save_rating(rating_type, data_list):
     conn = get_connection()
@@ -226,9 +247,6 @@ def get_latest_rating(rating_type):
     conn.close()
     return data
 
-# ============================================================
-# СУММАРНЫЙ РЕЙТИНГ: сумма очков дуэли и аркадии
-# ============================================================
 def get_total_rating():
     conn = get_connection()
     cursor = conn.cursor()
@@ -238,12 +256,8 @@ def get_total_rating():
             UNION
             SELECT nickname FROM players_arcadia
         ),
-        duel AS (
-            SELECT nickname, points FROM players_duel
-        ),
-        arcadia AS (
-            SELECT nickname, points FROM players_arcadia
-        )
+        duel AS (SELECT nickname, points FROM players_duel),
+        arcadia AS (SELECT nickname, points FROM players_arcadia)
         SELECT
             p.nickname,
             COALESCE(d.points, 0) AS duel_points,
@@ -364,6 +378,9 @@ def delete_player(rating_type, nickname):
         cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
         cursor.execute("DELETE FROM nickname_aliases WHERE current_nickname = %s OR old_nickname = %s",
                        (nickname, nickname))
+        # отвязываем аккаунт, если ник был привязан
+        cursor.execute("UPDATE player_accounts SET linked_nickname = NULL WHERE linked_nickname = %s",
+                       (nickname,))
         conn.commit()
         return True
     except Exception as e:
@@ -539,6 +556,157 @@ def reset_map_values():
         return True
     except Exception as e:
         print(f"Error resetting map: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+# ============================================================
+# АККАУНТЫ ИГРОКОВ (ЛИЧНЫЕ КАБИНЕТЫ)
+# ============================================================
+
+def _hash(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def register_player_account(username, password):
+    """Создаёт аккаунт игрока. linked_nickname пока NULL — выберет позже."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute(
+            "INSERT INTO player_accounts (username, password, linked_nickname, created_at) VALUES (%s, %s, NULL, %s) RETURNING id",
+            (username, _hash(password), created_at)
+        )
+        new_id = cursor.fetchone()[0]
+        conn.commit()
+        return new_id
+    except Exception as e:
+        print(f"Error register_player_account: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+def get_player_account_by_username(username):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, username, password, linked_nickname, created_at
+                      FROM player_accounts WHERE username = %s""", (username,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def get_player_account_by_id(player_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, username, password, linked_nickname, created_at
+                      FROM player_accounts WHERE id = %s""", (player_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def get_all_player_accounts():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, username, linked_nickname, created_at
+                      FROM player_accounts ORDER BY created_at DESC""")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def check_player_credentials(username, password):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, username, linked_nickname FROM player_accounts
+                      WHERE username = %s AND password = %s""",
+                   (username, _hash(password)))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+def get_linked_nicknames():
+    """Все никнеймы, которые уже привязаны к аккаунтам."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT linked_nickname FROM player_accounts WHERE linked_nickname IS NOT NULL")
+    data = cursor.fetchall()
+    conn.close()
+    return {row[0] for row in data}
+
+def get_total_rating_for_registration():
+    """Список всех ников из общего рейтинга (total)."""
+    return [row[0] for row in get_total_rating()]
+
+def link_player_nickname(player_id, nickname):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE player_accounts SET linked_nickname = %s WHERE id = %s",
+                       (nickname, player_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error link_player_nickname: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def unlink_player_nickname(player_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE player_accounts SET linked_nickname = NULL WHERE id = %s", (player_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error unlink_player_nickname: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def delete_player_account(player_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM player_accounts WHERE id = %s", (player_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error delete_player_account: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def update_player_account_username(player_id, new_username):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE player_accounts SET username = %s WHERE id = %s",
+                       (new_username, player_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error update_player_account_username: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def update_player_account_password(player_id, new_password):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE player_accounts SET password = %s WHERE id = %s",
+                       (_hash(new_password), player_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error update_player_account_password: {e}")
         conn.rollback()
         return False
     finally:
