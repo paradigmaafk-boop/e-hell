@@ -11,7 +11,7 @@
     <style>
         .acc-row {
             display: grid;
-            grid-template-columns: 1fr 1.2fr auto;
+            grid-template-columns: 1.1fr 1.2fr 2fr;
             gap: 1rem;
             align-items: center;
             padding: 1rem 1.25rem;
@@ -19,6 +19,10 @@
             border-radius: 12px;
             background: rgba(15,6,3,0.55);
             margin-bottom: 0.85rem;
+        }
+        .acc-row.self-row {
+            border-color: rgba(255,184,0,0.5);
+            background: rgba(255,184,0,0.05);
         }
         .acc-row .acc-user {
             display: flex;
@@ -28,6 +32,10 @@
         .acc-row .acc-user .login {
             font-weight: 700;
             font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
         .acc-row .acc-user .created {
             font-size: 0.72rem;
@@ -89,7 +97,20 @@
             max-width: 180px;
         }
 
-        @media (max-width: 780px) {
+        .role-pill {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .role-player { background: rgba(120,180,255,0.15); color: #8ed6ff; border: 1px solid rgba(120,180,255,0.4); }
+        .role-admin { background: rgba(255,184,0,0.15); color: #ffb800; border: 1px solid rgba(255,184,0,0.4); }
+        .role-super_admin { background: rgba(255,69,0,0.18); color: #ff4500; border: 1px solid rgba(255,69,0,0.5); }
+
+        @media (max-width: 900px) {
             .acc-row { grid-template-columns: 1fr; gap: 0.6rem; }
             .acc-row .acc-actions { justify-content: flex-start; }
         }
@@ -148,6 +169,7 @@
         </a>
         <div class="header-right">
             <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/cabinet" class="link-btn">👤 Кабинет</a>
             <a href="/logout" class="link-btn">Выйти</a>
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
@@ -159,9 +181,7 @@
         <a href="/rating/arcadia">Рейтинг Аркадии</a>
         <a href="/reservoir-map">Резервуар</a>
         <a href="/calculator">Калькулятор</a>
-        {% if session['username'] == 'admin' %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
-        {% endif %}
     </nav>
 
     <div class="breadcrumbs">
@@ -174,7 +194,7 @@
 
     <div class="page-head">
         <h1 class="page-title">Управление игроками</h1>
-        <p class="page-sub">Аккаунты личных кабинетов</p>
+        <p class="page-sub">Аккаунты, роли и привязки к рейтингу</p>
     </div>
 
     {% with messages = get_flashed_messages() %}
@@ -207,11 +227,18 @@
         <div class="section-title">Все аккаунты</div>
 
         {% for p in players %}
-        <div class="acc-row">
+        <div class="acc-row {% if p.id == current_user_id %}self-row{% endif %}">
 
             <div class="acc-user">
-                <span class="login">{{ p.username }}</span>
-                <span class="created">ID: {{ p.id }} · создан: {{ p.created_at[:16] if p.created_at else '—' }}</span>
+                <span class="login">
+                    {{ p.username }}
+                    <span class="role-pill role-{{ p.role }}">
+                        {% if p.role == 'super_admin' %}Супер-админ
+                        {% elif p.role == 'admin' %}Админ
+                        {% else %}Игрок{% endif %}
+                    </span>
+                </span>
+                <span class="created">ID: {{ p.id }} · {{ p.created_at[:16] if p.created_at else '—' }}</span>
             </div>
 
             <div class="acc-rank">
@@ -240,7 +267,7 @@
 
                 {% if p.linked_nickname %}
                 <form method="POST" action="/admin/players/unlink/{{ p.id }}" class="inline-form"
-                      onsubmit="return confirm('Отвязать ник {{ p.linked_nickname }} от аккаунта {{ p.username }}?');">
+                      onsubmit="return confirm('Отвязать ник {{ p.linked_nickname }} от {{ p.username }}?');">
                     <button type="submit" class="btn btn-danger">🔓 Отвязать</button>
                 </form>
                 {% else %}
@@ -258,21 +285,35 @@
                 {% endif %}
 
                 <form method="POST" action="/admin/players/change-username/{{ p.id }}" class="inline-form"
-                      onsubmit="return confirm('Сменить логин игрока {{ p.username }}?');">
+                      onsubmit="return confirm('Сменить логин {{ p.username }}?');">
                     <input type="text" name="new_username" placeholder="новый логин" required minlength="2">
                     <button type="submit" class="btn btn-small">✎ Логин</button>
                 </form>
 
                 <form method="POST" action="/admin/players/change-password/{{ p.id }}" class="inline-form"
-                      onsubmit="return confirm('Сменить пароль игрока {{ p.username }}?');">
+                      onsubmit="return confirm('Сменить пароль {{ p.username }}?');">
                     <input type="text" name="new_password" placeholder="новый пароль" required minlength="4">
                     <button type="submit" class="btn btn-small">🔑 Пароль</button>
                 </form>
 
-                <form method="POST" action="/admin/players/delete/{{ p.id }}" class="inline-form"
-                      onsubmit="return confirm('Удалить аккаунт {{ p.username }}? Действие необратимо.');">
-                    <button type="submit" class="btn btn-danger btn-small">🗑 Удалить</button>
+                {% if is_super_admin and p.id != current_user_id and p.role != 'super_admin' %}
+                <form method="POST" action="/admin/players/change-role/{{ p.id }}" class="inline-form">
+                    <select name="new_role">
+                        <option value="player" {% if p.role == 'player' %}selected{% endif %}>Игрок</option>
+                        <option value="admin" {% if p.role == 'admin' %}selected{% endif %}>Админ</option>
+                    </select>
+                    <button type="submit" class="btn btn-small">🛡 Роль</button>
                 </form>
+                {% endif %}
+
+                {% if p.id != current_user_id and p.role != 'super_admin' %}
+                    {% if is_super_admin or (p.role == 'player') %}
+                    <form method="POST" action="/admin/players/delete/{{ p.id }}" class="inline-form"
+                          onsubmit="return confirm('Удалить аккаунт {{ p.username }}? Действие необратимо.');">
+                        <button type="submit" class="btn btn-danger btn-small">🗑 Удалить</button>
+                    </form>
+                    {% endif %}
+                {% endif %}
 
             </div>
         </div>
