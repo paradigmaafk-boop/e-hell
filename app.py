@@ -20,10 +20,8 @@ from database import (
     register_user, update_user_username, update_user_password,
     update_user_role, link_user_nickname, unlink_user_nickname,
     delete_user, get_linked_nicknames, count_super_admins,
-    # === яблоки ===
     give_apple, get_apples_given_this_week, get_apples_received_map,
     get_apples_received_for, reset_apples, get_week_key,
-    # === настройки ===
     get_setting, set_setting,
 )
 from werkzeug.utils import secure_filename
@@ -255,12 +253,6 @@ def rating_view(rating_type):
                 given = get_apples_given_this_week(session['user_id'])
                 my_apples_left = max(0, APPLES_PER_WEEK - given)
 
-    # Индекс топ-50
-    top50_nicks = set()
-    if rating_type == 'total':
-        for i, row in enumerate(rating_data[:50], start=1):
-            top50_nicks.add(row[0])
-
     tooltip_text = get_setting('rating_tooltip_text', '')
 
     return render_template('rating.html',
@@ -272,7 +264,6 @@ def rating_view(rating_type):
                            my_apples_left=my_apples_left,
                            is_logged_player=is_logged_player,
                            my_linked_nickname=my_linked_nickname,
-                           top50_nicks=top50_nicks,
                            tooltip_text=tooltip_text,
                            apples_per_week=APPLES_PER_WEEK)
 
@@ -291,12 +282,6 @@ def give_apple_route():
     to_nickname = (request.json or {}).get('nickname', '').strip()
     if not to_nickname:
         return jsonify({'success': False, 'error': 'Не указан ник.'}), 400
-
-    # Проверка: не топ-50
-    total = get_total_rating()
-    top50 = {row[0] for row in total[:50]}
-    if to_nickname in top50:
-        return jsonify({'success': False, 'error': 'Этому игроку не нужен иммунитет — он в топ-50.'}), 400
 
     ok, message, remaining = give_apple(session['user_id'], to_nickname)
     if ok:
@@ -524,7 +509,6 @@ def cabinet():
 
     display_name = linked_nickname if linked_nickname else username
 
-    # === ЯБЛОКИ для кабинета ===
     given_this_week = get_apples_given_this_week(user_id)
     apples_left = max(0, APPLES_PER_WEEK - given_this_week)
     apples_received = get_apples_received_for(linked_nickname) if linked_nickname else 0
@@ -892,7 +876,6 @@ def reset_rating_route(rating_type):
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
     if reset_rating(rating_type):
-        # Обнуляем счётчики яблок при сбросе рейтинга Дуэли
         if rating_type == 'duel':
             reset_apples()
         increment_counter('admin_actions')
