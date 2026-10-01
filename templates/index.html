@@ -411,10 +411,13 @@
             </div>
         </a>
         <div class="header-right">
-            {% if session['logged_in'] %}
+            {% if session.get('player_id') %}
+                <a href="/cabinet" class="link-btn">👤 Кабинет</a>
+            {% elif session['logged_in'] %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
                 <a href="/logout" class="link-btn">Выйти</a>
             {% else %}
+                <a href="/register" class="link-btn" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
                 <a href="/login" class="link-btn">Войти</a>
             {% endif %}
             <button class="moon" id="theme-toggle">🌙</button>
@@ -466,6 +469,15 @@
                 Калькулятор
                 <span class="arrow">→</span>
             </a>
+
+            {% if session.get('player_id') %}
+                <div class="side-title" style="margin-top: 1rem;">Личный кабинет</div>
+
+                <a href="/cabinet" class="side-btn">
+                    Мой профиль
+                    <span class="arrow">→</span>
+                </a>
+            {% endif %}
 
             {% if session['username'] == 'admin' %}
                 <div class="side-title" style="margin-top: 1rem;">Администрирование</div>
