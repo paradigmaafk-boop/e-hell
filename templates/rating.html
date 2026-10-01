@@ -35,7 +35,6 @@
             box-shadow: 0 0 15px rgba(255,69,0,0.6);
             transform: scale(1.08);
         }
-
         .tooltip-modal {
             display: none;
             position: fixed;
@@ -49,10 +48,7 @@
             animation: fadeInModal 0.2s ease;
         }
         .tooltip-modal.show { display: flex; }
-        @keyframes fadeInModal {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-        }
+        @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
         .tooltip-modal-box {
             width: 100%;
             max-width: 520px;
@@ -89,12 +85,9 @@
             display: flex;
             justify-content: center;
         }
-        .tooltip-modal-actions .btn {
-            min-width: 140px;
-        }
+        .tooltip-modal-actions .btn { min-width: 140px; }
         body.light-theme .tooltip-modal-box { background: #fffaf2; }
 
-        /* Яблоки */
         .apples-badge {
             display: inline-flex;
             align-items: center;
@@ -109,12 +102,6 @@
             color: #ff8a8a;
             font-variant-numeric: tabular-nums;
             vertical-align: middle;
-        }
-        .apples-badge.zero {
-            opacity: 0.45;
-            background: transparent;
-            border-color: var(--line-soft);
-            color: var(--dim);
         }
         .apple-btn {
             display: inline-flex;
@@ -170,16 +157,9 @@
             color: #ff5a5a;
             font-variant-numeric: tabular-nums;
         }
-        .apple-counter-plate .counter-num.zero {
-            color: var(--dim);
-        }
-        .apple-counter-plate .counter-label {
-            color: var(--muted);
-            font-size: 0.85rem;
-        }
-        body.light-theme .apple-counter-plate {
-            background: #fff5e6;
-        }
+        .apple-counter-plate .counter-num.zero { color: var(--dim); }
+        .apple-counter-plate .counter-label { color: var(--muted); font-size: 0.85rem; }
+        body.light-theme .apple-counter-plate { background: #fff5e6; }
 
         .apple-toast {
             position: fixed;
@@ -321,9 +301,6 @@
     </div>
     {% endif %}
 
-    {% if session.get('user_id') and rating_type != 'total' %}
-    {% endif %}
-
     {% if session.get('user_id') and rating_type == 'total' and not is_logged_player %}
     <div class="flash-message" style="margin-bottom: 1.5rem;">
         Вы вошли, но ещё не привязаны к нику в рейтинге. Дарить яблоки пока нельзя.
@@ -381,8 +358,6 @@
             {% if rating_type == 'total' %}
                 {% set nick = row[0] %}
                 {% set apples = apples_map.get(nick, 0) %}
-                {% set in_top50 = nick in top50_nicks %}
-                {% set can_give = (session.get('user_id') is not none) and is_logged_player and (not in_top50) and (my_apples_left > 0) and (nick != my_linked_nickname) %}
 
                 <div class="rating-row {{ css_class }}">
                     <div class="rating-circle">{{ place }}</div>
@@ -413,20 +388,18 @@
                     <div class="rating-points">{{ row[3] }}<small>★</small></div>
 
                     <div class="rating-actions" style="align-items: center;">
-                        {% if not in_top50 %}
-                            {% if session.get('user_id') is none %}
-                                <a href="/login" class="apple-btn" title="Войдите, чтобы дарить яблоки" style="text-decoration:none;">🍎</a>
-                            {% elif not is_logged_player %}
-                                <button class="apple-btn" disabled title="Сначала привяжите себя к нику">🍎</button>
-                            {% elif nick == my_linked_nickname %}
-                                <button class="apple-btn" disabled title="Нельзя дарить яблоко самому себе">🍎</button>
-                            {% elif my_apples_left <= 0 %}
-                                <button class="apple-btn" disabled title="Лимит яблок на эту неделю исчерпан">🍎</button>
-                            {% else %}
-                                <button class="apple-btn give-apple-btn"
-                                        data-nickname="{{ nick }}"
-                                        title="Подарить яблоко">🍎</button>
-                            {% endif %}
+                        {% if session.get('user_id') is none %}
+                            <a href="/login" class="apple-btn" title="Войдите, чтобы дарить яблоки" style="text-decoration:none;">🍎</a>
+                        {% elif not is_logged_player %}
+                            <button class="apple-btn" disabled title="Сначала привяжите себя к нику">🍎</button>
+                        {% elif nick == my_linked_nickname %}
+                            <button class="apple-btn" disabled title="Нельзя дарить яблоко самому себе">🍎</button>
+                        {% elif my_apples_left <= 0 %}
+                            <button class="apple-btn" disabled title="Лимит яблок на эту неделю исчерпан">🍎</button>
+                        {% else %}
+                            <button class="apple-btn give-apple-btn"
+                                    data-nickname="{{ nick }}"
+                                    title="Подарить яблоко">🍎</button>
                         {% endif %}
                     </div>
                 </div>
@@ -488,7 +461,6 @@
 
 </div>
 
-<!-- Модалка тултипа -->
 {% if rating_type == 'total' and tooltip_text %}
 <div class="tooltip-modal" id="tooltipModal">
     <div class="tooltip-modal-box">
@@ -502,30 +474,6 @@
 {% endif %}
 
 <script>
-    (function () {
-        const container = document.getElementById('embers');
-        if (!container) return;
-        for (let i = 0; i < 30; i++) {
-            const ember = document.createElement('div');
-            ember.className = 'ember';
-            const size = 2 + Math.random() * 4;
-            const left = Math.random() * 100;
-            const duration = 6 + Math.random() * 10;
-            const delay = Math.random() * 12;
-            const drift = (Math.random() - 0.5) * 200;
-            ember.style.left = left + '%';
-            ember.style.width = size + 'px';
-            ember.style.height = size + 'px';
-            ember.style.animationDuration = duration + 's';
-            ember.style.animationDelay = delay + 's';
-            ember.style.setProperty('--drift', drift + 'px');
-            const hue = 15 + Math.random() * 30;
-            ember.style.background = `radial-gradient(circle, hsl(${hue + 20}, 100%, 70%), hsl(${hue}, 100%, 50%) 60%, transparent 100%)`;
-            ember.style.boxShadow = `0 0 8px 1px hsla(${hue}, 100%, 55%, 0.8)`;
-            container.appendChild(ember);
-        }
-    })();
-
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     toggleBtn.addEventListener('click', () => {
@@ -546,7 +494,6 @@
         });
     }
 
-    // === Тултип ===
     const tooltipTrigger = document.getElementById('tooltipTrigger');
     const tooltipModal = document.getElementById('tooltipModal');
     const tooltipClose = document.getElementById('tooltipClose');
@@ -558,7 +505,6 @@
         });
     }
 
-    // === Яблоки ===
     function showAppleToast(msg, ok) {
         const t = document.createElement('div');
         t.className = 'apple-toast ' + (ok ? 'ok' : 'err');
@@ -589,7 +535,6 @@
                 const data = await res.json();
                 if (data.success) {
                     showAppleToast('🍎 ' + data.message, true);
-                    // обновим бейдж яблок рядом с ником
                     const row = btn.closest('.rating-row');
                     if (row) {
                         const nameLink = row.querySelector('.rating-name');
@@ -606,13 +551,11 @@
                         btn.title = 'Яблоко отправлено';
                     }
                     applesLeft = data.remaining;
-                    // обновим плашку сверху
                     const counterNum = document.querySelector('.apple-counter-plate .counter-num');
                     if (counterNum) {
                         counterNum.textContent = applesLeft;
                         if (applesLeft <= 0) counterNum.classList.add('zero');
                     }
-                    // если яблок больше нет — отключаем все остальные кнопки
                     if (applesLeft <= 0) {
                         document.querySelectorAll('.give-apple-btn:not(.sent)').forEach(b => {
                             b.disabled = true;
