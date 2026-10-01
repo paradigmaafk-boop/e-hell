@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор ника | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .link-page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 3rem; position: relative; z-index: 1; }
+        .link-card {
+            background: linear-gradient(180deg, rgba(30,15,8,0.95), rgba(8,4,2,0.98));
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 2rem 1.75rem;
+        }
+        .link-card h1 {
+            font-family: 'Forum', serif;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 0.4rem;
+            background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fireTextFlow 6s linear infinite;
+        }
+        .link-card .sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .nick-search {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--panel);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+        .nick-search:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,69,0,0.15);
+        }
+        .nick-list {
+            max-height: 420px;
+            overflow-y: auto;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(10,5,3,0.55);
+        }
+        .nick-item {
+            padding: 0.7rem 1rem;
+            border-bottom: 1px solid var(--line-soft);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.92rem;
+        }
+        .nick-item:last-child { border-bottom: none; }
+        .nick-item:hover { background: rgba(255,69,0,0.1); }
+        .nick-item.selected {
+            background: linear-gradient(90deg, rgba(255,69,0,0.25), rgba(255,184,0,0.1));
+            border-left: 3px solid var(--accent);
+            color: var(--accent-warm);
+            font-weight: 600;
+        }
+        .nick-item .check { opacity: 0; color: var(--accent-warm); }
+        .nick-item.selected .check { opacity: 1; }
+        .empty-note {
+            padding: 1.5rem;
+            text-align: center;
+            color: var(--muted);
+            font-style: italic;
+        }
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+        .actions .btn { flex: 1; }
+        body.light-theme .link-card { background: #fffaf2; }
+        body.light-theme .nick-list { background: #fff8ec; }
+        body.light-theme .nick-item:hover { background: rgba(179,48,0,0.08); }
+        body.light-theme .nick-item.selected { background: linear-gradient(90deg, rgba(179,48,0,0.15), rgba(184,119,0,0.06)); color: #b33000; }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+    </defs>
+</svg>
+
+<div class="link-page">
+    <div class="link-card">
+        <h1>Выберите себя</h1>
+        <p class="sub">Привет, <b>{{ username }}</b>! Найди свой ник в общем рейтинге и привяжи его к аккаунту.</p>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-error" style="margin-bottom: 1rem;">{{ messages[0] }}</div>
+            {% endif %}
+        {% endwith %}
+
+        {% if available %}
+        <form method="POST" id="link-form">
+            <input type="text" class="nick-search" id="nick-search" placeholder="🔎 Начните вводить ник...">
+            <div class="nick-list" id="nick-list">
+                {% for nick in available %}
+                <div class="nick-item" data-nick="{{ nick }}">
+                    <span>{{ nick }}</span>
+                    <span class="check">✓</span>
+                </div>
+                {% endfor %}
+            </div>
+            <input type="hidden" name="nickname" id="selected-nick" value="">
+            <div class="actions">
+                <a href="/cabinet/logout" class="btn">Отмена</a>
+                <button type="submit" class="btn btn-primary" id="confirm-btn" disabled>Подтвердить</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="empty-note">
+            Свободных ников в рейтинге пока нет. Обратитесь к администратору.
+        </div>
+        <div class="actions">
+            <a href="/cabinet/logout" class="btn">Выйти</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    const search = document.getElementById('nick-search');
+    const list = document.getElementById('nick-list');
+    const selectedInput = document.getElementById('selected-nick');
+    const confirmBtn = document.getElementById('confirm-btn');
+
+    if (search && list) {
+        search.addEventListener('input', () => {
+            const q = search.value.toLowerCase().trim();
+            list.querySelectorAll('.nick-item').forEach(item => {
+                const nick = item.dataset.nick.toLowerCase();
+                item.style.display = nick.includes(q) ? '' : 'none';
+            });
+        });
+
+        list.querySelectorAll('.nick-item').forEach(item => {
+            item.addEventListener('click', () => {
+                list.querySelectorAll('.nick-item').forEach(i => i.classList.remove('selected'));
+                item.classList.add('selected');
+                selectedInput.value = item.dataset.nick;
+                confirmBtn.disabled = false;
+            });
+        });
+    }
+</script>
+
+</body>
+</html>
