@@ -16,7 +16,6 @@
             position: relative;
             z-index: 1;
         }
-
         .cab-hero {
             position: relative;
             padding: 2.5rem 1.75rem 2rem;
@@ -77,12 +76,10 @@
             text-shadow: none;
             font-size: 2rem;
         }
-
         .cab-sub {
             color: var(--muted);
             font-size: 0.92rem;
         }
-
         .cab-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -111,6 +108,50 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
+
+        .apples-block {
+            margin-top: 2rem;
+            padding: 1.25rem 1.5rem;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(40,20,10,0.85), rgba(15,8,3,0.95));
+            border: 1px solid rgba(255, 60, 60, 0.35);
+            box-shadow: 0 0 20px rgba(255, 60, 60, 0.15);
+        }
+        .apples-block h3 {
+            font-size: 0.72rem;
+            color: #ff8a8a;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .apples-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .apples-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 1rem;
+            border-radius: 10px;
+            background: rgba(10,5,3,0.5);
+            border: 1px solid var(--line-soft);
+        }
+        .apples-item .ico { font-size: 1.4rem; }
+        .apples-item .txt { font-size: 0.85rem; color: var(--muted); }
+        .apples-item .val {
+            font-family: 'Forum', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #ff5a5a;
+            font-variant-numeric: tabular-nums;
+            margin-left: 0.4rem;
+        }
+        .apples-item .val.zero { color: var(--dim); }
 
         .cab-info {
             margin-top: 2rem;
@@ -159,18 +200,6 @@
         }
         .cab-actions .btn { flex: 1; min-width: 200px; }
 
-        .cab-empty-warn {
-            margin-top: 1.5rem;
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            background: rgba(224,57,43,0.08);
-            border: 1px solid rgba(224,57,43,0.35);
-            color: #ffa090;
-            font-size: 0.88rem;
-            text-align: center;
-        }
-
-        /* preview-селектор */
         .preview-block {
             margin-top: 2rem;
             padding: 1.25rem 1.5rem;
@@ -232,6 +261,8 @@
         body.light-theme .cab-stat { background: #fff8ec; }
         body.light-theme .cab-info { background: #fff8ec; }
         body.light-theme .preview-block { background: #fff8ec; }
+        body.light-theme .apples-block { background: #fff5e6; }
+        body.light-theme .apples-item { background: #fff8ec; }
 
         @media (max-width: 600px) {
             .cab-nickname { font-size: 1.8rem; letter-spacing: 2px; }
@@ -353,6 +384,24 @@
         {% endif %}
 
     </section>
+
+    {% if player.linked_nickname %}
+    <section class="apples-block">
+        <h3>🍎 Яблоки</h3>
+        <div class="apples-row">
+            <div class="apples-item">
+                <span class="ico">🍎</span>
+                <span class="txt">Осталось подарить на этой неделе:</span>
+                <span class="val {% if apples_left == 0 %}zero{% endif %}">{{ apples_left }} / {{ apples_per_week }}</span>
+            </div>
+            <div class="apples-item">
+                <span class="ico">💝</span>
+                <span class="txt">Подарили вам за сезон:</span>
+                <span class="val {% if apples_received == 0 %}zero{% endif %}">{{ apples_received }}</span>
+            </div>
+        </div>
+    </section>
+    {% endif %}
 
     <section class="cab-info">
         <h3>Информация об аккаунте</h3>
