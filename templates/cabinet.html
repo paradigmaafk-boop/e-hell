@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         .cab-page {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 1.5rem 1.5rem 3rem;
             position: relative;
@@ -40,7 +40,6 @@
             0%   { transform: scale(1);    opacity: 0.6; }
             100% { transform: scale(1.08); opacity: 0.9; }
         }
-
         .cab-hero > * { position: relative; z-index: 1; }
 
         .cab-tier-badge {
@@ -138,6 +137,7 @@
         .cab-info-row:last-child { border-bottom: none; }
         .cab-info-row .k { color: var(--muted); }
         .cab-info-row .v { color: var(--text); font-weight: 500; }
+
         .role-pill {
             display: inline-block;
             padding: 0.15rem 0.6rem;
@@ -214,7 +214,6 @@
             border-color: var(--accent);
             box-shadow: 0 0 12px rgba(255,69,0,0.5);
         }
-        /* цветовые чипы по рангу */
         .preview-chip.chip-p1.active { background: linear-gradient(180deg, #8ed6ff, #4a9eff); color: #06131d; }
         .preview-chip.chip-p2.active { background: linear-gradient(180deg, #ffcc33, #d9a500); color: #221a00; }
         .preview-chip.chip-p3.active { background: linear-gradient(180deg, #e0e0e8, #b0b0b8); color: #1a1a20; }
@@ -222,67 +221,6 @@
         .preview-chip.chip-p5.active { background: linear-gradient(180deg, #98a8b8, #6a7a8a); color: #0f1720; }
         .preview-chip.chip-stone.active { background: linear-gradient(180deg, #a89880, #7a6a55); color: #17120b; }
 
-        /* блок управления ролями (супер-админ) */
-        .roles-block {
-            margin-top: 2rem;
-            padding: 1.25rem 1.5rem;
-            border-radius: 14px;
-            background: linear-gradient(180deg, rgba(40,20,10,0.85), rgba(12,6,3,0.95));
-            border: 1px solid var(--line);
-        }
-        .roles-block h3 {
-            font-size: 0.72rem;
-            color: var(--accent-warm);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-        .role-row {
-            display: grid;
-            grid-template-columns: 1fr auto auto;
-            gap: 0.85rem;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            background: rgba(10,5,3,0.6);
-            border: 1px solid var(--line-soft);
-            margin-bottom: 0.5rem;
-        }
-        .role-row .name {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            font-size: 0.92rem;
-        }
-        .role-row .name .nick {
-            font-size: 0.78rem;
-            color: var(--dim);
-        }
-        .role-row select {
-            padding: 0.35rem 0.6rem;
-            border-radius: 6px;
-            border: 1px solid var(--line);
-            background: var(--panel);
-            color: var(--text);
-            font: inherit;
-            font-size: 0.82rem;
-        }
-        .role-row button {
-            padding: 0.35rem 0.9rem;
-            font-size: 0.78rem;
-        }
-        .role-row.self-row {
-            background: rgba(255,184,0,0.08);
-            border-color: rgba(255,184,0,0.4);
-        }
-        .role-row .self-mark {
-            font-size: 0.7rem;
-            color: var(--accent-warm);
-            letter-spacing: 2px;
-        }
-
-        /* цвета для рангов */
         .rank-p1   { --rank-color: #8ed6ff; --rank-glow: rgba(142,214,255,0.45); }
         .rank-p2   { --rank-color: #ffcc33; --rank-glow: rgba(255,204,51,0.45); }
         .rank-p3   { --rank-color: #c8c8d0; --rank-glow: rgba(200,200,208,0.4); }
@@ -294,14 +232,11 @@
         body.light-theme .cab-stat { background: #fff8ec; }
         body.light-theme .cab-info { background: #fff8ec; }
         body.light-theme .preview-block { background: #fff8ec; }
-        body.light-theme .roles-block { background: #fff8ec; }
-        body.light-theme .role-row { background: #fff5e6; }
 
         @media (max-width: 600px) {
             .cab-nickname { font-size: 1.8rem; letter-spacing: 2px; }
             .cab-nickname.no-link { font-size: 1.5rem; }
             .cab-hero { padding: 1.75rem 1rem 1.5rem; }
-            .role-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -359,9 +294,9 @@
         <div class="header-right">
             <span class="user">Привет, <b>{{ player.username }}</b></span>
             {% if is_admin %}
-                <a href="/admin" class="link-btn" style="color: var(--accent-warm);">⚙ Админ</a>
+                <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
             {% endif %}
-            <a href="/logout" class="link-btn">Выйти</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
@@ -415,16 +350,6 @@
             </div>
             <h1 class="cab-nickname no-link">{{ player.username }}</h1>
             <p class="cab-sub">Вы ещё не привязаны ни к одному нику в рейтинге.</p>
-
-            {% if not is_super_admin %}
-            <div class="cab-empty-warn">
-                Обратитесь к администратору, чтобы он привязал ваш аккаунт к строке рейтинга.
-            </div>
-            {% else %}
-            <div class="cab-empty-warn">
-                Перейдите в <a href="/admin/players" style="color: var(--accent-warm);">управление игроками</a>, чтобы привязать себя к строке рейтинга.
-            </div>
-            {% endif %}
         {% endif %}
 
     </section>
@@ -455,7 +380,7 @@
         </div>
     </section>
 
-    {% if is_admin %}
+    {% if is_super_admin %}
     <section class="preview-block">
         <h3>👁 Просмотреть оформление</h3>
         <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem;">
@@ -481,50 +406,10 @@
     </section>
     {% endif %}
 
-    {% if is_super_admin and admin_players %}
-    <section class="roles-block">
-        <h3>🛡 Управление ролями</h3>
-        <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem;">
-            Выдавайте и снимайте права администратора. Себе роль изменить нельзя.
-        </p>
-
-        {% for u in admin_players %}
-            {% set uid = u[0] %}
-            {% set uname = u[1] %}
-            {% set unick = u[2] %}
-            {% set urole = u[3] %}
-            {% if uid != session['user_id'] %}
-            <div class="role-row {% if uid == session['user_id'] %}self-row{% endif %}">
-                <div class="name">
-                    <b>{{ uname }}</b>
-                    {% if unick %}<span class="nick">· {{ unick }}</span>{% endif %}
-                    {% if uid == session['user_id'] %}<span class="self-mark">(это вы)</span>{% endif %}
-                </div>
-                <form method="POST" action="/cabinet/roles/update" style="display: flex; gap: 0.5rem; align-items: center;">
-                    <input type="hidden" name="user_id" value="{{ uid }}">
-                    <select name="new_role">
-                        <option value="player" {% if urole == 'player' %}selected{% endif %}>Игрок</option>
-                        <option value="admin" {% if urole == 'admin' %}selected{% endif %}>Админ</option>
-                        <option value="super_admin" {% if urole == 'super_admin' %}selected{% endif %}>Супер-админ</option>
-                    </select>
-                    <button type="submit" class="btn btn-small" onclick="return confirm('Изменить роль пользователя {{ uname }}?');">Применить</button>
-                </form>
-            </div>
-            {% endif %}
-        {% endfor %}
-    </section>
-    {% endif %}
-
-    <div class="cab-actions">
-        <a href="/rating/total" class="btn btn-primary">🏆 Общий рейтинг</a>
-        <a href="/rating/duel" class="btn">⚔️ Рейтинг Дуэли</a>
-        <a href="/rating/arcadia" class="btn">🌿 Рейтинг Аркадии</a>
-    </div>
-
     {% if player.linked_nickname %}
     <div class="cab-actions">
-        <a href="/player/duel/{{ player.linked_nickname }}" class="btn">📈 Мой график — Дуэль</a>
-        <a href="/player/arcadia/{{ player.linked_nickname }}" class="btn">📈 Мой график — Аркадия</a>
+        <a href="/player/duel/{{ player.linked_nickname }}" class="btn btn-primary">📈 Мой график — Дуэль</a>
+        <a href="/player/arcadia/{{ player.linked_nickname }}" class="btn btn-primary">📈 Мой график — Аркадия</a>
     </div>
     {% endif %}
 
