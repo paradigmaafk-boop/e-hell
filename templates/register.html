@@ -84,26 +84,10 @@
         <div style="text-align: center; margin-top: 1.5rem;">
             <a href="/" class="link-btn">← На главную</a>
             <span style="color: var(--dim); margin: 0 0.5rem;">·</span>
-            <a href="/login" class="link-btn">Вход для админа</a>
+            <a href="/login" class="link-btn">Войти</a>
         </div>
     </div>
 </div>
-
-<script>
-    const toggleBtn = document.getElementById('theme-toggle');
-    if (toggleBtn) {
-        const body = document.body;
-        toggleBtn.addEventListener('click', () => {
-            body.classList.toggle('light-theme');
-            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
-            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
-        });
-        if (localStorage.getItem('theme') === 'light') {
-            body.classList.add('light-theme');
-            toggleBtn.textContent = '☀️';
-        }
-    }
-</script>
 
 </body>
 </html>
