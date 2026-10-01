@@ -16,7 +16,6 @@ from database import (
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
     get_all_map_values, save_map_values, reset_map_values,
     get_connection,
-    # === пользователи ===
     get_user_by_id, get_user_by_username, get_all_users,
     register_user, update_user_username, update_user_password,
     update_user_role, link_user_nickname, unlink_user_nickname,
@@ -52,6 +51,24 @@ def login_required(f):
         if not session.get('user_id'):
             flash('Войдите, чтобы продолжить.')
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return wrapper
+
+
+def linked_required(f):
+    """Пускает только привязанных к нику. Если не привязан — редирект на /register/link."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Войдите, чтобы продолжить.')
+            return redirect(url_for('login'))
+        user = get_user_by_id(session['user_id'])
+        if not user:
+            session.clear()
+            return redirect(url_for('login'))
+        if not user[3]:
+            flash('Сначала привяжите себя к нику в рейтинге.')
+            return redirect(url_for('register_link'))
         return f(*args, **kwargs)
     return wrapper
 
@@ -185,22 +202,6 @@ def get_player_rank_data(linked_nickname):
     return None
 
 
-def get_rank_by_place(place):
-    """Определяет tier по месту."""
-    if place == 1:
-        return {'css_class': 'p1', 'tier_label': 'Алмаз', 'icon': '💎'}
-    elif place <= 3:
-        return {'css_class': 'p2', 'tier_label': 'Золото', 'icon': '🥇'}
-    elif place <= 6:
-        return {'css_class': 'p3', 'tier_label': 'Серебро', 'icon': '🥈'}
-    elif place <= 10:
-        return {'css_class': 'p4', 'tier_label': 'Бронза', 'icon': '🥉'}
-    elif place <= 50:
-        return {'css_class': 'p5', 'tier_label': 'Сталь', 'icon': '⚙️'}
-    else:
-        return {'css_class': 'stone', 'tier_label': 'Камень', 'icon': '🪨'}
-
-
 # ============================================================
 # ГЛАВНАЯ
 # ============================================================
@@ -286,6 +287,11 @@ def login():
             session['user_id'] = row[0]
             session['username'] = row[1]
             session['role'] = row[2]
+            # если не привязан — на привязку (кроме супер-админа, если он без ника — можно дать пройти)
+            user = get_user_by_id(row[0])
+            if user and not user[3] and row[2] != 'super_admin':
+                flash('Сначала привяжите себя к нику в рейтинге.')
+                return redirect(url_for('register_link'))
             return redirect(url_for('index'))
         else:
             flash('Неверный логин или пароль!')
@@ -306,8 +312,6 @@ def logout():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if session.get('user_id'):
-        if is_super_admin() or is_admin():
-            return redirect(url_for('cabinet'))
         return redirect(url_for('cabinet'))
 
     if request.method == 'POST':
@@ -336,7 +340,7 @@ def register():
         session['user_id'] = new_id
         session['username'] = username
         session['role'] = 'player'
-        flash('Аккаунт создан! Теперь выберите себя в списке рейтинга.')
+        flash('Аккаунт создан! Теперь обязательно выберите себя в списке рейтинга.')
         return redirect(url_for('register_link'))
 
     return render_template('register.html')
@@ -357,6 +361,13 @@ def register_link():
         return redirect(url_for('cabinet'))
 
     if request.method == 'POST':
+        # Обработка отмены регистрации (удаляем только что созданный аккаунт)
+        if request.form.get('action') == 'cancel':
+            delete_user(session['user_id'])
+            session.clear()
+            flash('Регистрация отменена. Вы можете зарегистрироваться заново.')
+            return redirect(url_for('register'))
+
         nickname = request.form.get('nickname', '').strip()
         if not nickname:
             flash('Выберите себя в списке!')
@@ -388,7 +399,7 @@ def register_link():
 # ============================================================
 
 @app.route('/cabinet')
-@login_required
+@linked_required
 def cabinet():
     user = get_user_by_id(session['user_id'])
     if not user:
@@ -397,11 +408,9 @@ def cabinet():
 
     user_id, username, _pwd, linked_nickname, role, created_at = user
 
-    # — определяем «просмотр оформления» —
-    preview = request.args.get('preview', '').strip()  # '', 'stone','p5','p4','p3','p2','p1'
+    preview = request.args.get('preview', '').strip()
     rank_data = get_player_rank_data(linked_nickname) if linked_nickname else None
 
-    # Для админов и супер-админов — если задан preview, переопределяем css_class/tier/icon
     preview_options = [
         {'key': 'current', 'label': 'Текущий рейтинг'},
         {'key': 'stone',   'label': 'Камень'},
@@ -421,12 +430,11 @@ def cabinet():
         'p1':      ('Алмаз',    '💎'),
     }
 
-    if (is_admin()) and preview and preview in preview_labels:
+    if is_super_admin() and preview and preview in preview_labels:
         lbl, ic = preview_labels[preview]
         if preview == 'current':
             preview_active = 'current'
         else:
-            # подменяем только визуал
             preview_active = preview
             if rank_data:
                 rank_data = dict(rank_data)
@@ -448,11 +456,6 @@ def cabinet():
 
     display_name = linked_nickname if linked_nickname else username
 
-    # для супер-админа — список игроков без привязки и админ-панель
-    admin_players = None
-    if is_super_admin():
-        admin_players = get_all_users()
-
     return render_template('cabinet.html',
                            player={
                                'id': user_id,
@@ -466,44 +469,41 @@ def cabinet():
                            is_admin=is_admin(),
                            is_super_admin=is_super_admin(),
                            preview_options=preview_options,
-                           preview_active=preview_active,
-                           admin_players=admin_players)
+                           preview_active=preview_active)
 
 
 # ============================================================
-# СУПЕР-АДМИН: СМЕНА РОЛЕЙ (из кабинета)
+# СУПЕР-АДМИН: СМЕНА РОЛЕЙ
 # ============================================================
 
-@app.route('/cabinet/roles/update', methods=['POST'])
+@app.route('/admin/roles/update', methods=['POST'])
 @super_admin_required
-def cabinet_roles_update():
+def admin_roles_update():
     user_id = request.form.get('user_id', type=int)
     new_role = request.form.get('new_role', '').strip()
     if not user_id or new_role not in ('player', 'admin', 'super_admin'):
         flash('Неверные данные.')
-        return redirect(url_for('cabinet'))
+        return redirect(url_for('admin_panel'))
 
-    # Нельзя понизить самого себя с super_admin
     if user_id == session['user_id'] and new_role != 'super_admin':
         flash('Нельзя понизить самого себя.')
-        return redirect(url_for('cabinet'))
+        return redirect(url_for('admin_panel'))
 
-    # Нельзя понизить последнего супер-админа
     target = get_user_by_id(user_id)
     if not target:
         flash('Пользователь не найден.')
-        return redirect(url_for('cabinet'))
+        return redirect(url_for('admin_panel'))
 
     if target[4] == 'super_admin' and new_role != 'super_admin' and count_super_admins() <= 1:
         flash('Нельзя понизить последнего супер-администратора.')
-        return redirect(url_for('cabinet'))
+        return redirect(url_for('admin_panel'))
 
     if update_user_role(user_id, new_role):
         increment_counter('admin_actions')
         flash(f'Роль пользователя «{target[1]}» изменена на «{new_role}».')
     else:
         flash('Ошибка при смене роли.')
-    return redirect(url_for('cabinet'))
+    return redirect(url_for('admin_panel'))
 
 
 # ============================================================
@@ -514,7 +514,14 @@ def cabinet_roles_update():
 @admin_required
 def admin_panel():
     rating_types = get_all_rating_types()
-    return render_template('admin.html', rating_types=rating_types)
+    admin_players = None
+    if is_super_admin():
+        admin_players = get_all_users()
+    return render_template('admin.html',
+                           rating_types=rating_types,
+                           admin_players=admin_players,
+                           is_super_admin=is_super_admin(),
+                           current_user_id=session['user_id'])
 
 
 @app.route('/admin/players')
@@ -526,7 +533,6 @@ def admin_players():
 
     players_view = []
     for acc in accounts:
-        # acc = (id, username, linked_nickname, role, created_at)
         rank_data = get_player_rank_data(acc[2]) if acc[2] else None
         players_view.append({
             'id': acc[0],
@@ -583,17 +589,14 @@ def admin_players_delete(user_id):
         flash('Пользователь не найден.')
         return redirect(url_for('admin_players'))
 
-    # нельзя удалять себя
     if user_id == session['user_id']:
         flash('Нельзя удалить самого себя.')
         return redirect(url_for('admin_players'))
 
-    # нельзя удалять супер-админа (кроме как супер-админом — но всё равно запрещено)
     if target[4] == 'super_admin':
         flash('Нельзя удалить супер-администратора.')
         return redirect(url_for('admin_players'))
 
-    # админ не может удалять других админов
     if target[4] == 'admin' and not is_super_admin():
         flash('Только супер-администратор может удалять администраторов.')
         return redirect(url_for('admin_players'))
