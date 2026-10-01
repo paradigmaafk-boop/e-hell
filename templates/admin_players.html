@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление игроками | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .acc-row {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr auto;
+            gap: 1rem;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(15,6,3,0.55);
+            margin-bottom: 0.85rem;
+        }
+        .acc-row .acc-user {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .acc-row .acc-user .login {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .acc-row .acc-user .created {
+            font-size: 0.72rem;
+            color: var(--dim);
+        }
+        .acc-row .acc-rank {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.95rem;
+        }
+        .acc-row .acc-rank .ic { font-size: 1.3rem; }
+        .acc-row .acc-rank .tier {
+            font-size: 0.68rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--dim);
+            display: block;
+        }
+        .acc-row .acc-rank .tier b {
+            color: var(--accent-warm);
+            letter-spacing: 1px;
+        }
+        .acc-row .acc-actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .acc-row .acc-actions .btn { padding: 0.35rem 0.75rem; font-size: 0.78rem; }
+
+        .inline-form {
+            display: inline-flex;
+            gap: 0.35rem;
+            align-items: center;
+        }
+        .inline-form input {
+            padding: 0.35rem 0.6rem;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--panel);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.82rem;
+            width: 130px;
+        }
+        .inline-form input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .inline-form select {
+            padding: 0.35rem 0.6rem;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--panel);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.82rem;
+            max-width: 180px;
+        }
+
+        @media (max-width: 780px) {
+            .acc-row { grid-template-columns: 1fr; gap: 0.6rem; }
+            .acc-row .acc-actions { justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/logout" class="link-btn">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total">Рейтинг</a>
+        <a href="/rating/duel">Рейтинг Дуэли</a>
+        <a href="/rating/arcadia">Рейтинг Аркадии</a>
+        <a href="/reservoir-map">Резервуар</a>
+        <a href="/calculator">Калькулятор</a>
+        {% if session['username'] == 'admin' %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
+    </nav>
+
+    <div class="breadcrumbs">
+        <a href="/">← На главную</a>
+        <span class="sep">·</span>
+        <a href="/admin">Админ-панель</a>
+        <span class="sep">·</span>
+        <span class="current">Игроки</span>
+    </div>
+
+    <div class="page-head">
+        <h1 class="page-title">Управление игроками</h1>
+        <p class="page-sub">Аккаунты личных кабинетов</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="stats-grid" style="margin-bottom: 2rem;">
+        <div class="stat-card">
+            <div class="number">{{ players|length }}</div>
+            <div class="label">Всего аккаунтов</div>
+        </div>
+        <div class="stat-card">
+            <div class="number">{{ players|selectattr('linked_nickname')|list|length }}</div>
+            <div class="label">Привязано</div>
+        </div>
+        <div class="stat-card">
+            <div class="number" style="color: var(--danger);">
+                {{ players|rejectattr('linked_nickname')|list|length }}
+            </div>
+            <div class="label">Без привязки</div>
+        </div>
+    </section>
+
+    {% if players %}
+    <section class="section">
+        <div class="section-title">Все аккаунты</div>
+
+        {% for p in players %}
+        <div class="acc-row">
+
+            <div class="acc-user">
+                <span class="login">{{ p.username }}</span>
+                <span class="created">ID: {{ p.id }} · создан: {{ p.created_at[:16] if p.created_at else '—' }}</span>
+            </div>
+
+            <div class="acc-rank">
+                {% if p.linked_nickname %}
+                    <span class="ic">{{ p.rank_data.icon if p.rank_data else '❔' }}</span>
+                    <div>
+                        <div style="font-weight:600;">{{ p.linked_nickname }}</div>
+                        <span class="tier">
+                            {% if p.rank_data %}
+                                <b>{{ p.rank_data.tier_label }}</b> · {{ p.rank_data.place }} место · {{ p.rank_data.total_points }} ★
+                            {% else %}
+                                ранг не определён
+                            {% endif %}
+                        </span>
+                    </div>
+                {% else %}
+                    <span class="ic" style="opacity:0.5;">❔</span>
+                    <div>
+                        <div style="color: var(--dim);">Не привязан</div>
+                        <span class="tier">выберите ник справа</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="acc-actions">
+
+                {% if p.linked_nickname %}
+                <form method="POST" action="/admin/players/unlink/{{ p.id }}" class="inline-form"
+                      onsubmit="return confirm('Отвязать ник {{ p.linked_nickname }} от аккаунта {{ p.username }}?');">
+                    <button type="submit" class="btn btn-danger">🔓 Отвязать</button>
+                </form>
+                {% else %}
+                <form method="POST" action="/admin/players/link/{{ p.id }}" class="inline-form">
+                    <select name="nickname" required>
+                        <option value="">— выберите ник —</option>
+                        {% for nick in all_nicks %}
+                            {% if nick not in linked %}
+                                <option value="{{ nick }}">{{ nick }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary">🔗 Привязать</button>
+                </form>
+                {% endif %}
+
+                <form method="POST" action="/admin/players/change-username/{{ p.id }}" class="inline-form"
+                      onsubmit="return confirm('Сменить логин игрока {{ p.username }}?');">
+                    <input type="text" name="new_username" placeholder="новый логин" required minlength="2">
+                    <button type="submit" class="btn btn-small">✎ Логин</button>
+                </form>
+
+                <form method="POST" action="/admin/players/change-password/{{ p.id }}" class="inline-form"
+                      onsubmit="return confirm('Сменить пароль игрока {{ p.username }}?');">
+                    <input type="text" name="new_password" placeholder="новый пароль" required minlength="4">
+                    <button type="submit" class="btn btn-small">🔑 Пароль</button>
+                </form>
+
+                <form method="POST" action="/admin/players/delete/{{ p.id }}" class="inline-form"
+                      onsubmit="return confirm('Удалить аккаунт {{ p.username }}? Действие необратимо.');">
+                    <button type="submit" class="btn btn-danger btn-small">🗑 Удалить</button>
+                </form>
+
+            </div>
+        </div>
+        {% endfor %}
+    </section>
+    {% else %}
+    <div style="text-align: center; padding: 3rem; color: var(--muted);">
+        <p>Пока нет зарегистрированных игроков.</p>
+    </div>
+    {% endif %}
+
+    <a href="/admin" class="back-link">← Назад в админ-панель</a>
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+</script>
+
+</body>
+</html>
