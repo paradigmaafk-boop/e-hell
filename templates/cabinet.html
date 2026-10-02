@@ -115,6 +115,7 @@
             background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
             border: 1px solid var(--line);
             box-shadow: 0 0 25px rgba(255,184,0,0.06);
+            overflow: visible;
         }
         .squads-block h3 {
             font-size: 0.72rem;
@@ -137,7 +138,7 @@
         }
         .squads-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 0.75rem;
             margin-bottom: 1.25rem;
         }
@@ -145,6 +146,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
+            min-width: 0;
         }
         .squad-field label {
             font-size: 0.72rem;
@@ -153,9 +155,12 @@
             text-transform: uppercase;
             font-weight: 500;
             text-align: center;
+            white-space: nowrap;
         }
         .squad-field input {
-            padding: 0.7rem 0.8rem;
+            width: 100%;
+            min-width: 0;
+            padding: 0.7rem 0.6rem;
             border: 1px solid var(--line);
             border-radius: 8px;
             background: var(--panel);
@@ -181,7 +186,10 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        .squads-actions .btn { min-width: 180px; }
+        .squads-actions .btn {
+            flex: 0 1 auto;
+            min-width: 180px;
+        }
         .squads-saved-hint {
             font-size: 0.78rem;
             color: var(--dim);
@@ -191,11 +199,35 @@
         body.light-theme .squads-block { background: #fff8ec; }
 
         @media (max-width: 780px) {
-            .squads-grid { grid-template-columns: repeat(2, 1fr); }
-            .squads-grid .squad-field:last-child { grid-column: 1 / -1; }
+            .squads-block { padding: 1.25rem 1.1rem; }
+            .squads-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.6rem;
+            }
+            .squads-grid .squad-field:last-child {
+                grid-column: 1 / -1;
+            }
+            .squads-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .squads-actions .btn {
+                width: 100%;
+                min-width: 0;
+            }
+            .squads-saved-hint {
+                margin-left: 0;
+                text-align: center;
+            }
         }
-        @media (max-width: 480px) {
-            .squads-grid { grid-template-columns: 1fr 1fr; }
+
+        @media (max-width: 420px) {
+            .squads-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            .squad-field label { font-size: 0.68rem; }
+            .squad-field input { padding: 0.6rem 0.4rem; font-size: 0.9rem; }
         }
 
         .apples-block {
