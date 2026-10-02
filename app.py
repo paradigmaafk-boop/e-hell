@@ -26,7 +26,6 @@ from database import (
     reset_apples_given_by_user,
     get_setting, set_setting,
     update_user_squads, get_user_squads, get_squads_by_nickname_map,
-    # Резервуар
     _iso_week_key, get_or_create_reservoir_week,
     set_reservoir_session_time, set_reservoir_published,
     get_reservoir_week_history,
@@ -268,21 +267,9 @@ def get_player_rank_data(linked_nickname):
 
 
 def _registration_status(now=None):
-    """
-    Возвращает dict:
-      {
-        'is_open': bool,
-        'status': 'soon'|'open'|'closed',
-        'message': str,
-        'time_left': str | None
-      }
-    Регистрация открыта с Пн 00:00 до Чт 15:00 текущей ISO-недели.
-    """
     now = now or datetime.now()
     weekday = now.weekday()  # 0 = Пн, 6 = Вс
 
-    # Вс считаем как "закрыто" (регистрация завершена)
-    # Открыто только Пн (0) 00:00 — Чт (3) 15:00
     is_open = False
     status = 'closed'
     message = ''
@@ -291,7 +278,6 @@ def _registration_status(now=None):
     if weekday == 0:  # понедельник
         is_open = True
         status = 'open'
-        # до четверга 15:00
         end_dt = now.replace(hour=15, minute=0, second=0, microsecond=0) + timedelta(days=3)
         delta = end_dt - now
         time_left = _human_delta(delta)
@@ -319,7 +305,6 @@ def _registration_status(now=None):
     else:  # пт, сб, вс
         is_open = False
         status = 'closed'
-        # до следующего понедельника
         days_to_mon = (7 - weekday) % 7
         if days_to_mon == 0:
             days_to_mon = 7
@@ -723,18 +708,25 @@ def reservoir_index():
     week = get_or_create_reservoir_week()
     week_key = week['week_key']
 
+    # Дата воскресенья текущей ISO-недели (дд.мм.гггг)
+    sunday_date = ''
+    try:
+        year_part, week_part = week_key.split('-W')
+        year = int(year_part)
+        week_num = int(week_part)
+        monday = datetime.strptime(f'{year}-W{week_num:02d}-1', '%G-W%V-%u')
+        sunday = monday + timedelta(days=6)
+        sunday_date = sunday.strftime('%d.%m.%Y')
+    except Exception as e:
+        print(f"sunday_date error: {e}")
+        sunday_date = ''
+
     reg_status = _registration_status()
 
-    # Заявки
     registrations = get_reservoir_registrations(week_key)
-
-    # Состав
     roster = get_reservoir_roster(week_key)
-
-    # Чёрный список
     blacklist = get_blacklist_for_week(week_key)
 
-    # Моя заявка
     my_registration = None
     my_blacklist = None
     my_can_register = False
@@ -747,13 +739,13 @@ def reservoir_index():
 
         user = get_user_by_id(session['user_id'])
         if user:
-            my_squad1 = user[6] if len(user) >= 7 else None  # squad_1
+            my_squad1 = user[6] if len(user) >= 7 else None
             if not user[3]:
                 my_cannot_reason = 'Сначала привяжите ник к аккаунту'
             elif not my_squad1:
                 my_cannot_reason = 'Сначала заполните мощь 1-го отряда в кабинете'
             elif my_blacklist:
-                my_cannot_reason = f'⛔ Чёрная метка — пропуск этой недели ({my_blacklist[1] or "неявка"})'
+                my_cannot_reason = f'Чёрная метка — пропуск этой недели ({my_blacklist[1] or "неявка"})'
             elif not reg_status['is_open']:
                 my_cannot_reason = reg_status['message']
             elif my_registration:
@@ -761,10 +753,8 @@ def reservoir_index():
             else:
                 my_can_register = True
 
-    # История недель
     history_weeks = get_reservoir_week_history(limit=30)
 
-    # История по неделям (состав + заявки + посещение)
     history_data = []
     for hw in history_weeks:
         hw_key = hw[0]
@@ -781,6 +771,7 @@ def reservoir_index():
 
     return render_template('reservoir.html',
                            week=week,
+                           sunday_date=sunday_date,
                            reg_status=reg_status,
                            registrations=registrations,
                            roster=roster,
@@ -832,7 +823,7 @@ def reservoir_register():
 
     blacklisted = is_user_blacklisted(week_key, user_id)
     if blacklisted:
-        flash(f'⛔ У вас чёрная метка на эту неделю: {blacklisted[1] or "неявка"}')
+        flash(f'У вас чёрная метка на эту неделю: {blacklisted[1] or "неявка"}')
         return redirect(url_for('reservoir_index'))
 
     existing = get_reservoir_registration_for_user(week_key, user_id)
@@ -845,7 +836,7 @@ def reservoir_register():
         preferred = 'any'
 
     if add_reservoir_registration(week_key, user_id, preferred):
-        flash('✅ Заявка принята!')
+        flash('Заявка принята!')
     else:
         flash('Ошибка при подаче заявки.')
     return redirect(url_for('reservoir_index'))
@@ -969,9 +960,9 @@ def reservoir_admin_attendance():
 
     if set_reservoir_attendance(week_key, user_id, attended):
         if attended == 0:
-            flash('❌ Отмечено: не пришёл. Чёрная метка на следующую неделю.')
+            flash('Отмечено: не пришёл. Чёрная метка на следующую неделю.')
         elif attended == 1:
-            flash('✅ Отмечено: пришёл.')
+            flash('Отмечено: пришёл.')
         else:
             flash('Отметка снята.')
     else:
