@@ -221,6 +221,8 @@
             gap: 0.5rem;
             flex-wrap: wrap;
             margin-bottom: 1.25rem;
+            margin-top: 1.5rem;
+            padding-top: 0.5rem;
         }
 
         /* На карточках лидеров (Алмаз/Золото) чуть увеличим строку статов */
@@ -239,6 +241,11 @@
             }
             .rating-row.p1 .rating-stats-line { font-size: 0.75rem; }
             .rating-row.p1 .rating-stats-line .stat-item .stat-value { font-size: 0.9rem; }
+
+            .rating-title-row {
+                margin-top: 1rem;
+                padding-top: 0.35rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -253,6 +260,11 @@
                 font-size: 0.72rem;
                 padding: 0.12rem 0.5rem;
                 margin-left: 0.4rem;
+            }
+
+            .rating-title-row {
+                margin-top: 0.85rem;
+                padding-top: 0.25rem;
             }
         }
     </style>
