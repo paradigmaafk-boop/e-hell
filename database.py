@@ -37,7 +37,6 @@ def init_db():
             created_at TEXT NOT NULL
         )
     """)
-    # Миграции
     cursor.execute("""
         DO $$
         BEGIN
@@ -53,7 +52,6 @@ def init_db():
                            WHERE table_name='users' AND column_name='created_at') THEN
                 ALTER TABLE users ADD COLUMN created_at TEXT;
             END IF;
-            -- Боевая мощь отрядов
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                            WHERE table_name='users' AND column_name='squad_1') THEN
                 ALTER TABLE users ADD COLUMN squad_1 TEXT;
@@ -82,7 +80,6 @@ def init_db():
         WHERE linked_nickname IS NOT NULL
     """)
 
-    # === АЛИАСЫ НИКНЕЙМОВ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS nickname_aliases (
             id SERIAL PRIMARY KEY,
@@ -93,7 +90,6 @@ def init_db():
         )
     """)
 
-    # === РЕЙТИНГИ ===
     for rt in ['duel', 'arcadia']:
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS players_{rt} (
@@ -165,7 +161,6 @@ def init_db():
         )
     """)
 
-    # === ЯБЛОКИ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS apples (
             id SERIAL PRIMARY KEY,
@@ -184,7 +179,6 @@ def init_db():
         ON apples (to_nickname)
     """)
 
-    # === НАСТРОЙКИ САЙТА ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS site_settings (
             id SERIAL PRIMARY KEY,
@@ -194,7 +188,6 @@ def init_db():
         )
     """)
 
-    # === СУПЕР-АДМИН ===
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     hashed = _hash('admin123')
     cursor.execute("SELECT id FROM users WHERE username = %s", ('admin',))
@@ -262,7 +255,8 @@ def get_all_users():
                       CASE role
                           WHEN 'super_admin' THEN 0
                           WHEN 'admin' THEN 1
-                          ELSE 2
+                          WHEN 'reservoir' THEN 2
+                          ELSE 3
                       END,
                       created_at DESC""")
     data = cursor.fetchall()
@@ -320,7 +314,8 @@ def update_user_password(user_id, new_password):
 
 
 def update_user_role(user_id, new_role):
-    if new_role not in ('player', 'admin', 'super_admin'):
+    """Роли: player, reservoir, admin, super_admin."""
+    if new_role not in ('player', 'reservoir', 'admin', 'super_admin'):
         return False
     conn = get_connection()
     cursor = conn.cursor()
@@ -404,10 +399,6 @@ def count_super_admins():
 # ============================================================
 
 def update_user_squads(user_id, squads_list):
-    """
-    squads_list: список из 5 элементов (строк или None).
-    Каждый элемент — строка в формате "103,5" или None.
-    """
     while len(squads_list) < 5:
         squads_list.append(None)
     squads_list = squads_list[:5]
@@ -432,7 +423,6 @@ def update_user_squads(user_id, squads_list):
 
 
 def get_user_squads(user_id):
-    """Возвращает список из 5 значений (строки или None)."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""SELECT squad_1, squad_2, squad_3, squad_4, squad_5
@@ -445,8 +435,6 @@ def get_user_squads(user_id):
 
 
 def get_squads_by_nickname_map():
-    """dict: {nickname: squad_1_value} для показа в общем рейтинге.
-       Только если squad_1 заполнен."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""SELECT linked_nickname, squad_1 FROM users
