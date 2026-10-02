@@ -171,7 +171,7 @@
         }
         @keyframes pulse-draw {
             0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
+            50%      { opacity: 1; }
         }
 
         .stage-badges { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
@@ -495,9 +495,6 @@
         <div class="header-right">
             {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                {% if session.get('role') in ['admin', 'super_admin'] %}
-                    <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
-                {% endif %}
                 <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
                 <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
@@ -529,6 +526,9 @@
             <span class="nav-full">Калькулятор</span>
             <span class="nav-short">Калькулятор</span>
         </a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
     </nav>
 
     <div class="admin-bar">
