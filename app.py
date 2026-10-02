@@ -353,14 +353,13 @@ def _next_monday_00(now=None):
     Возвращает datetime ближайшего понедельника 00:00, когда откроется регистрация.
     Логика:
       - Если сейчас понедельник (любое время) — регистрация уже открыта
-        на текущей неделе, следующий понедельник через 7 дней.
+        на текущей неделе, следующее открытие через 7 дней.
       - Если сейчас вт–вс — следующий понедельник наступающей недели.
     """
     now = now or datetime.now()
     wd = now.weekday()  # 0 = Пн
     base = now.replace(hour=0, minute=0, second=0, microsecond=0)
     if wd == 0:
-        # сегодня понедельник → регистрация уже открыта, следующее открытие через 7 дней
         return base + timedelta(days=7)
     days = 7 - wd
     return base + timedelta(days=days)
@@ -795,15 +794,19 @@ def reservoir_index():
 
     # === Дата игры (воскресенье текущей ISO-недели) ===
     now = datetime.now()
-    # ISO: понедельник=1, воскресенье=7
-    iso_weekday = now.isoweekday()
+    iso_weekday = now.isoweekday()  # 1=Пн ... 7=Вс
     days_until_sunday = 7 - iso_weekday
     game_date = (now + timedelta(days=days_until_sunday)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
-    game_date_str = game_date.strftime('%d.%m.%Y')
 
-    # === Когда откроется следующая регистрация (ближайший понедельник 00:00) ===
+    MONTHS_RU = [
+        '', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ]
+    game_date_full = f"{game_date.day} {MONTHS_RU[game_date.month]}"
+
+    # === Когда откроется следующая регистрация ===
     next_monday = _next_monday_00(now)
     registration_opens_str = next_monday.strftime('%d.%m.%Y в %H:%M')
 
@@ -821,7 +824,7 @@ def reservoir_index():
                            my_squad1=my_squad1,
                            history_data=history_data,
                            can_edit=can_edit_reservoir(),
-                           game_date_str=game_date_str,
+                           game_date_full=game_date_full,
                            registration_opens_str=registration_opens_str)
 
 
