@@ -97,6 +97,15 @@
             margin-bottom: 1rem;
             line-height: 1.5;
         }
+        .apples-admin-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .apples-admin-actions .btn {
+            flex: 1;
+            min-width: 220px;
+        }
         body.light-theme .apples-admin-block { background: #fff5e6; }
 
         .tooltip-admin-block {
@@ -269,13 +278,19 @@
     <section class="apples-admin-block">
         <h3>🍎 Управление яблоками</h3>
         <p>
-            Сброс всех яблок, которые игроки подарили друг другу за сезон.
-            Обычно делается вместе со сбросом рейтинга в конце сезона.
+            «Обнулить мои отданные яблоки» — сбрасывает только ваш счётчик «отдано на этой неделе».
+            Остальные яблоки других игроков не тронуты. Удобно для тестов.
         </p>
-        <form method="POST" action="/admin/reset-apples"
-              onsubmit="return confirm('⚠️ Сбросить ВСЕ яблоки?\n\nЭто удалит все подарки за сезон. Действие необратимо.');">
-            <button type="submit" class="btn btn-danger">🍎 Сбросить все яблоки</button>
-        </form>
+        <div class="apples-admin-actions">
+            <form method="POST" action="/admin/reset-my-apples"
+                  onsubmit="return confirm('Обнулить ВАШ счётчик отданных яблок?\n\nВы сможете снова подарить 5 яблок на этой неделе. Яблоки других игроков не тронутся.');">
+                <button type="submit" class="btn btn-primary">🍎 Обнулить мои отданные яблоки</button>
+            </form>
+            <form method="POST" action="/admin/reset-apples"
+                  onsubmit="return confirm('⚠️ Сбросить ВСЕ яблоки у ВСЕХ игроков?\n\nЭто удалит все подарки за сезон. Действие необратимо.');">
+                <button type="submit" class="btn btn-danger">🍎 Сбросить все яблоки у всех</button>
+            </form>
+        </div>
     </section>
     {% endif %}
 
