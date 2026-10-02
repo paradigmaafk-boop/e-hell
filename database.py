@@ -143,7 +143,7 @@ def init_db():
         )
     """)
 
-    # === ЯБЛОКИ (иммунитет) ===
+    # === ЯБЛОКИ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS apples (
             id SERIAL PRIMARY KEY,
@@ -162,7 +162,7 @@ def init_db():
         ON apples (to_nickname)
     """)
 
-    # === НАСТРОЙКИ САЙТА (для тултипа и т.п.) ===
+    # === НАСТРОЙКИ САЙТА ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS site_settings (
             id SERIAL PRIMARY KEY,
@@ -172,7 +172,7 @@ def init_db():
         )
     """)
 
-    # === СУПЕР-АДМИН по умолчанию ===
+    # === СУПЕР-АДМИН ===
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     hashed = _hash('admin123')
     cursor.execute("SELECT id FROM users WHERE username = %s", ('admin',))
@@ -191,7 +191,7 @@ def init_db():
         cursor.execute("""
             INSERT INTO site_settings (key, value, updated_at)
             VALUES ('rating_tooltip_text', %s, %s)
-        """, ('Это рейтинг союза. Каждую неделю игроки могут дарить яблоки 🍎 тем, кто находится ниже топ-50, чтобы помочь им избежать исключения. Победитель по яблокам в конце сезона получает иммунитет.', now))
+        """, ('Это рейтинг союза. Каждую неделю игроки могут дарить яблоки 🍎 другим участникам союза. Яблоки копятся весь сезон, а топ-10 игроков по сбору яблок получают иммунитет от ротации.', now))
 
     conn.commit()
     conn.close()
@@ -651,18 +651,16 @@ def get_rating_display_name(rating_type):
 
 
 # ============================================================
-# ЯБЛОКИ (иммунитет)
+# ЯБЛОКИ
 # ============================================================
 
 def get_week_key(dt=None):
-    """ISO-неделя, например 2026-W14."""
     dt = dt or datetime.now()
     year, week, _ = dt.isocalendar()
     return f"{year}-W{week:02d}"
 
 
 def get_apples_given_this_week(user_id):
-    """Сколько яблок пользователь подарил на текущей ISO-неделе."""
     conn = get_connection()
     cursor = conn.cursor()
     week = get_week_key()
@@ -675,13 +673,11 @@ def get_apples_given_this_week(user_id):
 
 
 def give_apple(from_user_id, to_nickname):
-    """Пытается подарить яблоко. Возвращает (ok, message, remaining)."""
     week = get_week_key()
 
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # проверка: не себе
         cursor.execute("SELECT linked_nickname FROM users WHERE id = %s", (from_user_id,))
         row = cursor.fetchone()
         if not row:
@@ -690,7 +686,6 @@ def give_apple(from_user_id, to_nickname):
         if from_nickname and from_nickname == to_nickname:
             return False, "Нельзя дарить яблоко самому себе.", 0
 
-        # проверка лимита
         cursor.execute("""SELECT COUNT(*) FROM apples
                           WHERE from_user_id = %s AND week_key = %s""",
                        (from_user_id, week))
@@ -714,7 +709,6 @@ def give_apple(from_user_id, to_nickname):
 
 
 def get_apples_received_map():
-    """dict: nickname -> количество полученных яблок (за весь сезон)."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""SELECT to_nickname, COUNT(*) FROM apples
@@ -742,6 +736,22 @@ def reset_apples():
         return True
     except Exception as e:
         print(f"reset_apples error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def reset_apples_given_by_user(user_id):
+    """Обнуляет только отданные яблоки конкретного пользователя (без учёта недели)."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM apples WHERE from_user_id = %s", (user_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"reset_apples_given_by_user error: {e}")
         conn.rollback()
         return False
     finally:
