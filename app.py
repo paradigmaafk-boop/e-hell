@@ -22,6 +22,7 @@ from database import (
     delete_user, get_linked_nicknames, count_super_admins,
     give_apple, get_apples_given_this_week, get_apples_received_map,
     get_apples_received_for, reset_apples, get_week_key,
+    reset_apples_given_by_user,
     get_setting, set_setting,
 )
 from werkzeug.utils import secure_filename
@@ -236,7 +237,6 @@ def rating_view(rating_type):
     else:
         rating_data = get_latest_rating(rating_type)
 
-    # === ЯБЛОКИ (только для общего рейтинга) ===
     apples_map = {}
     my_apples_left = 0
     is_logged_player = False
@@ -247,7 +247,7 @@ def rating_view(rating_type):
 
         if session.get('user_id'):
             user = get_user_by_id(session['user_id'])
-            if user and user[3]:  # привязан к нику
+            if user and user[3]:
                 is_logged_player = True
                 my_linked_nickname = user[3]
                 given = get_apples_given_this_week(session['user_id'])
@@ -608,6 +608,18 @@ def admin_reset_apples():
         flash('Все яблоки сброшены!')
     else:
         flash('Ошибка при сбросе яблок.')
+    return redirect(url_for('admin_panel'))
+
+
+@app.route('/admin/reset-my-apples', methods=['POST'])
+@super_admin_required
+def admin_reset_my_apples():
+    user_id = session['user_id']
+    if reset_apples_given_by_user(user_id):
+        increment_counter('admin_actions')
+        flash('Ваши отданные яблоки обнулены — можно снова подарить 5 штук!')
+    else:
+        flash('Ошибка при обнулении.')
     return redirect(url_for('admin_panel'))
 
 
