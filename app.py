@@ -1,7 +1,7 @@
 import os
 import base64
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 import pandas as pd
@@ -26,6 +26,15 @@ from database import (
     reset_apples_given_by_user,
     get_setting, set_setting,
     update_user_squads, get_user_squads, get_squads_by_nickname_map,
+    # Резервуар
+    _iso_week_key, get_or_create_reservoir_week,
+    set_reservoir_session_time, set_reservoir_published,
+    get_reservoir_week_history,
+    get_reservoir_registrations, get_reservoir_registration_for_user,
+    add_reservoir_registration, cancel_reservoir_registration,
+    get_reservoir_roster, save_reservoir_roster, set_reservoir_attendance,
+    get_blacklist_for_week, is_user_blacklisted, remove_from_blacklist,
+    get_user_reservoir_history,
 )
 from werkzeug.utils import secure_filename
 
@@ -107,7 +116,6 @@ def super_admin_required(f):
 
 
 def reservoir_or_admin_required(f):
-    """Пускает admin, super_admin и reservoir."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get('user_id'):
@@ -257,6 +265,91 @@ def get_player_rank_data(linked_nickname):
                 'total_points': row[3],
             }
     return None
+
+
+def _registration_status(now=None):
+    """
+    Возвращает dict:
+      {
+        'is_open': bool,
+        'status': 'soon'|'open'|'closed',
+        'message': str,
+        'time_left': str | None
+      }
+    Регистрация открыта с Пн 00:00 до Чт 15:00 текущей ISO-недели.
+    """
+    now = now or datetime.now()
+    weekday = now.weekday()  # 0 = Пн, 6 = Вс
+
+    # Вс считаем как "закрыто" (регистрация завершена)
+    # Открыто только Пн (0) 00:00 — Чт (3) 15:00
+    is_open = False
+    status = 'closed'
+    message = ''
+    time_left = None
+
+    if weekday == 0:  # понедельник
+        is_open = True
+        status = 'open'
+        # до четверга 15:00
+        end_dt = now.replace(hour=15, minute=0, second=0, microsecond=0) + timedelta(days=3)
+        delta = end_dt - now
+        time_left = _human_delta(delta)
+        message = f'Регистрация открыта. Осталось: {time_left}'
+    elif weekday in (1, 2):  # вт, ср
+        is_open = True
+        status = 'open'
+        days_to_thu = 3 - weekday
+        end_dt = now.replace(hour=15, minute=0, second=0, microsecond=0) + timedelta(days=days_to_thu)
+        delta = end_dt - now
+        time_left = _human_delta(delta)
+        message = f'Регистрация открыта. Осталось: {time_left}'
+    elif weekday == 3:  # четверг
+        if now.hour < 15:
+            is_open = True
+            status = 'open'
+            end_dt = now.replace(hour=15, minute=0, second=0, microsecond=0)
+            delta = end_dt - now
+            time_left = _human_delta(delta)
+            message = f'Регистрация открыта. Осталось: {time_left}'
+        else:
+            is_open = False
+            status = 'closed'
+            message = 'Регистрация закрыта (четверг 15:00)'
+    else:  # пт, сб, вс
+        is_open = False
+        status = 'closed'
+        # до следующего понедельника
+        days_to_mon = (7 - weekday) % 7
+        if days_to_mon == 0:
+            days_to_mon = 7
+        next_mon = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=days_to_mon)
+        delta = next_mon - now
+        time_left = _human_delta(delta)
+        message = f'Регистрация закрыта. Откроется через: {time_left}'
+
+    return {
+        'is_open': is_open,
+        'status': status,
+        'message': message,
+        'time_left': time_left,
+    }
+
+
+def _human_delta(delta):
+    if delta.total_seconds() < 0:
+        return '0 мин'
+    days = delta.days
+    hours = delta.seconds // 3600
+    minutes = (delta.seconds % 3600) // 60
+    parts = []
+    if days:
+        parts.append(f'{days} д')
+    if hours:
+        parts.append(f'{hours} ч')
+    if minutes and not days:
+        parts.append(f'{minutes} мин')
+    return ' '.join(parts) if parts else 'меньше минуты'
 
 
 # ============================================================
@@ -617,6 +710,344 @@ def cabinet_save_squads():
     else:
         flash('Ошибка при сохранении.')
     return redirect(url_for('cabinet'))
+
+
+# ============================================================
+# РЕЗЕРВУАР — ОСНОВНАЯ СТРАНИЦА
+# ============================================================
+
+@app.route('/reservoir')
+def reservoir_index():
+    count_once('visits', 'counted_visit')
+
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+
+    reg_status = _registration_status()
+
+    # Заявки
+    registrations = get_reservoir_registrations(week_key)
+
+    # Состав
+    roster = get_reservoir_roster(week_key)
+
+    # Чёрный список
+    blacklist = get_blacklist_for_week(week_key)
+
+    # Моя заявка
+    my_registration = None
+    my_blacklist = None
+    my_can_register = False
+    my_cannot_reason = ''
+    my_squad1 = None
+
+    if session.get('user_id'):
+        my_registration = get_reservoir_registration_for_user(week_key, session['user_id'])
+        my_blacklist = is_user_blacklisted(week_key, session['user_id'])
+
+        user = get_user_by_id(session['user_id'])
+        if user:
+            my_squad1 = user[6] if len(user) >= 7 else None  # squad_1
+            if not user[3]:
+                my_cannot_reason = 'Сначала привяжите ник к аккаунту'
+            elif not my_squad1:
+                my_cannot_reason = 'Сначала заполните мощь 1-го отряда в кабинете'
+            elif my_blacklist:
+                my_cannot_reason = f'⛔ Чёрная метка — пропуск этой недели ({my_blacklist[1] or "неявка"})'
+            elif not reg_status['is_open']:
+                my_cannot_reason = reg_status['message']
+            elif my_registration:
+                my_cannot_reason = 'Вы уже подали заявку'
+            else:
+                my_can_register = True
+
+    # История недель
+    history_weeks = get_reservoir_week_history(limit=30)
+
+    # История по неделям (состав + заявки + посещение)
+    history_data = []
+    for hw in history_weeks:
+        hw_key = hw[0]
+        hw_roster = get_reservoir_roster(hw_key)
+        hw_regs = get_reservoir_registrations(hw_key)
+        history_data.append({
+            'week_key': hw_key,
+            'session_time': hw[1],
+            'roster_published': hw[2],
+            'created_at': hw[3],
+            'roster': hw_roster,
+            'registrations': hw_regs,
+        })
+
+    return render_template('reservoir.html',
+                           week=week,
+                           reg_status=reg_status,
+                           registrations=registrations,
+                           roster=roster,
+                           blacklist=blacklist,
+                           my_registration=my_registration,
+                           my_blacklist=my_blacklist,
+                           my_can_register=my_can_register,
+                           my_cannot_reason=my_cannot_reason,
+                           my_squad1=my_squad1,
+                           history_data=history_data,
+                           can_edit=can_edit_reservoir())
+
+
+@app.route('/reservoir/map')
+def reservoir_map():
+    count_once('visits', 'counted_visit')
+    map_values = get_all_map_values()
+    can_edit = can_edit_reservoir()
+    return render_template('reservoir_map.html',
+                           map_values=map_values,
+                           can_edit_reservoir=can_edit)
+
+
+# ============================================================
+# РЕЗЕРВУАР — ДЕЙСТВИЯ ИГРОКА
+# ============================================================
+
+@app.route('/reservoir/register', methods=['POST'])
+@linked_required
+def reservoir_register():
+    user_id = session['user_id']
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+
+    reg_status = _registration_status()
+    if not reg_status['is_open']:
+        flash(reg_status['message'])
+        return redirect(url_for('reservoir_index'))
+
+    user = get_user_by_id(user_id)
+    if not user or not user[3]:
+        flash('Сначала привяжите ник к аккаунту.')
+        return redirect(url_for('reservoir_index'))
+
+    squad1 = user[6] if len(user) >= 7 else None
+    if not squad1:
+        flash('Сначала заполните мощь 1-го отряда в личном кабинете.')
+        return redirect(url_for('reservoir_index'))
+
+    blacklisted = is_user_blacklisted(week_key, user_id)
+    if blacklisted:
+        flash(f'⛔ У вас чёрная метка на эту неделю: {blacklisted[1] or "неявка"}')
+        return redirect(url_for('reservoir_index'))
+
+    existing = get_reservoir_registration_for_user(week_key, user_id)
+    if existing:
+        flash('Вы уже подали заявку на эту неделю.')
+        return redirect(url_for('reservoir_index'))
+
+    preferred = request.form.get('preferred_session', 'any').strip()
+    if preferred not in ('14', '22', 'any'):
+        preferred = 'any'
+
+    if add_reservoir_registration(week_key, user_id, preferred):
+        flash('✅ Заявка принята!')
+    else:
+        flash('Ошибка при подаче заявки.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/unregister', methods=['POST'])
+@linked_required
+def reservoir_unregister():
+    user_id = session['user_id']
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+
+    reg_status = _registration_status()
+    if not reg_status['is_open']:
+        flash('Регистрация закрыта — отменить заявку уже нельзя.')
+        return redirect(url_for('reservoir_index'))
+
+    if cancel_reservoir_registration(week_key, user_id):
+        flash('Заявка отменена.')
+    else:
+        flash('Ошибка при отмене заявки.')
+    return redirect(url_for('reservoir_index'))
+
+
+# ============================================================
+# РЕЗЕРВУАР — ДЕЙСТВИЯ УПРАВЛЯЮЩЕГО
+# ============================================================
+
+@app.route('/reservoir/admin/set-session', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_set_session():
+    session_time = request.form.get('session_time', '').strip()
+    if session_time not in ('14', '22'):
+        flash('Неверное время сессии.')
+        return redirect(url_for('reservoir_index'))
+
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+
+    if set_reservoir_session_time(week_key, session_time):
+        flash(f'Время сессии изменено на {session_time}:00')
+    else:
+        flash('Ошибка при смене времени.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/admin/save-roster', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_save_roster():
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+
+    core_ids = request.form.getlist('core_ids')
+    rotation_ids = request.form.getlist('rotation_ids')
+
+    roster_items = []
+    try:
+        for uid in core_ids:
+            roster_items.append({'user_id': int(uid), 'role': 'core'})
+        for uid in rotation_ids:
+            roster_items.append({'user_id': int(uid), 'role': 'rotation'})
+    except Exception as e:
+        flash(f'Ошибка в данных формы: {e}')
+        return redirect(url_for('reservoir_index'))
+
+    if len(roster_items) > 30:
+        flash(f'Слишком много игроков: {len(roster_items)} из 30 максимум.')
+        return redirect(url_for('reservoir_index'))
+
+    if save_reservoir_roster(week_key, roster_items):
+        flash(f'Состав сохранён ({len(roster_items)} чел.).')
+    else:
+        flash('Ошибка при сохранении состава.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/admin/publish', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_publish():
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+    if set_reservoir_published(week_key, True):
+        flash('Состав опубликован!')
+    else:
+        flash('Ошибка при публикации.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/admin/unpublish', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_unpublish():
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+    if set_reservoir_published(week_key, False):
+        flash('Состав снят с публикации.')
+    else:
+        flash('Ошибка.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/admin/attendance', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_attendance():
+    week_key = request.form.get('week_key', '').strip()
+    if not week_key:
+        week = get_or_create_reservoir_week()
+        week_key = week['week_key']
+
+    user_id = request.form.get('user_id', type=int)
+    if not user_id:
+        flash('Не указан игрок.')
+        return redirect(url_for('reservoir_index'))
+
+    attended_raw = request.form.get('attended', '').strip()
+    if attended_raw == '1':
+        attended = 1
+    elif attended_raw == '0':
+        attended = 0
+    else:
+        attended = None
+
+    if set_reservoir_attendance(week_key, user_id, attended):
+        if attended == 0:
+            flash('❌ Отмечено: не пришёл. Чёрная метка на следующую неделю.')
+        elif attended == 1:
+            flash('✅ Отмечено: пришёл.')
+        else:
+            flash('Отметка снята.')
+    else:
+        flash('Ошибка при сохранении отметки.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/admin/cancel-registration', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_cancel_registration():
+    user_id = request.form.get('user_id', type=int)
+    if not user_id:
+        flash('Не указан игрок.')
+        return redirect(url_for('reservoir_index'))
+
+    week = get_or_create_reservoir_week()
+    week_key = week['week_key']
+
+    if cancel_reservoir_registration(week_key, user_id):
+        flash('Заявка отменена управляющим.')
+    else:
+        flash('Ошибка при отмене заявки.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/admin/blacklist-remove', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_blacklist_remove():
+    user_id = request.form.get('user_id', type=int)
+    week_key = request.form.get('week_key', '').strip()
+    if not user_id or not week_key:
+        flash('Не указаны данные.')
+        return redirect(url_for('reservoir_index'))
+
+    if remove_from_blacklist(week_key, user_id):
+        flash('Чёрная метка снята.')
+    else:
+        flash('Ошибка при снятии метки.')
+    return redirect(url_for('reservoir_index'))
+
+
+@app.route('/reservoir/admin/blacklist-add', methods=['POST'])
+@reservoir_or_admin_required
+def reservoir_admin_blacklist_add():
+    user_id = request.form.get('user_id', type=int)
+    week_key = request.form.get('week_key', '').strip()
+    reason = request.form.get('reason', '').strip()
+
+    if not user_id:
+        flash('Не указан игрок.')
+        return redirect(url_for('reservoir_index'))
+
+    if not week_key:
+        week = get_or_create_reservoir_week()
+        week_key = week['week_key']
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""INSERT INTO reservoir_blacklist
+                          (user_id, week_key, reason, created_at)
+                          VALUES (%s, %s, %s, %s)
+                          ON CONFLICT (user_id, week_key) DO UPDATE
+                          SET reason = %s""",
+                       (user_id, week_key, reason or 'Вручную', now, reason or 'Вручную'))
+        conn.commit()
+        flash('Чёрная метка поставлена.')
+    except Exception as e:
+        print(f"blacklist-add error: {e}")
+        conn.rollback()
+        flash('Ошибка при постановке метки.')
+    finally:
+        conn.close()
+
+    return redirect(url_for('reservoir_index'))
 
 
 # ============================================================
@@ -1066,18 +1497,8 @@ def consistently_underperforming(rating_type):
 
 
 # ============================================================
-# КАРТА РЕЗЕРВУАРА
+# КАРТА РЕЗЕРВУАРА — API
 # ============================================================
-
-@app.route('/reservoir-map')
-def reservoir_map():
-    count_once('visits', 'counted_visit')
-    map_values = get_all_map_values()
-    can_edit = can_edit_reservoir()
-    return render_template('reservoir_map.html',
-                           map_values=map_values,
-                           can_edit_reservoir=can_edit)
-
 
 @app.route('/api/reservoir-map/save', methods=['POST'])
 @reservoir_or_admin_required
