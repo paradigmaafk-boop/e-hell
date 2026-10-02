@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление никнеймами | [HEL] Ацкое Пламя</title>
+    <title>Стабильно отстающие | {{ display_name }} | [HEL] Ацкое Пламя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -31,8 +31,6 @@
         </radialGradient>
     </defs>
 </svg>
-
-<div class="embers" id="embers"></div>
 
 <div class="wrap">
 
@@ -64,7 +62,8 @@
         </a>
         <div class="header-right">
             <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-            <a href="/logout" class="link-btn">Выйти</a>
+            <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
@@ -90,120 +89,73 @@
             <span class="nav-full">Калькулятор</span>
             <span class="nav-short">Калькулятор</span>
         </a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
     </nav>
 
     <div class="page-head">
-        <h1 class="page-title">Управление никнеймами</h1>
-        <p class="page-sub">Связи применяются ко всем рейтингам</p>
+        <h1 class="page-title">Стабильно отстающие</h1>
+        <p class="page-sub">{{ display_name }} · из {{ total_weeks }} замеров</p>
     </div>
 
     <section class="stats-grid">
         <div class="stat-card">
-            <div class="number">{{ aliases|length }}</div>
-            <div class="label">Всего связей</div>
+            <div class="number">{{ total_weeks }}</div>
+            <div class="label">Всего замеров</div>
         </div>
         <div class="stat-card">
-            <div class="number">{{ players|length }}</div>
-            <div class="label">Всего игроков</div>
+            <div class="number" style="color: var(--danger);">{{ players|length }}</div>
+            <div class="label">Стабильно отстающих</div>
         </div>
     </section>
 
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="flash-message">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
+    {% if players %}
     <section class="section">
-        <div class="section-title">Добавить связь</div>
-        <form method="POST" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
-            <input type="hidden" name="action" value="add">
-            <div class="calc-field">
-                <label>Старый никнейм</label>
-                <input type="text" name="old_nickname" placeholder="OldPlayer" required>
-            </div>
-            <div class="calc-field">
-                <label>Новый никнейм</label>
-                <input type="text" name="current_nickname" placeholder="NewPlayer" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Добавить</button>
-        </form>
-        <p style="color: var(--dim); font-size: 0.85rem; margin-top: 1rem;">
-            При загрузке таблички оба варианта будут распознаваться как один игрок — и в дуэли, и в аркадии.
-        </p>
-    </section>
-
-    <section class="section">
-        <div class="section-title">Существующие связи</div>
-
-        {% if aliases %}
+        <div class="section-title">Список игроков</div>
         <div class="table-wrap">
             <table>
                 <thead>
                     <tr>
-                        <th>Старый</th>
-                        <th>Новый</th>
-                        <th style="width: 180px;">Дата</th>
-                        <th style="width: 120px;">Действия</th>
+                        <th style="width: 50px;">#</th>
+                        <th>Никнейм</th>
+                        <th style="width: 200px;">Раз ниже среднего</th>
+                        <th style="width: 200px;">% от замеров</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for alias in aliases %}
+                    {% for player in players %}
                     <tr>
-                        <td style="color: var(--danger);">{{ alias[1] }}</td>
-                        <td style="color: var(--success);">{{ alias[0] }}</td>
-                        <td style="color: var(--muted); font-size: 0.85rem;">{{ alias[2][:16] }}</td>
-                        <td>
-                            <form method="POST" style="display: inline;"
-                                  onsubmit="return confirm('Удалить связь {{ alias[1] }} → {{ alias[0] }}?');">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="old_nickname" value="{{ alias[1] }}">
-                                <button type="submit" class="btn btn-small btn-danger">Удалить</button>
-                            </form>
+                        <td class="num">{{ loop.index }}</td>
+                        <td class="name-cell">
+                            <a href="/player/{{ rating_type }}/{{ player[0] }}">{{ player[0] }}</a>
+                        </td>
+                        <td class="points-cell" style="color: var(--danger);">{{ player[1] }}</td>
+                        <td style="color: var(--muted); font-variant-numeric: tabular-nums;">
+                            {% if total_weeks > 0 %}
+                                {{ (player[1] / total_weeks * 100)|round(1) }}%
+                            {% else %}
+                                —
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        {% else %}
-        <div style="text-align: center; padding: 3rem; color: var(--muted);">
-            <p>Нет добавленных связей</p>
-        </div>
-        {% endif %}
     </section>
+    {% else %}
+    <div style="text-align: center; padding: 4rem 2rem; color: var(--muted);">
+        <p style="font-size: 1.3rem; margin-bottom: 0.5rem;">Отлично!</p>
+        <p>Стабильно отстающих игроков не найдено.</p>
+    </div>
+    {% endif %}
 
-    <a href="/admin" class="back-link">← Назад в админ-панель</a>
+    <a href="/rating/{{ rating_type }}" class="back-link">← Вернуться к рейтингу</a>
 
 </div>
 
 <script>
-    (function () {
-        const container = document.getElementById('embers');
-        if (!container) return;
-        for (let i = 0; i < 30; i++) {
-            const ember = document.createElement('div');
-            ember.className = 'ember';
-            const size = 2 + Math.random() * 4;
-            const left = Math.random() * 100;
-            const duration = 6 + Math.random() * 10;
-            const delay = Math.random() * 12;
-            const drift = (Math.random() - 0.5) * 200;
-            ember.style.left = left + '%';
-            ember.style.width = size + 'px';
-            ember.style.height = size + 'px';
-            ember.style.animationDuration = duration + 's';
-            ember.style.animationDelay = delay + 's';
-            ember.style.setProperty('--drift', drift + 'px');
-            const hue = 15 + Math.random() * 30;
-            ember.style.background = `radial-gradient(circle, hsl(${hue + 20}, 100%, 70%), hsl(${hue}, 100%, 50%) 60%, transparent 100%)`;
-            ember.style.boxShadow = `0 0 8px 1px hsla(${hue}, 100%, 55%, 0.8)`;
-            container.appendChild(ember);
-        }
-    })();
-
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     toggleBtn.addEventListener('click', () => {
