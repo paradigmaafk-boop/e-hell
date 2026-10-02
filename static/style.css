@@ -324,6 +324,15 @@ body::before {
 }
 .link-btn:hover::after { width: 100%; }
 
+/* Компактная высота кнопок в шапке */
+.header-link {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    padding: 0;
+    vertical-align: middle;
+}
+
 .moon, .theme-toggle {
     color: var(--accent-warm);
     font-size: 1rem;
@@ -2020,20 +2029,64 @@ body.light-theme textarea::placeholder {
 }
 
 /* ============================================================
-   АДАПТИВ
+   ЕДИНАЯ МОБИЛЬНАЯ ШАПКА И МЕНЮ (как на главной)
    ============================================================ */
 @media (max-width: 780px) {
     .wrap { padding: 1rem 1.25rem 2rem; }
-    .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-    .brand-emblem { width: 46px; height: 46px; }
-    .brand-name { font-size: 1.25rem; letter-spacing: 2px; }
-    .header-right { gap: 1.25rem; }
-    .nav { gap: 1.25rem; }
+
+    /* Шапка — в строку, компактно, как на главной */
+    .header {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between;
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    .brand { gap: 0.5rem; }
+    .brand-emblem { width: 34px; height: 34px; }
+    .brand-name {
+        font-size: 0.95rem;
+        letter-spacing: 1.5px;
+    }
+    .header-right { gap: 0.75rem; }
+    .user { display: none; }
+    .link-btn { font-size: 0.8rem; }
+    .moon, .theme-toggle { font-size: 1rem; }
+
+    /* Меню — равномерное, компактное, как на главной */
+    .nav {
+        gap: 1rem;
+        padding: 0.5rem 0 0.55rem;
+        justify-content: space-around;
+    }
+    .nav a {
+        font-size: 0.78rem;
+        padding-bottom: 0.2rem;
+        border-bottom-width: 1px;
+    }
+    .nav a.active::after {
+        width: 20px;
+        height: 1.5px;
+    }
+    /* Круглая шестерёнка админа — компактная */
+    .nav a.nav-admin {
+        font-size: 0.95rem;
+        padding: 0.3rem 0.45rem;
+        margin-left: 0;
+    }
+
     .page-title { font-size: 1.5rem; }
     .admin-grid { grid-template-columns: 1fr; }
     .stats-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
     .caption-title { font-size: 1.2rem; letter-spacing: 2px; padding: 0 0.75rem; }
     .caption-text { font-size: 0.85rem; padding: 0 0.75rem; }
+}
+
+@media (max-width: 480px) {
+    .brand-name { font-size: 0.85rem; letter-spacing: 1px; }
+    .brand-emblem { width: 30px; height: 30px; }
+    .nav a { font-size: 0.72rem; }
+    .nav a.nav-admin { font-size: 0.85rem; padding: 0.25rem 0.4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2043,6 +2096,7 @@ body.light-theme textarea::placeholder {
         transition-duration: 0.01ms !important;
     }
 }
+
 /* === РЕЗЕРВУАР: мобильные правки === */
 @media (max-width: 700px) {
     .res-tabs {
@@ -2092,23 +2146,4 @@ body.light-theme textarea::placeholder {
     .res-player-row { grid-template-columns: 1fr auto; }
     .res-player-row .pref { font-size: 0.65rem; padding: 0.1rem 0.35rem; }
     .res-player-row .squad1 { font-size: 0.8rem; }
-}
-/* === РЕЗЕРВУАР: короткие названия и выравнивание === */
-
-/* Навигация: короткие названия на мобилке */
-.nav a .nav-full { display: inline; }
-.nav a .nav-short { display: none; }
-
-@media (max-width: 900px) {
-    .nav a .nav-full { display: none; }
-    .nav a .nav-short { display: inline; }
-}
-
-/* Кнопки шапки — одной высоты */
-.header-link {
-    display: inline-flex;
-    align-items: center;
-    line-height: 1;
-    padding: 0;
-    vertical-align: middle;
 }
