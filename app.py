@@ -1,5 +1,6 @@
 import os
 import base64
+import re
 from datetime import datetime
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
@@ -24,6 +25,7 @@ from database import (
     get_apples_received_for, reset_apples, get_week_key,
     reset_apples_given_by_user,
     get_setting, set_setting,
+    update_user_squads, get_user_squads, get_squads_by_nickname_map,
 )
 from werkzeug.utils import secure_filename
 
@@ -118,6 +120,51 @@ def is_super_admin():
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def _parse_squad(raw):
+    """
+    Принимает строку. Возвращает:
+      - None, если пусто
+      - ("err") если не число
+      - строку в формате "103,5" если ок.
+    Правила: только цифры, одна точка или запятая, до 10 знаков,
+    до 4 знаков после запятой.
+    """
+    if raw is None:
+        return None
+    raw = str(raw).strip()
+    if raw == '':
+        return None
+
+    # Заменяем запятую на точку для проверки
+    normalized = raw.replace(',', '.')
+    # Разрешаем: 103, 103.5, 103,5, .5, 0.5, 100.50
+    if not re.match(r'^\d*\.?\d*$', normalized):
+        return 'err'
+    if normalized == '.' or normalized == '':
+        return 'err'
+
+    # Разделяем на целую и дробную
+    if '.' in normalized:
+        int_part, frac_part = normalized.split('.', 1)
+        if frac_part == '':
+            frac_part = None
+        if int_part == '':
+            int_part = '0'
+    else:
+        int_part = normalized
+        frac_part = None
+
+    # Если после точки больше 4 знаков — обрежем
+    if frac_part is not None:
+        frac_part = frac_part[:4]
+        if frac_part == '':
+            frac_part = None
+
+    if frac_part is None:
+        return int_part
+    return f"{int_part},{frac_part}"
 
 
 def save_base64_image(data_url, prefix='poster'):
@@ -238,12 +285,14 @@ def rating_view(rating_type):
         rating_data = get_latest_rating(rating_type)
 
     apples_map = {}
+    squads_map = {}
     my_apples_left = 0
     is_logged_player = False
     my_linked_nickname = None
 
     if rating_type == 'total':
         apples_map = get_apples_received_map()
+        squads_map = get_squads_by_nickname_map()
 
         if session.get('user_id'):
             user = get_user_by_id(session['user_id'])
@@ -261,6 +310,7 @@ def rating_view(rating_type):
                            display_name=display_name,
                            rating_types=rating_types,
                            apples_map=apples_map,
+                           squads_map=squads_map,
                            my_apples_left=my_apples_left,
                            is_logged_player=is_logged_player,
                            my_linked_nickname=my_linked_nickname,
@@ -459,7 +509,8 @@ def cabinet():
         session.clear()
         return redirect(url_for('login'))
 
-    user_id, username, _pwd, linked_nickname, role, created_at = user
+    user_id, username, _pwd, linked_nickname, role, created_at = user[0:6]
+    squads = list(user[6:11]) if len(user) >= 11 else [None]*5
 
     preview = request.args.get('preview', '').strip()
     rank_data = get_player_rank_data(linked_nickname) if linked_nickname else None
@@ -521,6 +572,7 @@ def cabinet():
                                'role': role,
                                'created_at': created_at,
                            },
+                           squads=squads,
                            display_name=display_name,
                            rank_data=rank_data,
                            is_admin=is_admin(),
@@ -530,6 +582,35 @@ def cabinet():
                            apples_left=apples_left,
                            apples_received=apples_received,
                            apples_per_week=APPLES_PER_WEEK)
+
+
+@app.route('/cabinet/save-squads', methods=['POST'])
+@linked_required
+def cabinet_save_squads():
+    user_id = session['user_id']
+
+    raw_values = []
+    for i in range(1, 6):
+        raw_values.append(request.form.get(f'squad_{i}', ''))
+
+    parsed = []
+    error = False
+    for raw in raw_values:
+        p = _parse_squad(raw)
+        if p == 'err':
+            error = True
+            break
+        parsed.append(p)
+
+    if error:
+        flash('Введите цифры в формате 100,00 (например, 103,5 или 103.5)')
+        return redirect(url_for('cabinet'))
+
+    if update_user_squads(user_id, parsed):
+        flash('Боевая мощь отрядов сохранена!')
+    else:
+        flash('Ошибка при сохранении.')
+    return redirect(url_for('cabinet'))
 
 
 # ============================================================
