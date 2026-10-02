@@ -19,11 +19,6 @@
             flex-wrap: wrap;
             align-items: center;
         }
-        .res-tabs-group {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
         .res-tab {
             padding: 0.7rem 1.4rem;
             border-radius: 12px;
@@ -87,10 +82,48 @@
             text-transform: uppercase;
             color: var(--dim);
             margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
         .res-hero-week {
             color: var(--accent-warm);
             font-weight: 600;
+        }
+        /* Инлайн-статус регистрации в строке заголовка */
+        .res-reg-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+            text-transform: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .res-reg-inline.open {
+            background: rgba(20,40,20,0.5);
+            border: 1px solid rgba(60,200,100,0.5);
+            color: #7cf0a5;
+        }
+        .res-reg-inline.closed {
+            background: rgba(40,15,15,0.5);
+            border: 1px solid rgba(224,57,43,0.5);
+            color: #ffa090;
+        }
+        .res-reg-inline .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: regPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes regPulse {
+            0%, 100% { opacity: 0.4; }
+            50%      { opacity: 1; }
         }
 
         .res-session-plate {
@@ -153,32 +186,6 @@
             flex-direction: column;
             gap: 0.6rem;
             align-items: flex-end;
-        }
-
-        .res-status-badge {
-            padding: 0.7rem 1.25rem;
-            border-radius: 12px;
-            background: rgba(10,5,3,0.6);
-            border: 1px solid var(--line);
-            font-size: 0.85rem;
-            text-align: center;
-            font-weight: 500;
-        }
-        .res-status-badge.open {
-            border-color: rgba(60,200,100,0.5);
-            color: #7cf0a5;
-            background: rgba(20,40,20,0.4);
-        }
-        .res-status-badge.closed {
-            border-color: rgba(224,57,43,0.5);
-            color: #ffa090;
-            background: rgba(40,15,15,0.4);
-        }
-        .res-status-badge.published {
-            border-color: rgba(255,184,0,0.5);
-            color: var(--accent-warm);
-            background: rgba(40,25,5,0.4);
-            margin-top: 0.4rem;
         }
 
         /* === Блок регистрации игрока === */
@@ -367,9 +374,7 @@
             color: var(--accent-warm);
             font-weight: 700;
         }
-        .res-core-divider:first-child {
-            margin-top: 0;
-        }
+        .res-core-divider:first-child { margin-top: 0; }
 
         /* Кнопки действий */
         .res-action-btn {
@@ -423,9 +428,7 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        .res-history-week:hover {
-            border-color: var(--accent);
-        }
+        .res-history-week:hover { border-color: var(--accent); }
         .res-history-head {
             display: flex;
             justify-content: space-between;
@@ -446,18 +449,14 @@
             gap: 1rem;
             flex-wrap: wrap;
         }
-        .res-history-meta b {
-            color: var(--accent-warm);
-        }
+        .res-history-meta b { color: var(--accent-warm); }
         .res-history-body {
             display: none;
             margin-top: 1rem;
             padding-top: 1rem;
             border-top: 1px dashed var(--line-soft);
         }
-        .res-history-body.open {
-            display: block;
-        }
+        .res-history-body.open { display: block; }
         .res-history-players {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -553,10 +552,7 @@
             box-shadow: 0 0 25px rgba(255,138,31,0.5);
             background: rgba(255,138,31,0.15);
         }
-        .modal-actions {
-            display: flex;
-            justify-content: center;
-        }
+        .modal-actions { display: flex; justify-content: center; }
 
         @media (max-width: 700px) {
             .res-hero { grid-template-columns: 1fr; }
@@ -566,7 +562,6 @@
             .res-session-unit { font-size: 1rem; }
             .res-player-row { grid-template-columns: 1fr auto; font-size: 0.85rem; }
             .res-tabs { flex-direction: column; align-items: stretch; }
-            .res-tabs-group { width: 100%; }
             .res-tab { justify-content: center; }
         }
     </style>
@@ -668,31 +663,31 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Табы: слева — Состав/История, справа — Карта боя -->
+    <!-- Табы: все три рядом -->
     <div class="res-tabs">
-        <div class="res-tabs-group">
-            <button class="res-tab active" data-tab="roster" type="button">
-                Состав и заявки
-            </button>
-            <button class="res-tab" data-tab="history" type="button">
-                История
-            </button>
-        </div>
-        <div class="res-tabs-group" style="margin-left: auto;">
-            <a href="/reservoir/map" class="res-tab">
-                Карта боя
-            </a>
-        </div>
+        <button class="res-tab active" data-tab="roster" type="button">
+            Состав и заявки
+        </button>
+        <button class="res-tab" data-tab="history" type="button">
+            История
+        </button>
+        <a href="/reservoir/map" class="res-tab">
+            Карта боя
+        </a>
     </div>
 
     <!-- === TAB: ROSTER === -->
     <div id="tab-roster" class="res-tab-content">
 
-        <!-- Hero: время недели -->
+        <!-- Hero: время недели + встроенный статус -->
         <section class="res-hero">
             <div>
                 <div class="res-hero-title">
-                    Резервуар · неделя <span class="res-hero-week">{{ week.week_key }}</span>
+                    <span>Резервуар · неделя <span class="res-hero-week">{{ week.week_key }}</span></span>
+                    <span class="res-reg-inline {% if reg_status.is_open %}open{% else %}closed{% endif %}">
+                        <span class="dot"></span>
+                        {{ reg_status.message }}
+                    </span>
                 </div>
 
                 <div class="res-session-plate s{{ week.session_time }}">
@@ -713,10 +708,6 @@
             </div>
 
             <div class="res-hero-actions">
-                <div class="res-status-badge {% if reg_status.is_open %}open{% else %}closed{% endif %}">
-                    {{ reg_status.message }}
-                </div>
-
                 {% if week.roster_published %}
                 <div class="res-status-badge published">
                     Состав опубликован
@@ -728,12 +719,12 @@
                 {% endif %}
 
                 {% if can_edit %}
-                <button type="button" class="btn btn-small" onclick="openTimeModal()">✏ Изменить время</button>
+                <button type="button" class="btn btn-small" onclick="openTimeModal()">Изменить время</button>
                 {% endif %}
             </div>
         </section>
 
-        <!-- Панель управления (только для управляющего) -->
+        <!-- Панель управления -->
         {% if can_edit %}
         <section class="res-manage-bar">
             <form method="POST" action="/reservoir/admin/save-roster" id="saveRosterForm" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
@@ -864,7 +855,6 @@
                 </h3>
 
                 <div id="rosterList">
-                    <!-- Core -->
                     <div class="res-core-divider" id="coreDivider">Основной состав</div>
                     <div id="coreList">
                         {% for r in roster if r[2] == 'core' %}
@@ -892,7 +882,6 @@
                         {% endfor %}
                     </div>
 
-                    <!-- Rotation -->
                     <div class="res-core-divider">Остальные</div>
                     <div id="rotationList">
                         {% for r in roster if r[2] == 'rotation' %}
@@ -931,7 +920,7 @@
         </div>
         </form>
 
-        <!-- После игры: отметки явки -->
+        <!-- Отметки явки -->
         {% if can_edit and roster %}
         <section class="res-col" style="margin-bottom: 2rem;">
             <h3>Отметки о посещении</h3>
