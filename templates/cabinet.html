@@ -314,6 +314,7 @@
         .role-player { background: rgba(120,180,255,0.15); color: #8ed6ff; border: 1px solid rgba(120,180,255,0.4); }
         .role-admin { background: rgba(255,184,0,0.15); color: #ffb800; border: 1px solid rgba(255,184,0,0.4); }
         .role-super_admin { background: rgba(255,69,0,0.18); color: #ff4500; border: 1px solid rgba(255,69,0,0.5); }
+        .role-reservoir { background: rgba(74, 158, 255, 0.15); color: #4a9eff; border: 1px solid rgba(74, 158, 255, 0.45); }
 
         .cab-actions {
             margin-top: 1.5rem;
@@ -577,6 +578,7 @@
                 <span class="role-pill role-{{ player.role }}">
                     {% if player.role == 'super_admin' %}Супер-админ
                     {% elif player.role == 'admin' %}Админ
+                    {% elif player.role == 'reservoir' %}Резервуар
                     {% else %}Игрок{% endif %}
                 </span>
             </span>
