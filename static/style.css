@@ -2043,3 +2043,53 @@ body.light-theme textarea::placeholder {
         transition-duration: 0.01ms !important;
     }
 }
+/* === РЕЗЕРВУАР: мобильные правки === */
+@media (max-width: 700px) {
+    .res-tabs {
+        gap: 0.3rem;
+        padding: 0.4rem 0 0.8rem;
+    }
+    .res-tab {
+        padding: 0.55rem 0.9rem;
+        font-size: 0.8rem;
+    }
+    .res-tab-num { font-size: 0.65rem; }
+
+    .res-hero { padding: 1.5rem 1.1rem 1.25rem; }
+    .res-hero-title { font-size: 0.7rem; letter-spacing: 2px; }
+
+    .res-session-plate { padding: 1rem 1.2rem; gap: 1rem; }
+    .res-session-time { font-size: 3rem; letter-spacing: 2px; }
+    .res-session-unit { font-size: 1.1rem; }
+    .res-session-day { font-size: 0.9rem; }
+
+    .res-manage-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .res-manage-bar .btn { width: 100%; }
+
+    .res-register { padding: 1.1rem 1rem; }
+    .res-register h3 { font-size: 0.68rem; }
+    .res-register-form { flex-direction: column; align-items: stretch; }
+    .res-session-radio { justify-content: center; }
+    .res-session-radio label { padding: 0.5rem 0.8rem; font-size: 0.82rem; }
+
+    .res-col { padding: 1.1rem 1rem; }
+    .res-player-row { padding: 0.45rem 0.55rem; font-size: 0.84rem; }
+
+    .res-history-meta { gap: 0.5rem; font-size: 0.72rem; }
+    .res-history-title { font-size: 0.95rem; }
+    .res-history-players { grid-template-columns: 1fr; }
+
+    .time-choice button { font-size: 1.5rem; padding: 1rem 0.6rem; }
+}
+
+@media (max-width: 480px) {
+    .res-session-time { font-size: 2.4rem; }
+    .res-session-plate { padding: 0.9rem 1rem; }
+    .res-session-label { font-size: 0.65rem; letter-spacing: 2px; }
+    .res-player-row { grid-template-columns: 1fr auto; }
+    .res-player-row .pref { font-size: 0.65rem; padding: 0.1rem 0.35rem; }
+    .res-player-row .squad1 { font-size: 0.8rem; }
+}
