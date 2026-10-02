@@ -9,42 +9,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* === Табы Резервуара — как на главной === */
         .res-tabs {
             display: flex;
-            gap: 1.75rem;
-            padding: 0.75rem 0 0;
+            gap: 0.5rem;
+            padding: 0.5rem 0 1rem;
             border-bottom: 1px solid var(--line);
             margin-bottom: 1.5rem;
-            overflow-x: auto;
-            scrollbar-width: none;
-            flex-wrap: nowrap;
-        }
-        .res-tabs::-webkit-scrollbar { display: none; }
-        .res-tab {
-            padding: 0 0 0.75rem;
-            border: none;
-            background: none;
-            color: var(--muted);
-            font-size: 0.92rem;
-            font-weight: 500;
-            text-decoration: none;
-            white-space: nowrap;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            display: inline-flex;
+            flex-wrap: wrap;
             align-items: center;
         }
-        .res-tab:hover { color: var(--accent-warm); }
+        .res-tab {
+            padding: 0.7rem 1.4rem;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255,69,0,0.03);
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        .res-tab:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+            background: rgba(255,69,0,0.08);
+        }
         .res-tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-            background: none;
-            box-shadow: none;
+            background: linear-gradient(180deg, rgba(255,69,0,0.2), rgba(255,184,0,0.05));
+            border-color: var(--accent);
+            color: var(--accent-warm);
+            box-shadow: 0 0 20px rgba(255,69,0,0.25);
         }
 
-        /* === Hero-блок недели === */
         .res-hero {
             position: relative;
             padding: 2rem 1.75rem 1.75rem;
@@ -80,10 +80,47 @@
             text-transform: uppercase;
             color: var(--dim);
             margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
         }
         .res-hero-week {
             color: var(--accent-warm);
             font-weight: 600;
+        }
+        .res-reg-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+            text-transform: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .res-reg-inline.open {
+            background: rgba(20,40,20,0.5);
+            border: 1px solid rgba(60,200,100,0.5);
+            color: #7cf0a5;
+        }
+        .res-reg-inline.closed {
+            background: rgba(40,15,15,0.5);
+            border: 1px solid rgba(224,57,43,0.5);
+            color: #ffa090;
+        }
+        .res-reg-inline .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: regPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes regPulse {
+            0%, 100% { opacity: 0.4; }
+            50%      { opacity: 1; }
         }
 
         .res-session-plate {
@@ -148,7 +185,6 @@
             align-items: flex-end;
         }
 
-        /* === Блок регистрации игрока === */
         .res-register {
             padding: 1.5rem 1.75rem;
             border-radius: 18px;
@@ -220,7 +256,6 @@
             color: #7cf0a5;
         }
 
-        /* === Двухколоночная сетка === */
         .res-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -518,6 +553,8 @@
             .res-session-time { font-size: 3rem; }
             .res-session-unit { font-size: 1rem; }
             .res-player-row { grid-template-columns: 1fr auto; font-size: 0.85rem; }
+            .res-tabs { flex-direction: column; align-items: stretch; }
+            .res-tab { justify-content: center; }
         }
     </style>
 </head>
@@ -575,6 +612,9 @@
         <div class="header-right">
             {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                {% if session.get('role') in ['admin', 'super_admin'] %}
+                    <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
+                {% endif %}
                 <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
                 <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
@@ -592,7 +632,7 @@
         </a>
         <a href="/rating/duel">
             <span class="nav-full">Рейтинг Дуэли</span>
-            <span class="nav-short">Дуэль</span>
+            <span class="nav-short">VS</span>
         </a>
         <a href="/rating/arcadia">
             <span class="nav-full">Рейтинг Аркадии</span>
@@ -600,7 +640,7 @@
         </a>
         <a href="/reservoir" class="active">
             <span class="nav-full">Резервуар</span>
-            <span class="nav-short">Резервуар</span>
+            <span class="nav-short">РР</span>
         </a>
         <a href="/calculator">
             <span class="nav-full">Калькулятор</span>
@@ -610,12 +650,6 @@
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
     </nav>
-
-    <div class="breadcrumbs">
-        <a href="/">← На главную</a>
-        <span class="sep">·</span>
-        <span class="current">Резервуар</span>
-    </div>
 
     <div class="page-head">
         <h1 class="page-title">Резервуар</h1>
@@ -630,7 +664,6 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Табы -->
     <div class="res-tabs">
         <button class="res-tab active" data-tab="roster" type="button">
             Состав и заявки
@@ -643,14 +676,16 @@
         </a>
     </div>
 
-    <!-- === TAB: ROSTER === -->
     <div id="tab-roster" class="res-tab-content">
 
-        <!-- Hero: время недели -->
         <section class="res-hero">
             <div>
                 <div class="res-hero-title">
-                    Резервуар · Игра в воскресенье{% if sunday_date %}, {{ sunday_date }}{% endif %}
+                    <span>Резервуар · неделя <span class="res-hero-week">{{ week.week_key }}</span></span>
+                    <span class="res-reg-inline {% if reg_status.is_open %}open{% else %}closed{% endif %}">
+                        <span class="dot"></span>
+                        {{ reg_status.message }}
+                    </span>
                 </div>
 
                 <div class="res-session-plate s{{ week.session_time }}">
@@ -660,7 +695,11 @@
                             {{ week.session_time }}<span class="res-session-unit">:00</span>
                         </div>
                         <div class="res-session-day">
-                            Воскресенье{% if sunday_date %}, {{ sunday_date }}{% endif %}
+                            {% if reg_status.is_open %}
+                                Воскресенье на этой неделе
+                            {% else %}
+                                Воскресенье этой недели
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -668,11 +707,11 @@
 
             <div class="res-hero-actions">
                 {% if week.roster_published %}
-                <div class="res-status-badge published">
+                <div class="res-status-badge published" style="padding:0.7rem 1.25rem; border-radius:12px; background: rgba(40,25,5,0.4); border:1px solid rgba(255,184,0,0.5); color: var(--accent-warm); font-size:0.85rem; text-align:center;">
                     Состав опубликован
                 </div>
                 {% else %}
-                <div class="res-status-badge">
+                <div class="res-status-badge" style="padding:0.7rem 1.25rem; border-radius:12px; background: rgba(10,5,3,0.6); border:1px solid var(--line); font-size:0.85rem; text-align:center;">
                     Состав ещё не опубликован
                 </div>
                 {% endif %}
@@ -683,7 +722,6 @@
             </div>
         </section>
 
-        <!-- Панель управления -->
         {% if can_edit %}
         <section class="res-manage-bar">
             <form method="POST" action="/reservoir/admin/save-roster" id="saveRosterForm" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
@@ -703,7 +741,6 @@
         </section>
         {% endif %}
 
-        <!-- Регистрация игрока -->
         {% if session.get('user_id') %}
         <section class="res-register">
             <h3>Заявка на игру</h3>
@@ -755,11 +792,9 @@
         </section>
         {% endif %}
 
-        <!-- Двухколоночная сетка -->
         <form method="POST" action="/reservoir/admin/save-roster" id="rosterMainForm">
         <div class="res-grid">
 
-            <!-- Заявки -->
             <div class="res-col">
                 <h3>
                     <span>Заявки</span>
@@ -806,7 +841,6 @@
                 {% endif %}
             </div>
 
-            <!-- Состав -->
             <div class="res-col">
                 <h3>
                     <span>Состав</span>
@@ -879,7 +913,6 @@
         </div>
         </form>
 
-        <!-- Отметки явки -->
         {% if can_edit and roster %}
         <section class="res-col" style="margin-bottom: 2rem;">
             <h3>Отметки о посещении</h3>
@@ -913,7 +946,6 @@
         </section>
         {% endif %}
 
-        <!-- Чёрные метки -->
         {% if blacklist %}
         <section class="res-col" style="margin-bottom: 2rem; border-color: rgba(224,57,43,0.4);">
             <h3 style="color:#ffa090;">Чёрные метки на эту неделю</h3>
@@ -941,7 +973,6 @@
 
     </div>
 
-    <!-- === TAB: HISTORY === -->
     <div id="tab-history" class="res-tab-content" style="display:none;">
         <section class="section">
             <div class="section-title">История недель</div>
@@ -1007,7 +1038,6 @@
 
 </div>
 
-<!-- === Модалка смены времени === -->
 {% if can_edit %}
 <div class="modal-overlay" id="timeModal">
     <div class="modal-box">
