@@ -275,6 +275,11 @@
                 width: 20px;
                 height: 1.5px;
             }
+            .nav a.nav-admin {
+                font-size: 0.95rem;
+                padding: 0.3rem 0.45rem;
+                margin-left: 0;
+            }
 
             .main-grid {
                 grid-template-columns: 1fr;
@@ -343,6 +348,7 @@
             .brand-name { font-size: 0.85rem; letter-spacing: 1px; }
             .brand-emblem { width: 30px; height: 30px; }
             .nav a { font-size: 0.72rem; }
+            .nav a.nav-admin { font-size: 0.85rem; padding: 0.25rem 0.4rem; }
             .nav-arrow { width: 30px; height: 30px; font-size: 0.85rem; }
 
             .carousel-caption { height: 13rem; }
@@ -434,14 +440,20 @@
         </a>
         <a href="/rating/duel">
             <span class="nav-full">Рейтинг Дуэли</span>
-            <span class="nav-short">Дуэль</span>
+            <span class="nav-short">VS</span>
         </a>
         <a href="/rating/arcadia">
             <span class="nav-full">Рейтинг Аркадии</span>
             <span class="nav-short">Аркадия</span>
         </a>
-        <a href="/reservoir">Резервуар</a>
-        <a href="/calculator">Калькулятор</a>
+        <a href="/reservoir">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">РР</span>
+        </a>
+        <a href="/calculator">
+            <span class="nav-full">Калькулятор</span>
+            <span class="nav-short">Калькулятор</span>
+        </a>
         {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
