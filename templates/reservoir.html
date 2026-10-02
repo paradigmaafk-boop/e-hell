@@ -17,6 +17,12 @@
             border-bottom: 1px solid var(--line);
             margin-bottom: 1.5rem;
             flex-wrap: wrap;
+            align-items: center;
+        }
+        .res-tabs-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
         .res-tab {
             padding: 0.7rem 1.4rem;
@@ -43,14 +49,6 @@
             border-color: var(--accent);
             color: var(--accent-warm);
             box-shadow: 0 0 20px rgba(255,69,0,0.25);
-        }
-        .res-tab-num {
-            font-size: 0.72rem;
-            background: rgba(255,69,0,0.15);
-            color: var(--accent-warm);
-            padding: 0.1rem 0.5rem;
-            border-radius: 999px;
-            font-weight: 700;
         }
 
         /* === Hero-блок недели === */
@@ -227,12 +225,7 @@
             border-color: var(--accent);
             color: var(--accent-warm);
         }
-        .res-session-radio input {
-            display: none;
-        }
-        .res-session-radio input:checked + span {
-            color: var(--accent-warm);
-        }
+        .res-session-radio input { display: none; }
         .res-session-radio label.checked {
             border-color: var(--accent);
             background: rgba(255,69,0,0.15);
@@ -316,7 +309,6 @@
         }
         .res-player-row.core {
             background: linear-gradient(90deg, rgba(255,184,0,0.12), transparent);
-            border-left: 3px solid var(--accent-warm);
         }
         .res-player-row .nick {
             display: flex;
@@ -368,13 +360,15 @@
             margin: 1rem 0 0.5rem;
             padding: 0.4rem 0.75rem;
             border-radius: 8px;
-            background: linear-gradient(90deg, rgba(255,184,0,0.15), transparent);
-            border-left: 3px solid var(--accent-warm);
+            background: rgba(255,184,0,0.06);
             font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 3px;
             color: var(--accent-warm);
             font-weight: 700;
+        }
+        .res-core-divider:first-child {
+            margin-top: 0;
         }
 
         /* Кнопки действий */
@@ -571,6 +565,9 @@
             .res-session-time { font-size: 3rem; }
             .res-session-unit { font-size: 1rem; }
             .res-player-row { grid-template-columns: 1fr auto; font-size: 0.85rem; }
+            .res-tabs { flex-direction: column; align-items: stretch; }
+            .res-tabs-group { width: 100%; }
+            .res-tab { justify-content: center; }
         }
     </style>
 </head>
@@ -671,17 +668,21 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Табы -->
+    <!-- Табы: слева — Состав/История, справа — Карта боя -->
     <div class="res-tabs">
-        <button class="res-tab active" data-tab="roster" type="button">
-            📋 Состав и заявки
-        </button>
-        <button class="res-tab" data-tab="history" type="button">
-            📜 История
-        </button>
-        <a href="/reservoir/map" class="res-tab" style="margin-left: auto;">
-            🗺 Карта боя
-        </a>
+        <div class="res-tabs-group">
+            <button class="res-tab active" data-tab="roster" type="button">
+                Состав и заявки
+            </button>
+            <button class="res-tab" data-tab="history" type="button">
+                История
+            </button>
+        </div>
+        <div class="res-tabs-group" style="margin-left: auto;">
+            <a href="/reservoir/map" class="res-tab">
+                Карта боя
+            </a>
+        </div>
     </div>
 
     <!-- === TAB: ROSTER === -->
@@ -718,11 +719,11 @@
 
                 {% if week.roster_published %}
                 <div class="res-status-badge published">
-                    ✅ Состав опубликован
+                    Состав опубликован
                 </div>
                 {% else %}
                 <div class="res-status-badge">
-                    ⏳ Состав ещё не опубликован
+                    Состав ещё не опубликован
                 </div>
                 {% endif %}
 
@@ -736,17 +737,17 @@
         {% if can_edit %}
         <section class="res-manage-bar">
             <form method="POST" action="/reservoir/admin/save-roster" id="saveRosterForm" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-                <button type="submit" class="btn btn-primary" form="saveRosterForm">💾 Сохранить состав</button>
+                <button type="submit" class="btn btn-primary" form="saveRosterForm">Сохранить состав</button>
             </form>
             <form method="POST" action="/reservoir/admin/publish" style="display: inline;">
                 <button type="submit" class="btn"
                         onclick="return confirm('Опубликовать текущий состав? Его увидят все.');">
-                    📢 Опубликовать
+                    Опубликовать
                 </button>
             </form>
             {% if week.roster_published %}
             <form method="POST" action="/reservoir/admin/unpublish" style="display: inline;">
-                <button type="submit" class="btn">↩ Снять с публикации</button>
+                <button type="submit" class="btn">Снять с публикации</button>
             </form>
             {% endif %}
         </section>
@@ -755,11 +756,11 @@
         <!-- Регистрация игрока -->
         {% if session.get('user_id') %}
         <section class="res-register">
-            <h3>📝 Заявка на игру</h3>
+            <h3>Заявка на игру</h3>
 
             {% if my_registration %}
                 <div class="res-info-plate ok" style="margin-bottom: 1rem;">
-                    ✅ Вы подали заявку. Предпочтение:
+                    Вы подали заявку. Предпочтение:
                     {% if my_registration[1] == '14' %}14:00
                     {% elif my_registration[1] == '22' %}22:00
                     {% else %}не важно{% endif %}
@@ -768,7 +769,7 @@
                 {% if reg_status.is_open %}
                 <form method="POST" action="/reservoir/unregister"
                       onsubmit="return confirm('Отменить заявку?');">
-                    <button type="submit" class="btn btn-danger">✕ Отменить заявку</button>
+                    <button type="submit" class="btn btn-danger">Отменить заявку</button>
                 </form>
                 {% else %}
                 <div class="res-info-plate warn">Регистрация закрыта — отменить заявку уже нельзя.</div>
@@ -789,7 +790,7 @@
                             <span>Хочу в 22:00</span>
                         </label>
                     </div>
-                    <button type="submit" class="btn btn-primary">🎯 Подать заявку</button>
+                    <button type="submit" class="btn btn-primary">Подать заявку</button>
                 </form>
             {% else %}
                 <div class="res-info-plate warn">{{ my_cannot_reason }}</div>
@@ -811,7 +812,7 @@
             <!-- Заявки -->
             <div class="res-col">
                 <h3>
-                    <span>📨 Заявки</span>
+                    <span>Заявки</span>
                     <span class="cnt">{{ registrations|length }}</span>
                 </h3>
 
@@ -822,7 +823,6 @@
                         {% set reg_username = reg[4] %}
                         {% set reg_nick = reg[5] or reg_username %}
                         {% set reg_squad1 = reg[6] %}
-                        {% set is_in_roster = reg_user_id in roster_ids %}
                         <div class="res-player-row">
                             <div class="nick">
                                 <span>{{ reg_nick }}</span>
@@ -859,13 +859,13 @@
             <!-- Состав -->
             <div class="res-col">
                 <h3>
-                    <span>🎯 Состав</span>
+                    <span>Состав</span>
                     <span class="cnt" id="rosterCount">{{ roster|length }} / 30</span>
                 </h3>
 
                 <div id="rosterList">
                     <!-- Core -->
-                    <div class="res-core-divider" id="coreDivider">🏆 Основной состав</div>
+                    <div class="res-core-divider" id="coreDivider">Основной состав</div>
                     <div id="coreList">
                         {% for r in roster if r[2] == 'core' %}
                             {% set r_uid = r[1] %}
@@ -875,8 +875,8 @@
                             <div class="res-player-row core" data-user-id="{{ r_uid }}">
                                 <div class="nick">
                                     <span>{{ r_nick }}</span>
-                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✅</span>
-                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">❌</span>{% endif %}
+                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✓</span>
+                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">✕</span>{% endif %}
                                 </div>
                                 <div class="squad1 {% if not r_squad1 %}empty{% endif %}">
                                     {% if r_squad1 %}⚔ {{ r_squad1 }}{% else %}⚔ —{% endif %}
@@ -893,7 +893,7 @@
                     </div>
 
                     <!-- Rotation -->
-                    <div class="res-core-divider">⚔ Остальные</div>
+                    <div class="res-core-divider">Остальные</div>
                     <div id="rotationList">
                         {% for r in roster if r[2] == 'rotation' %}
                             {% set r_uid = r[1] %}
@@ -903,8 +903,8 @@
                             <div class="res-player-row" data-user-id="{{ r_uid }}">
                                 <div class="nick">
                                     <span>{{ r_nick }}</span>
-                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✅</span>
-                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">❌</span>{% endif %}
+                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✓</span>
+                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">✕</span>{% endif %}
                                 </div>
                                 <div class="squad1 {% if not r_squad1 %}empty{% endif %}">
                                     {% if r_squad1 %}⚔ {{ r_squad1 }}{% else %}⚔ —{% endif %}
@@ -925,7 +925,6 @@
                     <div class="res-empty">Состав пока не сформирован</div>
                 {% endif %}
 
-                <!-- Скрытые поля для отправки состава -->
                 <div id="rosterHiddenFields"></div>
             </div>
 
@@ -935,7 +934,7 @@
         <!-- После игры: отметки явки -->
         {% if can_edit and roster %}
         <section class="res-col" style="margin-bottom: 2rem;">
-            <h3>📝 Отметки о посещении</h3>
+            <h3>Отметки о посещении</h3>
             <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem;">
                 Отметьте, кто пришёл на игру. Кто отмечен как «не пришёл» — получает чёрную метку и пропускает следующую неделю.
             </p>
@@ -951,13 +950,13 @@
                                 <input type="hidden" name="user_id" value="{{ r_uid }}">
                                 <input type="hidden" name="week_key" value="{{ week.week_key }}">
                                 <input type="hidden" name="attended" value="1">
-                                <button type="submit" class="res-action-btn attend-yes {% if r_attended == 1 %}active{% endif %}" title="Пришёл">✅</button>
+                                <button type="submit" class="res-action-btn attend-yes {% if r_attended == 1 %}active{% endif %}" title="Пришёл">✓</button>
                             </form>
                             <form method="POST" action="/reservoir/admin/attendance" style="display:inline;">
                                 <input type="hidden" name="user_id" value="{{ r_uid }}">
                                 <input type="hidden" name="week_key" value="{{ week.week_key }}">
                                 <input type="hidden" name="attended" value="0">
-                                <button type="submit" class="res-action-btn attend-no {% if r_attended == 0 %}active{% endif %}" title="Не пришёл">❌</button>
+                                <button type="submit" class="res-action-btn attend-no {% if r_attended == 0 %}active{% endif %}" title="Не пришёл">✕</button>
                             </form>
                         </div>
                     </div>
@@ -969,7 +968,7 @@
         <!-- Чёрные метки -->
         {% if blacklist %}
         <section class="res-col" style="margin-bottom: 2rem; border-color: rgba(224,57,43,0.4);">
-            <h3 style="color:#ffa090;">⛔ Чёрные метки на эту неделю</h3>
+            <h3 style="color:#ffa090;">Чёрные метки на эту неделю</h3>
             {% for b in blacklist %}
                 {% set b_uid = b[1] %}
                 {% set b_reason = b[2] %}
@@ -1016,9 +1015,9 @@
                                     {% if r[3] == 1 %}{% set ns.attended = ns.attended + 1 %}{% endif %}
                                     {% if r[3] == 0 %}{% set ns.missed = ns.missed + 1 %}{% endif %}
                                 {% endfor %}
-                                <span>✅ Пришли: <b>{{ ns.attended }}</b></span>
-                                <span>❌ Не пришли: <b>{{ ns.missed }}</b></span>
-                                {% if h.roster_published %}<span style="color: var(--accent-warm);">📢 Опубликован</span>{% endif %}
+                                <span>Пришли: <b>{{ ns.attended }}</b></span>
+                                <span>Не пришли: <b>{{ ns.missed }}</b></span>
+                                {% if h.roster_published %}<span style="color: var(--accent-warm);">Опубликован</span>{% endif %}
                             </div>
                         </div>
                         <div style="color: var(--dim); font-size: 1.2rem;">▼</div>
@@ -1035,13 +1034,13 @@
                                     {% set r_squad1 = r[6] %}
                                     <div class="res-history-player">
                                         <span>
-                                            {% if r[2] == 'core' %}🏆 {% endif %}{{ r_nick }}
+                                            {{ r_nick }}
                                             {% if r_squad1 %}<span style="color:var(--accent-warm); font-size:0.78rem;"> · ⚔ {{ r_squad1 }}</span>{% endif %}
                                         </span>
                                         <span>
-                                            {% if r[3] == 1 %}<span class="mark-yes">✅</span>
-                                            {% elif r[3] == 0 %}<span class="mark-no">❌</span>
-                                            {% else %}<span class="mark-unknown">❓</span>{% endif %}
+                                            {% if r[3] == 1 %}<span class="mark-yes">✓</span>
+                                            {% elif r[3] == 0 %}<span class="mark-no">✕</span>
+                                            {% else %}<span class="mark-unknown">?</span>{% endif %}
                                         </span>
                                     </div>
                                 {% endfor %}
@@ -1064,7 +1063,7 @@
 {% if can_edit %}
 <div class="modal-overlay" id="timeModal">
     <div class="modal-box">
-        <div class="modal-title">⏰ Время сессии</div>
+        <div class="modal-title">Время сессии</div>
         <p style="color: var(--muted); text-align:center; font-size: 0.85rem; margin-bottom: 1.5rem;">
             Выберите во сколько играем на этой неделе
         </p>
@@ -1114,9 +1113,6 @@
     });
 
     // === Формирование состава ===
-    const rosterIds = {{ roster | map(attribute=1) | list | tojson }};
-
-    // Проверим, есть ли у нас уже добавленные ID
     function getRosterUserIds() {
         const ids = [];
         document.querySelectorAll('#rosterList .res-player-row[data-user-id]').forEach(row => {
@@ -1153,7 +1149,6 @@
     }
 
     function quickAddToRoster(userId, nickname, squad1, role) {
-        // если уже в составе — выходим
         if (getRosterUserIds().includes(userId)) {
             alert('Этот игрок уже в составе');
             return;
@@ -1185,7 +1180,6 @@
         updateRosterCounter();
     }
 
-    // Обновляем счётчик и hidden-поля при отправке формы
     const mainForm = document.getElementById('rosterMainForm');
     if (mainForm) {
         mainForm.addEventListener('submit', (e) => {
