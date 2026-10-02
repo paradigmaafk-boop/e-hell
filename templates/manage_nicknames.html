@@ -32,8 +32,6 @@
     </defs>
 </svg>
 
-<div class="embers" id="embers"></div>
-
 <div class="wrap">
 
     <header class="header">
@@ -64,17 +62,36 @@
         </a>
         <div class="header-right">
             <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-            <a href="/logout" class="link-btn">Выйти</a>
+            <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
 
     <nav class="nav">
-        <a href="/rating/total">Рейтинг</a>
-        <a href="/rating/duel">Рейтинг Дуэли</a>
-        <a href="/rating/arcadia">Рейтинг Аркадии</a>
-        <a href="/reservoir-map">Резервуар</a>
-        <a href="/calculator">Калькулятор</a>
+        <a href="/rating/total">
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel">
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">VS</span>
+        </a>
+        <a href="/rating/arcadia">
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
+        <a href="/reservoir">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">РР</span>
+        </a>
+        <a href="/calculator">
+            <span class="nav-full">Калькулятор</span>
+            <span class="nav-short">Калькулятор</span>
+        </a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
     </nav>
 
     <div class="page-head">
@@ -165,30 +182,6 @@
 </div>
 
 <script>
-    (function () {
-        const container = document.getElementById('embers');
-        if (!container) return;
-        for (let i = 0; i < 30; i++) {
-            const ember = document.createElement('div');
-            ember.className = 'ember';
-            const size = 2 + Math.random() * 4;
-            const left = Math.random() * 100;
-            const duration = 6 + Math.random() * 10;
-            const delay = Math.random() * 12;
-            const drift = (Math.random() - 0.5) * 200;
-            ember.style.left = left + '%';
-            ember.style.width = size + 'px';
-            ember.style.height = size + 'px';
-            ember.style.animationDuration = duration + 's';
-            ember.style.animationDelay = delay + 's';
-            ember.style.setProperty('--drift', drift + 'px');
-            const hue = 15 + Math.random() * 30;
-            ember.style.background = `radial-gradient(circle, hsl(${hue + 20}, 100%, 70%), hsl(${hue}, 100%, 50%) 60%, transparent 100%)`;
-            ember.style.boxShadow = `0 0 8px 1px hsla(${hue}, 100%, 55%, 0.8)`;
-            container.appendChild(ember);
-        }
-    })();
-
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     toggleBtn.addEventListener('click', () => {
