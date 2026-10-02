@@ -33,6 +33,27 @@
         .save-hint { font-size: 0.78rem; color: var(--dim); font-style: italic; }
         .save-hint.saved { color: var(--accent-warm); text-shadow: 0 0 10px rgba(255,184,0,0.6); }
 
+        /* Кнопка-таб на страницу состава */
+        .to-roster-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.55rem 1.1rem;
+            border-radius: 10px;
+            background: rgba(255,69,0,0.08);
+            border: 1px solid var(--accent);
+            color: var(--accent-warm);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+        .to-roster-btn:hover {
+            background: rgba(255,69,0,0.2);
+            box-shadow: 0 0 20px rgba(255,69,0,0.35);
+            color: #fff;
+        }
+
         .map-wrap {
             margin-top: 0.75rem;
             background: linear-gradient(180deg, #1a0d05, #0a0503);
@@ -475,32 +496,29 @@
             </div>
         </a>
         <div class="header-right">
-            {% if session['logged_in'] %}
+            {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                <a href="/logout" class="link-btn">Выйти</a>
+                {% if session.get('role') in ['admin', 'super_admin'] %}
+                    <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
+                {% endif %}
+                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
-                <a href="/login" class="link-btn">Войти</a>
+                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
+                <a href="/login" class="link-btn header-link">Войти</a>
             {% endif %}
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
     </header>
 
     <nav class="nav">
-        <a href="/rating/total">
-            <span class="nav-full">Рейтинг</span>
-            <span class="nav-short">Рейтинг</span>
-        </a>
-        <a href="/rating/duel">
-            <span class="nav-full">Рейтинг Дуэли</span>
-            <span class="nav-short">Дуэль</span>
-        </a>
-        <a href="/rating/arcadia">
-            <span class="nav-full">Рейтинг Аркадии</span>
-            <span class="nav-short">Аркадия</span>
-        </a>
-        <a href="/reservoir-map" class="active">Резервуар</a>
+        <a href="/rating/total">Рейтинг</a>
+        <a href="/rating/duel">Рейтинг Дуэли</a>
+        <a href="/rating/arcadia">Рейтинг Аркадии</a>
+        <a href="/reservoir">Состав</a>
+        <a href="/reservoir/map" class="active">Карта боя</a>
         <a href="/calculator">Калькулятор</a>
-        {% if session['username'] == 'admin' %}
+        {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
     </nav>
@@ -508,9 +526,9 @@
     <div class="breadcrumbs">
         <a href="/">← На главную</a>
         <span class="sep">·</span>
-        <a href="/rating/duel">Дуэль</a>
+        <a href="/reservoir">Резервуар</a>
         <span class="sep">·</span>
-        <span class="current">Карта боя Резервуара</span>
+        <span class="current">Карта боя</span>
     </div>
 
     <div class="admin-bar">
@@ -518,32 +536,33 @@
             <h1>Карта боя</h1>
             <p>Распределение игроков и объектов на карте Резервуара</p>
         </div>
-        {% if session['username'] == 'admin' %}
         <div class="admin-actions">
+            <a href="/reservoir" class="to-roster-btn">📋 К составу и заявкам</a>
+            {% if can_edit_reservoir %}
             <span class="save-hint" id="saveHint"></span>
             <button class="btn" id="drawToggle">✏ Стрелки</button>
             <button class="btn" id="editToggle">✎ Режим редактирования</button>
             <button class="btn primary" id="saveBtn" style="display:none;">💾 Сохранить</button>
             <button class="btn" id="resetBtn" style="display:none;">Сбросить</button>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
 
     <!-- === Блок тактики боя === -->
     <section class="tactics-block">
         <div class="tactics-header">
             <span class="tactics-label">📋 Тактика боя</span>
-            {% if session['username'] == 'admin' %}
+            {% if can_edit_reservoir %}
             <span class="tactics-hint" id="tacticsHint">Нажмите на текст, чтобы отредактировать</span>
             {% endif %}
         </div>
-        <div class="tactics-text {% if session['username'] == 'admin' %}editable{% endif %}"
+        <div class="tactics-text {% if can_edit_reservoir %}editable{% endif %}"
              data-key="tactics-text"
-             {% if session['username'] == 'admin' %}contenteditable="false"{% endif %}>{{ map_values.get('tactics-text', 'Тактика боя ещё не заполнена. Администратор может добавить описание.') }}</div>
+             {% if can_edit_reservoir %}contenteditable="false"{% endif %}>{{ map_values.get('tactics-text', 'Тактика боя ещё не заполнена. Администратор может добавить описание.') }}</div>
     </section>
 
-    <!-- === Единая панель управления (только для админа) === -->
-    {% if session['username'] == 'admin' %}
+    <!-- === Единая панель управления (только для админа/резервуара) === -->
+    {% if can_edit_reservoir %}
     <div class="control-panel">
         <div class="control-row">
             <span class="control-label">🎨 Цвет стрелки:</span>
@@ -587,12 +606,12 @@
                          style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                         <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
                         <div class="panel-title"><span class="num">1</span> Команда</div>
-                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
+                        <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
                         <div class="panel-stages">
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
                         </div>
                     </div>
                     {% endif %}
@@ -602,12 +621,12 @@
                          style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                         <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
                         <div class="panel-title"><span class="num">2</span> Команда</div>
-                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
+                        <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
                         <div class="panel-stages">
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
                         </div>
                     </div>
                     {% endif %}
@@ -617,12 +636,12 @@
                          style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                         <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
                         <div class="panel-title"><span class="num">3</span> Команда</div>
-                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
+                        <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
                         <div class="panel-stages">
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
                         </div>
                     </div>
                     {% endif %}
@@ -632,12 +651,12 @@
                          style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                         <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
                         <div class="panel-title"><span class="num">4</span> Команда</div>
-                        <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
+                        <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
                         <div class="panel-stages">
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
                         </div>
                     </div>
                     {% endif %}
@@ -647,12 +666,12 @@
                          style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                         <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
                         <div class="panel-title">1 ГБР</div>
-                        <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
+                        <div class="gbr-name {% if can_edit_reservoir %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
                         <div class="gbr-stages">
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
                         </div>
                     </div>
                     {% endif %}
@@ -662,12 +681,12 @@
                          style="left: {{ left_val }}%; top: {{ top_val }}%; {% if w_val %}width: {{ w_val }}px;{% endif %} {% if h_val %}height: {{ h_val }}px;{% endif %}">
                         <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
                         <div class="panel-title">2 ГБР</div>
-                        <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
+                        <div class="gbr-name {% if can_edit_reservoir %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
                         <div class="gbr-stages">
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
-                            <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
+                            <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
                         </div>
                     </div>
                     {% endif %}
@@ -678,16 +697,16 @@
                         <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
                         <div class="panel-title">Резерв</div>
                         <div class="panel-players">
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
-                            <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
+                            <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
                         </div>
                     </div>
                     {% endif %}
@@ -702,8 +721,8 @@
                         <span class="stage-badge tl gbr1">1Г</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-solar-owner">{{ map_values.get('pt-solar-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-solar-name">{{ map_values.get('pt-solar-name', 'Солнечная') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-solar-owner">{{ map_values.get('pt-solar-owner', '—') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-vpz-nw" data-connector-key="pt-vpz-nw" style="left: {{ map_values.get('pt-vpz-nw-left', '38') }}%; top: {{ map_values.get('pt-vpz-nw-top', '12') }}%;">
@@ -713,8 +732,8 @@
                         <span class="stage-badge tl s1">2</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'ВПЗ 3') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-nw-owner">{{ map_values.get('pt-vpz-nw-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-nw-name">{{ map_values.get('pt-vpz-nw-name', 'ВПЗ 3') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-nw-owner">{{ map_values.get('pt-vpz-nw-owner', '—') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-vpz-ne" data-connector-key="pt-vpz-ne" style="left: {{ map_values.get('pt-vpz-ne-left', '88') }}%; top: {{ map_values.get('pt-vpz-ne-top', '12') }}%;">
@@ -724,8 +743,8 @@
                         <span class="stage-badge tr s2">1</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'ВПЗ 2') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-ne-owner">{{ map_values.get('pt-vpz-ne-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-ne-name">{{ map_values.get('pt-vpz-ne-name', 'ВПЗ 2') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-ne-owner">{{ map_values.get('pt-vpz-ne-owner', '—') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-science" data-connector-key="pt-science" style="left: {{ map_values.get('pt-science-left', '28') }}%; top: {{ map_values.get('pt-science-top', '32') }}%;">
@@ -736,8 +755,8 @@
                         <span class="stage-badge tr s3">3</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-science-owner">{{ map_values.get('pt-science-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-science-name">{{ map_values.get('pt-science-name', 'Комплекс') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-science-owner">{{ map_values.get('pt-science-owner', '—') }}</div>
             </div>
 
             <div class="point water-collector" data-point-key="pt-wc-1" data-connector-key="pt-wc-1" style="left: {{ map_values.get('pt-wc-1-left', '48') }}%; top: {{ map_values.get('pt-wc-1-top', '32') }}%;">
@@ -747,7 +766,7 @@
                         <span class="stage-badge tl s4">1</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-wc-1-name">{{ map_values.get('pt-wc-1-name', 'Водосборник') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-voc-ne" data-connector-key="pt-voc-ne" style="left: {{ map_values.get('pt-voc-ne-left', '68') }}%; top: {{ map_values.get('pt-voc-ne-top', '32') }}%;">
@@ -758,8 +777,8 @@
                         <span class="stage-badge tl gbr2">2Г</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'ВОЦ 2') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-ne-owner">{{ map_values.get('pt-voc-ne-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-voc-ne-name">{{ map_values.get('pt-voc-ne-name', 'ВОЦ 2') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-voc-ne-owner">{{ map_values.get('pt-voc-ne-owner', '—') }}</div>
             </div>
 
             <div class="point water-collector" data-point-key="pt-wc-2" data-connector-key="pt-wc-2" style="left: {{ map_values.get('pt-wc-2-left', '28') }}%; top: {{ map_values.get('pt-wc-2-top', '52') }}%;">
@@ -769,7 +788,7 @@
                         <span class="stage-badge tl s4">2</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-wc-2-name">{{ map_values.get('pt-wc-2-name', 'Водосборник') }}</div>
             </div>
 
             <div class="point center-point" data-point-key="pt-center" data-connector-key="pt-center" style="left: {{ map_values.get('pt-center-left', '50') }}%; top: {{ map_values.get('pt-center-top', '50') }}%;">
@@ -780,8 +799,8 @@
                         <span class="stage-badge tr gbr2">2Г</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центр. резервуар') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-center-owner">{{ map_values.get('pt-center-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-center-name">{{ map_values.get('pt-center-name', 'Центр. резервуар') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-center-owner">{{ map_values.get('pt-center-owner', '—') }}</div>
             </div>
 
             <div class="point water-collector" data-point-key="pt-wc-3" data-connector-key="pt-wc-3" style="left: {{ map_values.get('pt-wc-3-left', '72') }}%; top: {{ map_values.get('pt-wc-3-top', '52') }}%;">
@@ -791,7 +810,7 @@
                         <span class="stage-badge tr s4">3</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-wc-3-name">{{ map_values.get('pt-wc-3-name', 'Водосборник') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-voc-sw" data-connector-key="pt-voc-sw" style="left: {{ map_values.get('pt-voc-sw-left', '28') }}%; top: {{ map_values.get('pt-voc-sw-top', '72') }}%;">
@@ -802,8 +821,8 @@
                         <span class="stage-badge tl gbr1">1Г</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'ВОЦ 1') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-voc-sw-owner">{{ map_values.get('pt-voc-sw-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-voc-sw-name">{{ map_values.get('pt-voc-sw-name', 'ВОЦ 1') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-voc-sw-owner">{{ map_values.get('pt-voc-sw-owner', '—') }}</div>
             </div>
 
             <div class="point water-collector" data-point-key="pt-wc-4" data-connector-key="pt-wc-4" style="left: {{ map_values.get('pt-wc-4-left', '48') }}%; top: {{ map_values.get('pt-wc-4-top', '72') }}%;">
@@ -813,7 +832,7 @@
                         <span class="stage-badge bl s4">4</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-wc-4-name">{{ map_values.get('pt-wc-4-name', 'Водосборник') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-milfac" data-connector-key="pt-milfac" style="left: {{ map_values.get('pt-milfac-left', '68') }}%; top: {{ map_values.get('pt-milfac-top', '72') }}%;">
@@ -824,8 +843,8 @@
                         <span class="stage-badge tr s3">4</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-milfac-owner">{{ map_values.get('pt-milfac-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-milfac-name">{{ map_values.get('pt-milfac-name', 'Военный завод') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-milfac-owner">{{ map_values.get('pt-milfac-owner', '—') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-vpz-sw" data-connector-key="pt-vpz-sw" style="left: {{ map_values.get('pt-vpz-sw-left', '10') }}%; top: {{ map_values.get('pt-vpz-sw-top', '88') }}%;">
@@ -835,8 +854,8 @@
                         <span class="stage-badge bl s1">1</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'ВПЗ 1') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-sw-owner">{{ map_values.get('pt-vpz-sw-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-sw-name">{{ map_values.get('pt-vpz-sw-name', 'ВПЗ 1') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-sw-owner">{{ map_values.get('pt-vpz-sw-owner', '—') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-vpz-s" data-connector-key="pt-vpz-s" style="left: {{ map_values.get('pt-vpz-s-left', '60') }}%; top: {{ map_values.get('pt-vpz-s-top', '88') }}%;">
@@ -846,8 +865,8 @@
                         <span class="stage-badge br s2">2</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'ВПЗ 4') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-vpz-s-owner">{{ map_values.get('pt-vpz-s-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-s-name">{{ map_values.get('pt-vpz-s-name', 'ВПЗ 4') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-vpz-s-owner">{{ map_values.get('pt-vpz-s-owner', '—') }}</div>
             </div>
 
             <div class="point" data-point-key="pt-pad" data-connector-key="pt-pad" style="left: {{ map_values.get('pt-pad-left', '88') }}%; top: {{ map_values.get('pt-pad-top', '88') }}%;">
@@ -858,8 +877,8 @@
                         <span class="stage-badge tl gbr2">2Г</span>
                     </div>
                 </div>
-                <div class="point-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Вертолётная площадка') }}</div>
-                <div class="point-owner {% if session['username'] == 'admin' %}editable{% endif %}" data-key="pt-pad-owner">{{ map_values.get('pt-pad-owner', '—') }}</div>
+                <div class="point-name {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-pad-name">{{ map_values.get('pt-pad-name', 'Вертолётная площадка') }}</div>
+                <div class="point-owner {% if can_edit_reservoir %}editable{% endif %}" data-key="pt-pad-owner">{{ map_values.get('pt-pad-owner', '—') }}</div>
             </div>
 
         </div>
@@ -871,12 +890,12 @@
         <div class="draggable-panel" data-panel-key="hq1" data-panel-type="team" data-connector-key="hq1" id="panel-hq1">
             <button class="reset-pos-btn" data-reset="hq1" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">1</span> Команда</div>
-            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
+            <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq1-players">{{ map_values.get('hq1-players', 'Zoom, SaT, Кексик, BIPOLAR, ксюнч, Sweet*Pie') }}</div>
             <div class="panel-stages">
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq1-s1">{{ map_values.get('hq1-s1', '1 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq1-s2">{{ map_values.get('hq1-s2', '2 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq1-s3">{{ map_values.get('hq1-s3', '3 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq1-s4">{{ map_values.get('hq1-s4', '4 этап') }}</span>
             </div>
         </div>
         {% endif %}
@@ -885,12 +904,12 @@
         <div class="draggable-panel" data-panel-key="hq2" data-panel-type="team" data-connector-key="hq2" id="panel-hq2">
             <button class="reset-pos-btn" data-reset="hq2" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">2</span> Команда</div>
-            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
+            <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq2-players">{{ map_values.get('hq2-players', 'Kasper, MadFoggy, МАХ, Кац и Папелац, шамаич, дон Рэба') }}</div>
             <div class="panel-stages">
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq2-s1">{{ map_values.get('hq2-s1', '1 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq2-s2">{{ map_values.get('hq2-s2', '2 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq2-s3">{{ map_values.get('hq2-s3', '3 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq2-s4">{{ map_values.get('hq2-s4', '4 этап') }}</span>
             </div>
         </div>
         {% endif %}
@@ -899,12 +918,12 @@
         <div class="draggable-panel" data-panel-key="hq3" data-panel-type="team" data-connector-key="hq3" id="panel-hq3">
             <button class="reset-pos-btn" data-reset="hq3" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">3</span> Команда</div>
-            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
+            <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq3-players">{{ map_values.get('hq3-players', 'Заяц, nekrozius, kvazirog, ДедПиМороз') }}</div>
             <div class="panel-stages">
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq3-s1">{{ map_values.get('hq3-s1', '1 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq3-s2">{{ map_values.get('hq3-s2', '2 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq3-s3">{{ map_values.get('hq3-s3', '3 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq3-s4">{{ map_values.get('hq3-s4', '4 этап') }}</span>
             </div>
         </div>
         {% endif %}
@@ -913,12 +932,12 @@
         <div class="draggable-panel" data-panel-key="hq4" data-panel-type="team" data-connector-key="hq4" id="panel-hq4">
             <button class="reset-pos-btn" data-reset="hq4" title="Вернуть на панель">×</button>
             <div class="panel-title"><span class="num">4</span> Команда</div>
-            <div class="panel-players {% if session['username'] == 'admin' %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
+            <div class="panel-players {% if can_edit_reservoir %}editable{% endif %}" data-key="hq4-players">{{ map_values.get('hq4-players', 'Daya, «Харли», шамаич, *BadBoy*') }}</div>
             <div class="panel-stages">
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="hq4-s1">{{ map_values.get('hq4-s1', '1 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="hq4-s2">{{ map_values.get('hq4-s2', '2 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="hq4-s3">{{ map_values.get('hq4-s3', '3 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="hq4-s4">{{ map_values.get('hq4-s4', '4 этап') }}</span>
             </div>
         </div>
         {% endif %}
@@ -931,12 +950,12 @@
         <div class="draggable-panel gbr-panel" data-panel-key="gbr1" data-panel-type="gbr" data-connector-key="gbr1" id="panel-gbr1">
             <button class="reset-pos-btn" data-reset="gbr1" title="Вернуть на панель">×</button>
             <div class="panel-title">1 ГБР</div>
-            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
+            <div class="gbr-name {% if can_edit_reservoir %}editable{% endif %}" data-key="gbr-top-name">{{ map_values.get('gbr-top-name', 'HELL*FIRE') }}</div>
             <div class="gbr-stages">
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="gbr-top-s1">{{ map_values.get('gbr-top-s1', '1 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="gbr-top-s2">{{ map_values.get('gbr-top-s2', '2 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="gbr-top-s3">{{ map_values.get('gbr-top-s3', '3 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="gbr-top-s4">{{ map_values.get('gbr-top-s4', '4 этап') }}</span>
             </div>
         </div>
         {% endif %}
@@ -945,12 +964,12 @@
         <div class="draggable-panel gbr-panel" data-panel-key="gbr2" data-panel-type="gbr" data-connector-key="gbr2" id="panel-gbr2">
             <button class="reset-pos-btn" data-reset="gbr2" title="Вернуть на панель">×</button>
             <div class="panel-title">2 ГБР</div>
-            <div class="gbr-name {% if session['username'] == 'admin' %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
+            <div class="gbr-name {% if can_edit_reservoir %}editable{% endif %}" data-key="gbr-bottom-name">{{ map_values.get('gbr-bottom-name', 'Velvet') }}</div>
             <div class="gbr-stages">
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
-                <span class="stage {% if session['username'] == 'admin' %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="1" data-key="gbr-bot-s1">{{ map_values.get('gbr-bot-s1', '1 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="2" data-key="gbr-bot-s2">{{ map_values.get('gbr-bot-s2', '2 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="3" data-key="gbr-bot-s3">{{ map_values.get('gbr-bot-s3', '3 этап') }}</span>
+                <span class="stage {% if can_edit_reservoir %}editable{% endif %}" data-stage="4" data-key="gbr-bot-s4">{{ map_values.get('gbr-bot-s4', '4 этап') }}</span>
             </div>
         </div>
         {% endif %}
@@ -960,16 +979,16 @@
             <button class="reset-pos-btn" data-reset="reserve" title="Вернуть на панель">×</button>
             <div class="panel-title">Резерв</div>
             <div class="panel-players">
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
-                <span class="{% if session['username'] == 'admin' %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-1">{{ map_values.get('res-1', 'Fixer-RC1140') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-2">{{ map_values.get('res-2', "A1vcaL'deMelofon") }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-3">{{ map_values.get('res-3', 'Тутси') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-4">{{ map_values.get('res-4', 'Gerz1980') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-5">{{ map_values.get('res-5', 'ZabavOchka') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-6">{{ map_values.get('res-6', 'Givendar') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-7">{{ map_values.get('res-7', 'МиРаш') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-8">{{ map_values.get('res-8', 'Ярче') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-9">{{ map_values.get('res-9', 'Мотивация') }}</span>
+                <span class="{% if can_edit_reservoir %}editable{% endif %}" data-key="res-10">{{ map_values.get('res-10', 'Мистер Икс') }}</span>
             </div>
         </div>
         {% endif %}
@@ -1088,7 +1107,7 @@
         });
     })();
 
-    {% if session['username'] == 'admin' %}
+    {% if can_edit_reservoir %}
     (function() {
         const editToggle = document.getElementById('editToggle');
         const drawToggle = document.getElementById('drawToggle');
@@ -1105,7 +1124,6 @@
         let arrows = [];
         try { arrows = JSON.parse(window.INITIAL_ARROWS || '[]'); } catch (e) { arrows = []; }
 
-        // === Модалка удаления стрелки ===
         let arrowModal = document.getElementById('arrowDeleteModal');
         if (!arrowModal) {
             arrowModal = document.createElement('div');
