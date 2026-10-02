@@ -73,6 +73,7 @@
         .role-player { background: rgba(120,180,255,0.15); color: #8ed6ff; border: 1px solid rgba(120,180,255,0.4); }
         .role-admin { background: rgba(255,184,0,0.15); color: #ffb800; border: 1px solid rgba(255,184,0,0.4); }
         .role-super_admin { background: rgba(255,69,0,0.18); color: #ff4500; border: 1px solid rgba(255,69,0,0.5); }
+        .role-reservoir { background: rgba(74, 158, 255, 0.15); color: #4a9eff; border: 1px solid rgba(74, 158, 255, 0.45); }
         body.light-theme .roles-block { background: #fff8ec; }
         body.light-theme .role-row { background: #fff5e6; }
 
@@ -298,7 +299,7 @@
     <section class="roles-block">
         <h3>🛡 Управление ролями</h3>
         <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem;">
-            Выдавайте и снимайте права администратора. Себе роль изменить нельзя.
+            Выдавайте и снимайте права. Себе роль изменить нельзя.
         </p>
 
         {% for u in admin_players %}
@@ -314,6 +315,7 @@
                     <span class="role-pill role-{{ urole }}">
                         {% if urole == 'super_admin' %}Супер-админ
                         {% elif urole == 'admin' %}Админ
+                        {% elif urole == 'reservoir' %}Резервуар
                         {% else %}Игрок{% endif %}
                     </span>
                 </div>
@@ -321,6 +323,7 @@
                     <input type="hidden" name="user_id" value="{{ uid }}">
                     <select name="new_role">
                         <option value="player" {% if urole == 'player' %}selected{% endif %}>Игрок</option>
+                        <option value="reservoir" {% if urole == 'reservoir' %}selected{% endif %}>Резервуар</option>
                         <option value="admin" {% if urole == 'admin' %}selected{% endif %}>Админ</option>
                         <option value="super_admin" {% if urole == 'super_admin' %}selected{% endif %}>Супер-админ</option>
                     </select>
