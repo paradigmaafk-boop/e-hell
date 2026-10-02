@@ -26,7 +26,6 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
 
-    # === ЕДИНАЯ ТАБЛИЦА ПОЛЬЗОВАТЕЛЕЙ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
@@ -188,6 +187,64 @@ def init_db():
         )
     """)
 
+    # === РЕЗЕРВУАР: РАСПИСАНИЕ НЕДЕЛЬ ===
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reservoir_weeks (
+            week_key TEXT PRIMARY KEY,
+            session_time TEXT NOT NULL,
+            session_time_overridden BOOLEAN DEFAULT FALSE,
+            roster_published BOOLEAN DEFAULT FALSE,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+
+    # === РЕЗЕРВУАР: ЗАЯВКИ ===
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reservoir_registrations (
+            id SERIAL PRIMARY KEY,
+            week_key TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            preferred_session TEXT NOT NULL DEFAULT 'any',
+            created_at TEXT NOT NULL,
+            UNIQUE(week_key, user_id)
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_reservoir_reg_week
+        ON reservoir_registrations (week_key)
+    """)
+
+    # === РЕЗЕРВУАР: СОСТАВ ===
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reservoir_roster (
+            id SERIAL PRIMARY KEY,
+            week_key TEXT NOT NULL,
+            user_id INTEGER NOT NULL,
+            role TEXT NOT NULL DEFAULT 'rotation',
+            attended INTEGER DEFAULT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(week_key, user_id)
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_reservoir_roster_week
+        ON reservoir_roster (week_key)
+    """)
+
+    # === РЕЗЕРВУАР: ЧЁРНЫЕ МЕТКИ ===
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS reservoir_blacklist (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            week_key TEXT NOT NULL,
+            reason TEXT,
+            created_at TEXT NOT NULL,
+            UNIQUE(user_id, week_key)
+        )
+    """)
+
+    # === СУПЕР-АДМИН ===
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     hashed = _hash('admin123')
     cursor.execute("SELECT id FROM users WHERE username = %s", ('admin',))
@@ -314,7 +371,6 @@ def update_user_password(user_id, new_password):
 
 
 def update_user_role(user_id, new_role):
-    """Роли: player, reservoir, admin, super_admin."""
     if new_role not in ('player', 'reservoir', 'admin', 'super_admin'):
         return False
     conn = get_connection()
@@ -1034,3 +1090,369 @@ def reset_map_values():
         return False
     finally:
         conn.close()
+
+
+# ============================================================
+# РЕЗЕРВУАР: НЕДЕЛИ
+# ============================================================
+
+def _iso_week_key(dt=None):
+    dt = dt or datetime.now()
+    year, week, _ = dt.isocalendar()
+    return f"{year}-W{week:02d}"
+
+
+def _default_session_for_week(week_key):
+    """Чётная ISO-неделя → 14, нечётная → 22."""
+    try:
+        week_num = int(week_key.split('-W')[1])
+    except Exception:
+        return '14'
+    return '14' if week_num % 2 == 0 else '22'
+
+
+def get_or_create_reservoir_week(week_key=None):
+    """Возвращает актуальную запись недели, создавая при необходимости."""
+    week_key = week_key or _iso_week_key()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT week_key, session_time, session_time_overridden,
+                             roster_published, created_at, updated_at
+                      FROM reservoir_weeks WHERE week_key = %s""", (week_key,))
+    row = cursor.fetchone()
+
+    if row:
+        conn.close()
+        return {
+            'week_key': row[0],
+            'session_time': row[1],
+            'session_time_overridden': row[2],
+            'roster_published': row[3],
+            'created_at': row[4],
+            'updated_at': row[5],
+        }
+
+    # создаём новую
+    default_session = _default_session_for_week(week_key)
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""INSERT INTO reservoir_weeks
+                          (week_key, session_time, session_time_overridden, roster_published, created_at, updated_at)
+                          VALUES (%s, %s, FALSE, FALSE, %s, %s)""",
+                       (week_key, default_session, now, now))
+        conn.commit()
+    except Exception as e:
+        print(f"get_or_create_reservoir_week error: {e}")
+        conn.rollback()
+
+    conn.close()
+    return {
+        'week_key': week_key,
+        'session_time': default_session,
+        'session_time_overridden': False,
+        'roster_published': False,
+        'created_at': now,
+        'updated_at': now,
+    }
+
+
+def set_reservoir_session_time(week_key, session_time):
+    if session_time not in ('14', '22'):
+        return False
+    get_or_create_reservoir_week(week_key)  # гарантируем существование
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""UPDATE reservoir_weeks
+                          SET session_time = %s, session_time_overridden = TRUE, updated_at = %s
+                          WHERE week_key = %s""",
+                       (session_time, now, week_key))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"set_reservoir_session_time error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def set_reservoir_published(week_key, published):
+    get_or_create_reservoir_week(week_key)
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""UPDATE reservoir_weeks
+                          SET roster_published = %s, updated_at = %s
+                          WHERE week_key = %s""",
+                       (bool(published), now, week_key))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"set_reservoir_published error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_reservoir_week_history(limit=30):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT week_key, session_time, roster_published, created_at
+                      FROM reservoir_weeks
+                      ORDER BY week_key DESC LIMIT %s""", (limit,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+# ============================================================
+# РЕЗЕРВУАР: ЗАЯВКИ
+# ============================================================
+
+def get_reservoir_registrations(week_key):
+    """Возвращает список заявок с ником и мощью 1-го отряда."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT r.id, r.user_id, r.preferred_session, r.created_at,
+               u.username, u.linked_nickname, u.squad_1
+        FROM reservoir_registrations r
+        JOIN users u ON u.id = r.user_id
+        WHERE r.week_key = %s
+        ORDER BY u.squad_1 DESC NULLS LAST, r.created_at ASC
+    """, (week_key,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def get_reservoir_registration_for_user(week_key, user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, preferred_session, created_at
+                      FROM reservoir_registrations
+                      WHERE week_key = %s AND user_id = %s""",
+                   (week_key, user_id))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+
+def add_reservoir_registration(week_key, user_id, preferred_session):
+    if preferred_session not in ('14', '22', 'any'):
+        preferred_session = 'any'
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""INSERT INTO reservoir_registrations
+                          (week_key, user_id, preferred_session, created_at)
+                          VALUES (%s, %s, %s, %s)""",
+                       (week_key, user_id, preferred_session, now))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"add_reservoir_registration error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def cancel_reservoir_registration(week_key, user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""DELETE FROM reservoir_registrations
+                          WHERE week_key = %s AND user_id = %s""",
+                       (week_key, user_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"cancel_reservoir_registration error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+# ============================================================
+# РЕЗЕРВУАР: СОСТАВ
+# ============================================================
+
+def get_reservoir_roster(week_key):
+    """Возвращает список состава с ником, мощью, ролью, attended."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT r.id, r.user_id, r.role, r.attended,
+               u.username, u.linked_nickname, u.squad_1
+        FROM reservoir_roster r
+        JOIN users u ON u.id = r.user_id
+        WHERE r.week_key = %s
+        ORDER BY
+            CASE r.role WHEN 'core' THEN 0 ELSE 1 END,
+            u.squad_1 DESC NULLS LAST
+    """, (week_key,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def save_reservoir_roster(week_key, roster_items):
+    """
+    roster_items: список словарей [{'user_id': int, 'role': 'core'|'rotation'}, ...]
+    Полностью заменяет состав на текущую неделю.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        # сохраняем attended старых записей, чтобы не потерять
+        cursor.execute("""SELECT user_id, attended FROM reservoir_roster WHERE week_key = %s""",
+                       (week_key,))
+        old_attended = {row[0]: row[1] for row in cursor.fetchall()}
+
+        cursor.execute("DELETE FROM reservoir_roster WHERE week_key = %s", (week_key,))
+
+        for item in roster_items:
+            uid = int(item.get('user_id'))
+            role = item.get('role', 'rotation')
+            if role not in ('core', 'rotation'):
+                role = 'rotation'
+            attended = old_attended.get(uid, None)
+            cursor.execute("""INSERT INTO reservoir_roster
+                              (week_key, user_id, role, attended, created_at)
+                              VALUES (%s, %s, %s, %s, %s)""",
+                           (week_key, uid, role, attended, now))
+
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"save_reservoir_roster error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def set_reservoir_attendance(week_key, user_id, attended):
+    """attended: 1 — пришёл, 0 — не пришёл, None — сбросить."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""UPDATE reservoir_roster
+                          SET attended = %s
+                          WHERE week_key = %s AND user_id = %s""",
+                       (attended, week_key, user_id))
+        conn.commit()
+
+        # если attended = 0 → добавим чёрную метку на следующую неделю
+        if attended == 0:
+            next_week = _next_week_key(week_key)
+            try:
+                now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                cursor.execute("""INSERT INTO reservoir_blacklist
+                                  (user_id, week_key, reason, created_at)
+                                  VALUES (%s, %s, %s, %s)
+                                  ON CONFLICT (user_id, week_key) DO NOTHING""",
+                               (user_id, next_week,
+                                f'Не пришёл на игре недели {week_key}',
+                                now))
+                conn.commit()
+            except Exception as e:
+                print(f"blacklist auto-add error: {e}")
+                conn.rollback()
+
+        return True
+    except Exception as e:
+        print(f"set_reservoir_attendance error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def _next_week_key(week_key):
+    try:
+        year_part, week_part = week_key.split('-W')
+        year = int(year_part)
+        week = int(week_part)
+    except Exception:
+        return week_key
+
+    week += 1
+    if week > 52:
+        week = 1
+        year += 1
+    return f"{year}-W{week:02d}"
+
+
+# ============================================================
+# РЕЗЕРВУАР: ЧЁРНЫЕ МЕТКИ
+# ============================================================
+
+def get_blacklist_for_week(week_key):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT b.id, b.user_id, b.reason, b.created_at,
+               u.username, u.linked_nickname, u.squad_1
+        FROM reservoir_blacklist b
+        JOIN users u ON u.id = b.user_id
+        WHERE b.week_key = %s
+        ORDER BY b.created_at ASC
+    """, (week_key,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def is_user_blacklisted(week_key, user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, reason FROM reservoir_blacklist
+                      WHERE week_key = %s AND user_id = %s""",
+                   (week_key, user_id))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+
+def remove_from_blacklist(week_key, user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""DELETE FROM reservoir_blacklist
+                          WHERE week_key = %s AND user_id = %s""",
+                       (week_key, user_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"remove_from_blacklist error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_user_reservoir_history(user_id, limit=30):
+    """История участий игрока: [(week_key, role, attended), ...]."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT week_key, role, attended
+        FROM reservoir_roster
+        WHERE user_id = %s
+        ORDER BY week_key DESC LIMIT %s
+    """, (user_id, limit))
+    data = cursor.fetchall()
+    conn.close()
+    return data
