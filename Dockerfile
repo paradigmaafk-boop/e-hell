@@ -15,17 +15,16 @@ COPY . /app
 
 EXPOSE 8000
 
-# 1 CPU → 1 воркер с 8 потоками gthread.
-# --max-requests мягко перезапускает воркер каждые 500 запросов.
+# 2 CPU → 3 воркера × 4 потока = 12 параллельных запросов
 CMD ["gunicorn", "app:app", \
      "--bind", "0.0.0.0:8000", \
-     "--workers", "1", \
+     "--workers", "3", \
      "--worker-class", "gthread", \
-     "--threads", "8", \
+     "--threads", "4", \
      "--timeout", "120", \
      "--graceful-timeout", "30", \
      "--keep-alive", "5", \
-     "--max-requests", "500", \
-     "--max-requests-jitter", "50", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "100", \
      "--access-logfile", "-", \
      "--error-logfile", "-"]
