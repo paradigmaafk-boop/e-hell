@@ -106,12 +106,30 @@ def super_admin_required(f):
     return wrapper
 
 
+def reservoir_or_admin_required(f):
+    """Пускает admin, super_admin и reservoir."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Войдите, чтобы продолжить.')
+            return redirect(url_for('login'))
+        if session.get('role') not in ('admin', 'super_admin', 'reservoir'):
+            flash('Доступ только для администратора резервуара!')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return wrapper
+
+
 def is_admin():
     return session.get('role') in ('admin', 'super_admin')
 
 
 def is_super_admin():
     return session.get('role') == 'super_admin'
+
+
+def can_edit_reservoir():
+    return session.get('role') in ('admin', 'super_admin', 'reservoir')
 
 
 # ============================================================
@@ -123,29 +141,18 @@ def allowed_file(filename):
 
 
 def _parse_squad(raw):
-    """
-    Принимает строку. Возвращает:
-      - None, если пусто
-      - ("err") если не число
-      - строку в формате "103,5" если ок.
-    Правила: только цифры, одна точка или запятая, до 10 знаков,
-    до 4 знаков после запятой.
-    """
     if raw is None:
         return None
     raw = str(raw).strip()
     if raw == '':
         return None
 
-    # Заменяем запятую на точку для проверки
     normalized = raw.replace(',', '.')
-    # Разрешаем: 103, 103.5, 103,5, .5, 0.5, 100.50
     if not re.match(r'^\d*\.?\d*$', normalized):
         return 'err'
     if normalized == '.' or normalized == '':
         return 'err'
 
-    # Разделяем на целую и дробную
     if '.' in normalized:
         int_part, frac_part = normalized.split('.', 1)
         if frac_part == '':
@@ -156,7 +163,6 @@ def _parse_squad(raw):
         int_part = normalized
         frac_part = None
 
-    # Если после точки больше 4 знаков — обрежем
     if frac_part is not None:
         frac_part = frac_part[:4]
         if frac_part == '':
@@ -622,7 +628,7 @@ def cabinet_save_squads():
 def admin_roles_update():
     user_id = request.form.get('user_id', type=int)
     new_role = request.form.get('new_role', '').strip()
-    if not user_id or new_role not in ('player', 'admin', 'super_admin'):
+    if not user_id or new_role not in ('player', 'reservoir', 'admin', 'super_admin'):
         flash('Неверные данные.')
         return redirect(url_for('admin_panel'))
 
@@ -777,6 +783,9 @@ def admin_players_delete(user_id):
     if target[4] == 'admin' and not is_super_admin():
         flash('Только супер-администратор может удалять администраторов.')
         return redirect(url_for('admin_players'))
+    if target[4] == 'reservoir' and not is_super_admin():
+        flash('Только супер-администратор может удалять роль «Резервуар».')
+        return redirect(url_for('admin_players'))
     if delete_user(user_id):
         increment_counter('admin_actions')
         flash('Аккаунт удалён.')
@@ -795,7 +804,7 @@ def admin_players_change_username(user_id):
     if target[4] == 'super_admin' and not is_super_admin():
         flash('Только супер-администратор может менять супер-администратора.')
         return redirect(url_for('admin_players'))
-    if target[4] == 'admin' and not is_super_admin() and user_id != session['user_id']:
+    if target[4] in ('admin', 'reservoir') and not is_super_admin() and user_id != session['user_id']:
         flash('Только супер-администратор может менять других администраторов.')
         return redirect(url_for('admin_players'))
     new_username = request.form.get('new_username', '').strip()
@@ -822,7 +831,7 @@ def admin_players_change_password(user_id):
     if target[4] == 'super_admin' and not is_super_admin():
         flash('Только супер-администратор может менять пароль супер-администратора.')
         return redirect(url_for('admin_players'))
-    if target[4] == 'admin' and not is_super_admin() and user_id != session['user_id']:
+    if target[4] in ('admin', 'reservoir') and not is_super_admin() and user_id != session['user_id']:
         flash('Только супер-администратор может менять пароли других администраторов.')
         return redirect(url_for('admin_players'))
     new_password = request.form.get('new_password', '').strip()
@@ -845,7 +854,7 @@ def admin_players_change_role(user_id):
         flash('Пользователь не найден.')
         return redirect(url_for('admin_players'))
     new_role = request.form.get('new_role', '').strip()
-    if new_role not in ('player', 'admin'):
+    if new_role not in ('player', 'reservoir', 'admin'):
         flash('Неверная роль.')
         return redirect(url_for('admin_players'))
     if user_id == session['user_id']:
@@ -1064,11 +1073,14 @@ def consistently_underperforming(rating_type):
 def reservoir_map():
     count_once('visits', 'counted_visit')
     map_values = get_all_map_values()
-    return render_template('reservoir_map.html', map_values=map_values)
+    can_edit = can_edit_reservoir()
+    return render_template('reservoir_map.html',
+                           map_values=map_values,
+                           can_edit_reservoir=can_edit)
 
 
 @app.route('/api/reservoir-map/save', methods=['POST'])
-@admin_required
+@reservoir_or_admin_required
 def save_reservoir_map():
     try:
         data = request.get_json()
@@ -1085,7 +1097,7 @@ def save_reservoir_map():
 
 
 @app.route('/api/reservoir-map/reset', methods=['POST'])
-@admin_required
+@reservoir_or_admin_required
 def reset_reservoir_map():
     if reset_map_values():
         increment_counter('admin_actions')
