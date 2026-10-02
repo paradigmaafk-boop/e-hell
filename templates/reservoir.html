@@ -9,252 +9,212 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        .res-tabs {
+        /* === Навигация в стиле боковых кнопок (без заливки) === */
+        .res-nav {
             display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem 0 1rem;
+            gap: 0.6rem;
+            padding: 1.25rem 0 0;
             border-bottom: 1px solid var(--line);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.75rem;
             flex-wrap: wrap;
             align-items: center;
         }
-        .res-tab {
+        .res-nav-btn {
             padding: 0.7rem 1.4rem;
-            border-radius: 12px;
             border: 1px solid var(--line);
-            background: rgba(255,69,0,0.03);
+            border-radius: 10px;
             color: var(--muted);
             font-size: 0.9rem;
-            font-weight: 600;
+            font-weight: 500;
             text-decoration: none;
+            background: transparent;
+            cursor: pointer;
             transition: all 0.25s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            cursor: pointer;
+            position: relative;
+            bottom: -1px;
+            font-family: 'Inter', sans-serif;
         }
-        .res-tab:hover {
-            border-color: var(--accent);
+        .res-nav-btn:hover {
             color: var(--accent-warm);
-            background: rgba(255,69,0,0.08);
+            border-color: var(--accent);
         }
-        .res-tab.active {
-            background: linear-gradient(180deg, rgba(255,69,0,0.2), rgba(255,184,0,0.05));
+        .res-nav-btn.active {
+            color: var(--accent);
             border-color: var(--accent);
-            color: var(--accent-warm);
-            box-shadow: 0 0 20px rgba(255,69,0,0.25);
+            border-bottom-color: transparent;
+            background: transparent;
         }
 
-        .res-hero {
-            position: relative;
+        /* === Блок с записью === */
+        .res-session-block {
             padding: 2rem 1.75rem 1.75rem;
-            border-radius: 24px;
-            background: linear-gradient(180deg, rgba(30,15,8,0.95), rgba(8,4,2,0.98));
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(30,15,8,0.6), rgba(8,4,2,0.85));
             border: 1px solid var(--line);
+            margin-bottom: 1.75rem;
+            position: relative;
             overflow: hidden;
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 1.5rem;
-            align-items: center;
-            margin-bottom: 1.5rem;
         }
-        .res-hero::before {
+        .res-session-block::before {
             content: "";
             position: absolute;
             inset: -30%;
-            background: radial-gradient(circle at 30% 30%, rgba(255,69,0,0.25), transparent 60%);
+            background: radial-gradient(circle at 30% 30%, rgba(255,69,0,0.15), transparent 60%);
             pointer-events: none;
             z-index: 0;
             animation: resHeroPulse 6s ease-in-out infinite alternate;
         }
         @keyframes resHeroPulse {
-            0%   { opacity: 0.5; transform: scale(1); }
-            100% { opacity: 0.9; transform: scale(1.05); }
+            0%   { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.05); }
         }
-        .res-hero > * { position: relative; z-index: 1; }
+        .res-session-block > * { position: relative; z-index: 1; }
 
-        .res-hero-title {
-            font-family: 'Forum', serif;
-            font-size: 0.85rem;
+        .res-session-header {
+            font-size: 0.72rem;
             letter-spacing: 4px;
             text-transform: uppercase;
             color: var(--dim);
+            font-weight: 600;
             margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
         }
-        .res-hero-week {
+        .res-session-header .week-key {
             color: var(--accent-warm);
-            font-weight: 600;
-        }
-        .res-reg-inline {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.72rem;
-            letter-spacing: 1px;
-            font-weight: 600;
-            text-transform: none;
-            font-family: 'Inter', sans-serif;
-        }
-        .res-reg-inline.open {
-            background: rgba(20,40,20,0.5);
-            border: 1px solid rgba(60,200,100,0.5);
-            color: #7cf0a5;
-        }
-        .res-reg-inline.closed {
-            background: rgba(40,15,15,0.5);
-            border: 1px solid rgba(224,57,43,0.5);
-            color: #ffa090;
-        }
-        .res-reg-inline .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: regPulse 1.6s ease-in-out infinite;
-        }
-        @keyframes regPulse {
-            0%, 100% { opacity: 0.4; }
-            50%      { opacity: 1; }
         }
 
-        .res-session-plate {
-            display: inline-flex;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.25rem 1.75rem;
-            border-radius: 20px;
-            background: rgba(10,5,3,0.75);
-            border: 2px solid var(--accent);
-            box-shadow: 0 0 40px rgba(255,69,0,0.35), inset 0 0 30px rgba(255,69,0,0.1);
-        }
-        .res-session-plate.s14 {
-            border-color: #4a9eff;
-            box-shadow: 0 0 40px rgba(74,158,255,0.35), inset 0 0 30px rgba(74,158,255,0.1);
-        }
-        .res-session-plate.s22 {
-            border-color: #ff8a1f;
-            box-shadow: 0 0 40px rgba(255,138,31,0.35), inset 0 0 30px rgba(255,138,31,0.1);
-        }
-
-        .res-session-label {
-            font-size: 0.72rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--dim);
-            font-weight: 600;
-        }
-        .res-session-day {
-            font-family: 'Forum', serif;
-            font-size: 1.1rem;
-            color: var(--text);
-            letter-spacing: 2px;
-            margin-bottom: 0.3rem;
-        }
-        .res-session-time {
-            font-family: 'Forum', serif;
-            font-size: 4.2rem;
-            font-weight: 700;
-            line-height: 0.95;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 4px;
-        }
-        .res-session-plate.s14 .res-session-time {
-            color: #4a9eff;
-            text-shadow: 0 0 30px rgba(74,158,255,0.7);
-        }
-        .res-session-plate.s22 .res-session-time {
-            color: #ff8a1f;
-            text-shadow: 0 0 30px rgba(255,138,31,0.7);
-        }
-        .res-session-unit {
-            font-size: 1.4rem;
-            color: var(--dim);
-            letter-spacing: 2px;
-        }
-
-        .res-hero-actions {
+        .res-session-info {
             display: flex;
-            flex-direction: column;
-            gap: 0.6rem;
-            align-items: flex-end;
-        }
-
-        .res-register {
-            padding: 1.5rem 1.75rem;
-            border-radius: 18px;
-            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
-            border: 1px solid var(--line);
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 0.5rem 1.5rem;
             margin-bottom: 1.5rem;
         }
-        .res-register h3 {
-            font-size: 0.72rem;
-            color: var(--accent-warm);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 10px rgba(255,184,0,0.35);
-        }
-        .res-register-form {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .res-session-radio {
-            display: flex;
+        .res-session-item {
+            display: inline-flex;
+            align-items: baseline;
             gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .res-session-radio label {
-            cursor: pointer;
-            padding: 0.6rem 1.1rem;
-            border-radius: 10px;
-            border: 1px solid var(--line);
-            background: rgba(255,69,0,0.03);
+            font-size: 0.95rem;
             color: var(--muted);
-            font-size: 0.88rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            user-select: none;
         }
-        .res-session-radio label:hover {
-            border-color: var(--accent);
-            color: var(--accent-warm);
+        .res-session-item .label {
+            color: var(--dim);
+            font-size: 0.82rem;
+            letter-spacing: 0.5px;
         }
-        .res-session-radio input { display: none; }
-        .res-session-radio label.checked {
-            border-color: var(--accent);
-            background: rgba(255,69,0,0.15);
-            color: var(--accent-warm);
-            box-shadow: 0 0 15px rgba(255,69,0,0.3);
+        .res-session-item .value {
+            font-family: 'Forum', serif;
+            font-size: 1.3rem;
+            color: var(--text);
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        .res-session-item .value.time-14 {
+            color: #4a9eff;
+            text-shadow: 0 0 12px rgba(74,158,255,0.5);
+        }
+        .res-session-item .value.time-22 {
+            color: #ff8a1f;
+            text-shadow: 0 0 12px rgba(255,138,31,0.5);
         }
 
-        .res-info-plate {
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            background: rgba(10,5,3,0.5);
-            border: 1px solid var(--line-soft);
-            font-size: 0.88rem;
-            color: var(--muted);
-            line-height: 1.5;
+        .res-register-btn-block {
+            margin-top: 0.5rem;
         }
-        .res-info-plate.warn {
-            border-color: rgba(224,57,43,0.4);
-            background: rgba(40,15,15,0.35);
+
+        .res-big-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.9rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1.5px solid var(--accent);
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            min-width: 220px;
+        }
+        .res-big-btn-primary {
+            background: linear-gradient(135deg, #ff4500, #ffb800);
+            color: #1a0f05;
+        }
+        .res-big-btn-primary:hover {
+            box-shadow: 0 0 25px rgba(255,90,0,0.6);
+            transform: translateY(-1px);
+        }
+        .res-big-btn-secondary {
+            background: rgba(255,69,0,0.06);
+            color: var(--accent-warm);
+            border-color: var(--line);
+        }
+        .res-big-btn-secondary:hover {
+            border-color: var(--accent);
+            background: rgba(255,69,0,0.15);
+        }
+        .res-big-btn-danger {
+            background: rgba(224,57,43,0.06);
+            color: #ff9070;
+            border-color: rgba(224,57,43,0.5);
+        }
+        .res-big-btn-danger:hover {
+            border-color: #e0392b;
+            background: rgba(224,57,43,0.15);
             color: #ffa090;
         }
-        .res-info-plate.ok {
-            border-color: rgba(60,200,100,0.4);
-            background: rgba(20,40,20,0.35);
-            color: #7cf0a5;
+        .res-big-btn-disabled {
+            background: rgba(120,120,120,0.08);
+            color: var(--dim);
+            border-color: var(--line);
+            cursor: not-allowed;
         }
+
+        /* Информация о поданной заявке */
+        .res-my-registration {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            background: rgba(20,40,20,0.3);
+            border: 1px solid rgba(60,200,100,0.4);
+            color: #7cf0a5;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        .res-my-registration b { color: #a8ffc8; }
+
+        /* Сообщение о невозможности регистрации (кроме "закрыта") */
+        .res-warn-msg {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            background: rgba(40,15,15,0.3);
+            border: 1px solid rgba(224,57,43,0.4);
+            color: #ffa090;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        /* === Табы для истории === */
+        .res-tab-content { display: none; }
+        .res-tab-content.active { display: block; }
+
+        /* Секция управления для админов */
+        .res-manage-bar {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            padding: 1rem 1.25rem;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(40,20,10,0.9), rgba(15,8,3,0.95));
+            border: 1px solid var(--accent);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 25px rgba(255,69,0,0.15);
+        }
+        .res-manage-bar .btn { font-size: 0.85rem; }
 
         .res-grid {
             display: grid;
@@ -399,19 +359,7 @@
         .res-action-btn.attend-no { border-color: rgba(224,57,43,0.5); color: #ffa090; }
         .res-action-btn.attend-no.active { background: rgba(224,57,43,0.25); border-color: #ff5a5a; color: #fff; }
 
-        .res-manage-bar {
-            display: flex;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            padding: 1rem 1.25rem;
-            border-radius: 14px;
-            background: linear-gradient(180deg, rgba(40,20,10,0.9), rgba(15,8,3,0.95));
-            border: 1px solid var(--accent);
-            margin-bottom: 1.5rem;
-            box-shadow: 0 0 25px rgba(255,69,0,0.15);
-        }
-        .res-manage-bar .btn { font-size: 0.85rem; }
-
+        /* История */
         .res-history-week {
             padding: 1.25rem 1.5rem;
             border-radius: 14px;
@@ -470,6 +418,7 @@
         .res-history-player .mark-no { color: #ff5a5a; font-weight: 700; }
         .res-history-player .mark-unknown { color: var(--dim); }
 
+        /* Модальные окна */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -484,7 +433,7 @@
         .modal-overlay.show { display: flex; }
         .modal-box {
             width: 100%;
-            max-width: 520px;
+            max-width: 480px;
             padding: 2rem 1.85rem;
             background: linear-gradient(180deg, #150a04, #050101);
             border: 1px solid var(--accent);
@@ -503,58 +452,43 @@
             text-transform: uppercase;
             color: var(--accent-warm);
             text-align: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             text-shadow: 0 0 12px rgba(255,184,0,0.5);
         }
-        .time-choice {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+        .modal-text {
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.95rem;
+            line-height: 1.6;
             margin-bottom: 1.5rem;
         }
-        .time-choice button {
-            padding: 1.5rem 1rem;
-            border-radius: 14px;
-            border: 2px solid var(--line);
-            background: rgba(10,5,3,0.6);
-            color: var(--text);
-            font: inherit;
-            font-size: 2rem;
-            font-family: 'Forum', serif;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            letter-spacing: 3px;
+        .modal-text b {
+            color: var(--accent-warm);
+            font-weight: 600;
         }
-        .time-choice button.t14 {
-            border-color: rgba(74,158,255,0.5);
-            color: #8ed6ff;
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
         }
-        .time-choice button.t14:hover {
-            border-color: #4a9eff;
-            box-shadow: 0 0 25px rgba(74,158,255,0.5);
-            background: rgba(74,158,255,0.15);
-        }
-        .time-choice button.t22 {
-            border-color: rgba(255,138,31,0.5);
-            color: #ff8a1f;
-        }
-        .time-choice button.t22:hover {
-            border-color: #ff8a1f;
-            box-shadow: 0 0 25px rgba(255,138,31,0.5);
-            background: rgba(255,138,31,0.15);
-        }
-        .modal-actions { display: flex; justify-content: center; }
+        .modal-actions .btn { min-width: 140px; }
 
         @media (max-width: 700px) {
-            .res-hero { grid-template-columns: 1fr; }
-            .res-hero-actions { align-items: stretch; }
-            .res-session-plate { justify-content: center; text-align: center; padding: 1rem 1.25rem; }
-            .res-session-time { font-size: 3rem; }
-            .res-session-unit { font-size: 1rem; }
+            .res-nav {
+                gap: 0.4rem;
+                padding: 1rem 0 0;
+                margin-bottom: 1.25rem;
+            }
+            .res-nav-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.82rem;
+                flex: 1 1 auto;
+                justify-content: center;
+            }
+            .res-session-block { padding: 1.5rem 1.25rem 1.25rem; }
+            .res-session-item .value { font-size: 1.15rem; }
+            .res-big-btn { width: 100%; min-width: 0; }
             .res-player-row { grid-template-columns: 1fr auto; font-size: 0.85rem; }
-            .res-tabs { flex-direction: column; align-items: stretch; }
-            .res-tab { justify-content: center; }
         }
     </style>
 </head>
@@ -648,11 +582,6 @@
         {% endif %}
     </nav>
 
-    <div class="page-head">
-        <h1 class="page-title">Резервуар</h1>
-        <p class="page-sub">Регистрация, состав и история игры</p>
-    </div>
-
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
@@ -661,64 +590,88 @@
         {% endif %}
     {% endwith %}
 
-    <div class="res-tabs">
-        <button class="res-tab active" data-tab="roster" type="button">
+    <!-- === Навигация раздела (в стиле кнопок) === -->
+    <div class="res-nav">
+        <a href="#" class="res-nav-btn active" data-tab="roster" onclick="switchResTab(event, 'roster')">
             Состав и заявки
-        </button>
-        <button class="res-tab" data-tab="history" type="button">
+        </a>
+        <a href="#" class="res-nav-btn" data-tab="history" onclick="switchResTab(event, 'history')">
             История
-        </button>
-        <a href="/reservoir/map" class="res-tab">
+        </a>
+        <a href="/reservoir/map" class="res-nav-btn">
             Карта боя
         </a>
     </div>
 
-    <div id="tab-roster" class="res-tab-content">
+    <!-- === Блок записи === -->
+    <div class="res-tab-content active" id="tab-roster">
 
-        <section class="res-hero">
-            <div>
-                <div class="res-hero-title">
-                    <span>Резервуар · неделя <span class="res-hero-week">{{ week.week_key }}</span></span>
-                    <span class="res-reg-inline {% if reg_status.is_open %}open{% else %}closed{% endif %}">
-                        <span class="dot"></span>
-                        {{ reg_status.message }}
-                    </span>
-                </div>
-
-                <div class="res-session-plate s{{ week.session_time }}">
-                    <div>
-                        <div class="res-session-label">Играем в</div>
-                        <div class="res-session-time">
-                            {{ week.session_time }}<span class="res-session-unit">:00</span>
-                        </div>
-                        <div class="res-session-day">
-                            {% if reg_status.is_open %}
-                                Воскресенье на этой неделе
-                            {% else %}
-                                Воскресенье этой недели
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+        <section class="res-session-block">
+            <div class="res-session-header">
+                Игра №<span class="week-key">{{ week.week_key }}</span>
             </div>
 
-            <div class="res-hero-actions">
-                {% if week.roster_published %}
-                <div class="res-status-badge published" style="padding:0.7rem 1.25rem; border-radius:12px; background: rgba(40,25,5,0.4); border:1px solid rgba(255,184,0,0.5); color: var(--accent-warm); font-size:0.85rem; text-align:center;">
-                    Состав опубликован
+            <div class="res-session-info">
+                <div class="res-session-item">
+                    <span class="label">Дата игры:</span>
+                    <span class="value">{{ game_date_str }} (воскресенье)</span>
                 </div>
-                {% else %}
-                <div class="res-status-badge" style="padding:0.7rem 1.25rem; border-radius:12px; background: rgba(10,5,3,0.6); border:1px solid var(--line); font-size:0.85rem; text-align:center;">
-                    Состав ещё не опубликован
+                <div class="res-session-item">
+                    <span class="label">Время игры:</span>
+                    <span class="value time-{{ week.session_time }}">{{ week.session_time }}:00</span>
                 </div>
-                {% endif %}
-
                 {% if can_edit %}
-                <button type="button" class="btn btn-small" onclick="openTimeModal()">Изменить время</button>
+                <button type="button" class="res-nav-btn" onclick="openTimeModal()" style="margin-left: auto;">
+                    ✎ Изменить время
+                </button>
                 {% endif %}
             </div>
+
+            {% if session.get('user_id') %}
+                {% if my_registration %}
+                    <div class="res-my-registration">
+                        ✓ Вы записаны. Предпочтение:
+                        {% if my_registration[1] == '14' %}14:00
+                        {% elif my_registration[1] == '22' %}22:00
+                        {% else %}не важно{% endif %}
+                        · {{ my_registration[2][:16] }}
+                    </div>
+                    {% if reg_status.is_open %}
+                    <form method="POST" action="/reservoir/unregister"
+                          onsubmit="return confirm('Отменить заявку?');">
+                        <button type="submit" class="res-big-btn res-big-btn-danger">Отменить заявку</button>
+                    </form>
+                    {% else %}
+                    <div class="res-warn-msg">Регистрация закрыта — отменить заявку уже нельзя.</div>
+                    {% endif %}
+                {% elif my_can_register %}
+                    <form method="POST" action="/reservoir/register" id="registerForm">
+                        <div class="res-register-btn-block">
+                            <button type="submit" class="res-big-btn res-big-btn-primary">
+                                ⚔ Записаться на игру
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <!-- Кнопка «Регистрация»: если что-то мешает — модалка -->
+                    <div class="res-register-btn-block">
+                        <button type="button" class="res-big-btn res-big-btn-secondary"
+                                onclick="openRegistrationInfoModal()">
+                            📝 Регистрация
+                        </button>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="res-register-btn-block">
+                    <button type="button" class="res-big-btn res-big-btn-secondary"
+                            onclick="openRegistrationInfoModal()">
+                        📝 Регистрация
+                    </button>
+                </div>
+            {% endif %}
         </section>
 
+        <!-- Админский блок управления -->
         {% if can_edit %}
         <section class="res-manage-bar">
             <form method="POST" action="/reservoir/admin/save-roster" id="saveRosterForm" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
@@ -735,57 +688,6 @@
                 <button type="submit" class="btn">Снять с публикации</button>
             </form>
             {% endif %}
-        </section>
-        {% endif %}
-
-        {% if session.get('user_id') %}
-        <section class="res-register">
-            <h3>Заявка на игру</h3>
-
-            {% if my_registration %}
-                <div class="res-info-plate ok" style="margin-bottom: 1rem;">
-                    Вы подали заявку. Предпочтение:
-                    {% if my_registration[1] == '14' %}14:00
-                    {% elif my_registration[1] == '22' %}22:00
-                    {% else %}не важно{% endif %}
-                    · {{ my_registration[2][:16] }}
-                </div>
-                {% if reg_status.is_open %}
-                <form method="POST" action="/reservoir/unregister"
-                      onsubmit="return confirm('Отменить заявку?');">
-                    <button type="submit" class="btn btn-danger">Отменить заявку</button>
-                </form>
-                {% else %}
-                <div class="res-info-plate warn">Регистрация закрыта — отменить заявку уже нельзя.</div>
-                {% endif %}
-            {% elif my_can_register %}
-                <form method="POST" action="/reservoir/register" class="res-register-form" id="registerForm">
-                    <div class="res-session-radio" id="sessionRadio">
-                        <label class="checked">
-                            <input type="radio" name="preferred_session" value="any" checked>
-                            <span>Без разницы</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="preferred_session" value="14">
-                            <span>Хочу в 14:00</span>
-                        </label>
-                        <label>
-                            <input type="radio" name="preferred_session" value="22">
-                            <span>Хочу в 22:00</span>
-                        </label>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Подать заявку</button>
-                </form>
-            {% else %}
-                <div class="res-info-plate warn">{{ my_cannot_reason }}</div>
-            {% endif %}
-        </section>
-        {% else %}
-        <section class="res-register">
-            <div class="res-info-plate">
-                Чтобы подать заявку, <a href="/login" style="color: var(--accent-warm);">войдите</a> или
-                <a href="/register" style="color: var(--accent-warm);">зарегистрируйтесь</a>.
-            </div>
         </section>
         {% endif %}
 
@@ -970,10 +872,9 @@
 
     </div>
 
-    <div id="tab-history" class="res-tab-content" style="display:none;">
+    <!-- === История === -->
+    <div class="res-tab-content" id="tab-history">
         <section class="section">
-            <div class="section-title">История недель</div>
-
             {% if history_data %}
                 {% for h in history_data %}
                 <div class="res-history-week" onclick="toggleHistoryWeek(this)">
@@ -1035,21 +936,20 @@
 
 </div>
 
+<!-- === Модалка: время сессии === -->
 {% if can_edit %}
 <div class="modal-overlay" id="timeModal">
     <div class="modal-box">
         <div class="modal-title">Время сессии</div>
-        <p style="color: var(--muted); text-align:center; font-size: 0.85rem; margin-bottom: 1.5rem;">
-            Выберите во сколько играем на этой неделе
-        </p>
-        <div class="time-choice">
+        <p class="modal-text">Выберите во сколько играем на этой неделе</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
             <form method="POST" action="/reservoir/admin/set-session">
                 <input type="hidden" name="session_time" value="14">
-                <button type="submit" class="t14">14:00</button>
+                <button type="submit" style="width:100%; padding: 1.2rem 0.6rem; border-radius: 14px; border: 2px solid rgba(74,158,255,0.5); background: rgba(10,5,3,0.6); color: #8ed6ff; font: inherit; font-size: 1.6rem; font-family: 'Forum', serif; font-weight: 700; cursor: pointer; letter-spacing: 3px;">14:00</button>
             </form>
             <form method="POST" action="/reservoir/admin/set-session">
                 <input type="hidden" name="session_time" value="22">
-                <button type="submit" class="t22">22:00</button>
+                <button type="submit" style="width:100%; padding: 1.2rem 0.6rem; border-radius: 14px; border: 2px solid rgba(255,138,31,0.5); background: rgba(10,5,3,0.6); color: #ff8a1f; font: inherit; font-size: 1.6rem; font-family: 'Forum', serif; font-weight: 700; cursor: pointer; letter-spacing: 3px;">22:00</button>
             </form>
         </div>
         <div class="modal-actions">
@@ -1059,31 +959,60 @@
 </div>
 {% endif %}
 
-<script>
-    document.querySelectorAll('.res-tab[data-tab]').forEach(tab => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.res-tab[data-tab]').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const target = tab.dataset.tab;
-            document.querySelectorAll('.res-tab-content').forEach(c => c.style.display = 'none');
-            document.getElementById('tab-' + target).style.display = '';
-        });
-    });
+<!-- === Модалка: регистрация недоступна === -->
+<div class="modal-overlay" id="registrationInfoModal">
+    <div class="modal-box">
+        <div class="modal-title">Регистрация недоступна</div>
+        <p class="modal-text">
+            {% if session.get('user_id') and my_cannot_reason and my_cannot_reason != reg_status.message %}
+                {{ my_cannot_reason }}
+            {% elif not session.get('user_id') %}
+                Чтобы записаться, <a href="/login" style="color: var(--accent-warm);">войдите</a> или
+                <a href="/register" style="color: var(--accent-warm);">зарегистрируйтесь</a>.
+            {% else %}
+                Регистрация откроется <b>{{ registration_opens_str }}</b>.
+            {% endif %}
+        </p>
+        <div class="modal-actions">
+            <button type="button" class="btn btn-primary" onclick="closeRegistrationInfoModal()">Понятно</button>
+        </div>
+    </div>
+</div>
 
+<script>
+    // === Переключение табов ===
+    function switchResTab(e, tabName) {
+        if (e) e.preventDefault();
+        document.querySelectorAll('.res-nav-btn[data-tab]').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.res-tab-content').forEach(c => c.classList.remove('active'));
+        const btn = document.querySelector('.res-nav-btn[data-tab="' + tabName + '"]');
+        const content = document.getElementById('tab-' + tabName);
+        if (btn) btn.classList.add('active');
+        if (content) content.classList.add('active');
+    }
+
+    // === Модалки ===
     function openTimeModal() {
         document.getElementById('timeModal').classList.add('show');
     }
     function closeTimeModal() {
         document.getElementById('timeModal').classList.remove('show');
     }
+    function openRegistrationInfoModal() {
+        document.getElementById('registrationInfoModal').classList.add('show');
+    }
+    function closeRegistrationInfoModal() {
+        document.getElementById('registrationInfoModal').classList.remove('show');
+    }
 
-    document.querySelectorAll('.res-session-radio label').forEach(label => {
-        label.addEventListener('click', () => {
-            document.querySelectorAll('.res-session-radio label').forEach(l => l.classList.remove('checked'));
-            label.classList.add('checked');
+    // Закрытие по клику на фон
+    document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', (e) => {
+            if (e.target === m) m.classList.remove('show');
         });
     });
 
+    // === Ростер ===
     function getRosterUserIds() {
         const ids = [];
         document.querySelectorAll('#rosterList .res-player-row[data-user-id]').forEach(row => {
@@ -1093,14 +1022,17 @@
     }
 
     function updateRosterCounter() {
+        const el = document.getElementById('rosterCount');
+        if (!el) return;
         const ids = getRosterUserIds();
-        document.getElementById('rosterCount').textContent = ids.length + ' / 30';
+        el.textContent = ids.length + ' / 30';
     }
 
     function buildHiddenFields() {
         const coreList = document.getElementById('coreList');
         const rotationList = document.getElementById('rotationList');
         const hidden = document.getElementById('rosterHiddenFields');
+        if (!hidden) return;
         hidden.innerHTML = '';
 
         coreList.querySelectorAll('.res-player-row[data-user-id]').forEach(row => {
@@ -1170,16 +1102,19 @@
         body.classList.toggle('open');
     }
 
+    // === Тема ===
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
-    toggleBtn.addEventListener('click', () => {
-        body.classList.toggle('light-theme');
-        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
-        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
-    });
-    if (localStorage.getItem('theme') === 'light') {
-        body.classList.add('light-theme');
-        toggleBtn.textContent = '☀️';
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
     }
 </script>
 
