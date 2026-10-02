@@ -1439,3 +1439,30 @@ def get_user_reservoir_history(user_id, limit=30):
     data = cursor.fetchall()
     conn.close()
     return data
+# ============================================================
+# ДАТА ПОСЛЕДНЕГО ОБНОВЛЕНИЯ РЕЙТИНГА
+# ============================================================
+
+def get_last_update_date(rating_type):
+    """
+    Возвращает дату последнего обновления рейтинга
+    в формате DD.MM.YYYY, либо None если данных нет.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT MAX(date) FROM history_{rating_type}")
+        row = cursor.fetchone()
+        if not row or not row[0]:
+            return None
+        # date хранится как 'YYYY-MM-DD HH:MM:SS'
+        date_str = str(row[0])[:10]  # 'YYYY-MM-DD'
+        parts = date_str.split('-')
+        if len(parts) == 3:
+            return f"{parts[2]}.{parts[1]}.{parts[0]}"  # DD.MM.YYYY
+        return date_str
+    except Exception as e:
+        print(f"get_last_update_date error: {e}")
+        return None
+    finally:
+        conn.close()
