@@ -76,10 +76,8 @@
             text-shadow: none;
             font-size: 2rem;
         }
-        .cab-sub {
-            color: var(--muted);
-            font-size: 0.92rem;
-        }
+        .cab-sub { color: var(--muted); font-size: 0.92rem; }
+
         .cab-stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -107,6 +105,97 @@
             color: var(--dim);
             text-transform: uppercase;
             letter-spacing: 2px;
+        }
+
+        /* Боевая мощь отрядов */
+        .squads-block {
+            margin-top: 2rem;
+            padding: 1.5rem 1.6rem;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
+            border: 1px solid var(--line);
+            box-shadow: 0 0 25px rgba(255,184,0,0.06);
+        }
+        .squads-block h3 {
+            font-size: 0.72rem;
+            color: var(--accent-warm);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(255,184,0,0.35);
+        }
+        .squads-hint {
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+        }
+        .squads-hint b {
+            color: var(--accent-warm);
+            font-weight: 600;
+        }
+        .squads-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .squad-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .squad-field label {
+            font-size: 0.72rem;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 500;
+            text-align: center;
+        }
+        .squad-field input {
+            padding: 0.7rem 0.8rem;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--panel);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .squad-field input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(255,69,0,0.15);
+        }
+        .squad-field input::placeholder {
+            color: var(--dim);
+            font-size: 0.85rem;
+        }
+        .squads-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .squads-actions .btn { min-width: 180px; }
+        .squads-saved-hint {
+            font-size: 0.78rem;
+            color: var(--dim);
+            font-style: italic;
+            margin-left: auto;
+        }
+        body.light-theme .squads-block { background: #fff8ec; }
+
+        @media (max-width: 780px) {
+            .squads-grid { grid-template-columns: repeat(2, 1fr); }
+            .squads-grid .squad-field:last-child { grid-column: 1 / -1; }
+        }
+        @media (max-width: 480px) {
+            .squads-grid { grid-template-columns: 1fr 1fr; }
         }
 
         .apples-block {
@@ -152,6 +241,8 @@
             margin-left: 0.4rem;
         }
         .apples-item .val.zero { color: var(--dim); }
+        body.light-theme .apples-block { background: #fff5e6; }
+        body.light-theme .apples-item { background: #fff8ec; }
 
         .cab-info {
             margin-top: 2rem;
@@ -261,8 +352,6 @@
         body.light-theme .cab-stat { background: #fff8ec; }
         body.light-theme .cab-info { background: #fff8ec; }
         body.light-theme .preview-block { background: #fff8ec; }
-        body.light-theme .apples-block { background: #fff5e6; }
-        body.light-theme .apples-item { background: #fff8ec; }
 
         @media (max-width: 600px) {
             .cab-nickname { font-size: 1.8rem; letter-spacing: 2px; }
@@ -383,6 +472,43 @@
             <p class="cab-sub">Вы ещё не привязаны ни к одному нику в рейтинге.</p>
         {% endif %}
 
+    </section>
+
+    <section class="squads-block">
+        <h3>⚔ Боевая мощь отрядов</h3>
+        <p class="squads-hint">
+            Введите мощь каждого отряда. Формат ввода: <b>103,5</b> или <b>103.5</b>.
+            Сохраняется в виде <b>103,5</b>. Пустое поле — допустимо.
+        </p>
+
+        <form method="POST" action="/cabinet/save-squads">
+            <div class="squads-grid">
+                <div class="squad-field">
+                    <label>1 отряд</label>
+                    <input type="text" name="squad_1" value="{{ squads[0] or '' }}" placeholder="0,0" inputmode="decimal" autocomplete="off">
+                </div>
+                <div class="squad-field">
+                    <label>2 отряд</label>
+                    <input type="text" name="squad_2" value="{{ squads[1] or '' }}" placeholder="0,0" inputmode="decimal" autocomplete="off">
+                </div>
+                <div class="squad-field">
+                    <label>3 отряд</label>
+                    <input type="text" name="squad_3" value="{{ squads[2] or '' }}" placeholder="0,0" inputmode="decimal" autocomplete="off">
+                </div>
+                <div class="squad-field">
+                    <label>4 отряд</label>
+                    <input type="text" name="squad_4" value="{{ squads[3] or '' }}" placeholder="0,0" inputmode="decimal" autocomplete="off">
+                </div>
+                <div class="squad-field">
+                    <label>5 отряд</label>
+                    <input type="text" name="squad_5" value="{{ squads[4] or '' }}" placeholder="0,0" inputmode="decimal" autocomplete="off">
+                </div>
+            </div>
+            <div class="squads-actions">
+                <button type="submit" class="btn btn-primary">💾 Сохранить мощь отрядов</button>
+                <span class="squads-saved-hint">Можно обновлять в любой момент</span>
+            </div>
+        </form>
     </section>
 
     {% if player.linked_nickname %}
