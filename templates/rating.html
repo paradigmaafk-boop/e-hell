@@ -81,14 +81,11 @@
             word-break: break-word;
             margin-bottom: 1.5rem;
         }
-        .tooltip-modal-actions {
-            display: flex;
-            justify-content: center;
-        }
+        .tooltip-modal-actions { display: flex; justify-content: center; }
         .tooltip-modal-actions .btn { min-width: 140px; }
         body.light-theme .tooltip-modal-box { background: #fffaf2; }
 
-        /* === Яблоки === */
+        /* Apples */
         .apples-badge {
             display: inline-flex;
             align-items: center;
@@ -105,7 +102,6 @@
             vertical-align: middle;
             transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
-        /* Анимация "набегания" бейджа после подарка */
         .apples-badge.bump {
             animation: appleBump 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -116,7 +112,35 @@
             100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,90,90,0); background: rgba(255, 60, 60, 0.08); }
         }
 
-        /* Летящее яблоко от кнопки к бейджу */
+        /* Боевая мощь 1-го отряда */
+        .squad-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-left: 0.55rem;
+            padding: 0.15rem 0.6rem 0.15rem 0.5rem;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255,184,0,0.18), rgba(255,120,0,0.08));
+            border: 1px solid rgba(255,184,0,0.5);
+            color: var(--accent-warm);
+            font-size: 0.78rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            vertical-align: middle;
+            text-shadow: 0 0 6px rgba(255,184,0,0.4);
+            box-shadow: 0 0 10px rgba(255,184,0,0.15), inset 0 1px 0 rgba(255,220,140,0.15);
+            transition: all 0.25s ease;
+        }
+        .squad-badge .sb-icon {
+            font-size: 0.72rem;
+            opacity: 0.85;
+            filter: drop-shadow(0 0 4px rgba(255,184,0,0.6));
+        }
+        .squad-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 16px rgba(255,184,0,0.4), inset 0 1px 0 rgba(255,220,140,0.25);
+        }
+
         .flying-apple {
             position: fixed;
             font-size: 1.4rem;
@@ -151,14 +175,8 @@
             box-shadow: 0 0 15px rgba(255, 60, 60, 0.5);
             transform: scale(1.1);
         }
-        .apple-btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.45;
-        }
-        /* Лёгкий "толчок" кнопки при клике */
-        .apple-btn.clicked {
-            animation: appleClick 0.4s ease;
-        }
+        .apple-btn:disabled { cursor: not-allowed; opacity: 0.45; }
+        .apple-btn.clicked { animation: appleClick 0.4s ease; }
         @keyframes appleClick {
             0%   { transform: scale(1); }
             30%  { transform: scale(0.82); }
@@ -190,7 +208,6 @@
             transition: color 0.3s ease;
         }
         .apple-counter-plate .counter-num.zero { color: var(--dim); }
-        /* Пульс цифры после подарка */
         .apple-counter-plate .counter-num.pop {
             animation: counterPop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -399,6 +416,7 @@
             {% if rating_type == 'total' %}
                 {% set nick = row[0] %}
                 {% set apples = apples_map.get(nick, 0) %}
+                {% set squad1 = squads_map.get(nick) %}
 
                 <div class="rating-row {{ css_class }}" data-nick="{{ nick }}">
                     <div class="rating-circle">{{ place }}</div>
@@ -406,11 +424,20 @@
                     <div class="rating-info">
                         <a href="/player/duel/{{ row[0] }}" class="rating-name">
                             {{ row[0] }}
-                            <span class="apples-badge {% if apples == 0 %}hidden-zero{% endif %}"
-                                  data-apples-for="{{ nick }}"
-                                  style="{% if apples == 0 %}display: none;{% endif %}">
-                                🍎 <span class="apples-num">{{ apples }}</span>
-                            </span>
+                            {% if squad1 %}
+                                <span class="squad-badge" title="Боевая мощь 1-го отряда">
+                                    <span class="sb-icon">⚔</span>{{ squad1 }}
+                                </span>
+                            {% endif %}
+                            {% if apples > 0 %}
+                                <span class="apples-badge" data-apples-for="{{ nick }}">
+                                    🍎 <span class="apples-num">{{ apples }}</span>
+                                </span>
+                            {% else %}
+                                <span class="apples-badge" data-apples-for="{{ nick }}" style="display:none;">
+                                    🍎 <span class="apples-num">0</span>
+                                </span>
+                            {% endif %}
                         </a>
                         <div class="rating-tier">
                             {% if place == 1 %}💎 Алмаз
@@ -558,27 +585,20 @@
         }, 2200);
     }
 
-    // Летящее яблоко от кнопки к бейджу
     function animateFlyingApple(btn, targetEl, onEnd) {
         const btnRect = btn.getBoundingClientRect();
         const tgtRect = targetEl.getBoundingClientRect();
-
         const fly = document.createElement('div');
         fly.className = 'flying-apple';
         fly.textContent = '🍎';
         fly.style.left = (btnRect.left + btnRect.width / 2 - 12) + 'px';
         fly.style.top  = (btnRect.top + btnRect.height / 2 - 12) + 'px';
         document.body.appendChild(fly);
-
-        // Принудительный reflow для старта transition
         void fly.offsetWidth;
-
         const dx = (tgtRect.left + tgtRect.width / 2) - (btnRect.left + btnRect.width / 2);
         const dy = (tgtRect.top + tgtRect.height / 2) - (btnRect.top + btnRect.height / 2);
-
         fly.style.transform = `translate(${dx}px, ${dy}px) scale(0.7)`;
         fly.style.opacity = '0.2';
-
         setTimeout(() => {
             fly.remove();
             if (onEnd) onEnd();
@@ -592,7 +612,6 @@
         if (!counterNum) return;
         counterNum.textContent = applesLeft;
         if (applesLeft <= 0) counterNum.classList.add('zero');
-        // Пульс
         counterNum.classList.remove('pop');
         void counterNum.offsetWidth;
         counterNum.classList.add('pop');
@@ -609,13 +628,9 @@
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
             const nickname = btn.dataset.nickname;
-
-            // Анимация нажатия кнопки
             btn.classList.remove('clicked');
             void btn.offsetWidth;
             btn.classList.add('clicked');
-
-            // Блокируем только эту кнопку на время запроса
             btn.disabled = true;
 
             try {
@@ -628,11 +643,8 @@
 
                 if (data.success) {
                     showAppleToast('🍎 ' + data.message, true);
-
-                    // Находим бейдж нужного игрока
                     const badge = document.querySelector('.apples-badge[data-apples-for="' + CSS.escape(nickname) + '"]');
 
-                    // Летящее яблоко — от кнопки к бейджу (или просто к центру, если бейджа ещё нет)
                     if (badge) {
                         badge.style.display = '';
                         animateFlyingApple(btn, badge, () => {
@@ -642,7 +654,6 @@
                             badge.classList.add('bump');
                         });
                     } else {
-                        // Создаём бейдж на лету
                         const row = btn.closest('.rating-row');
                         const nameLink = row ? row.querySelector('.rating-name') : null;
                         if (nameLink) {
@@ -659,15 +670,11 @@
                         }
                     }
 
-                    // Обновляем общий счётчик
                     applesLeft = data.remaining;
                     refreshCounterDisplay();
-
-                    // Если яблоки кончились — отключаем все кнопки
                     if (applesLeft <= 0) {
                         disableAllButtons();
                     } else {
-                        // Иначе — снова включаем эту же кнопку (можно дарить ещё)
                         btn.disabled = false;
                     }
                 } else {
