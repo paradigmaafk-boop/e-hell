@@ -133,10 +133,22 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/duel">Дуэль</a>
-        <a href="/reservoir-map">Резервуар</a>
-        <a href="/turtle-calculator">Черепашка</a>
-        <a href="/hero-calculator">Прокачка</a>
+        <a href="/rating/duel">
+            <span class="nav-full">Дуэль</span>
+            <span class="nav-short">VS</span>
+        </a>
+        <a href="/reservoir">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">РР</span>
+        </a>
+        <a href="/turtle-calculator">
+            <span class="nav-full">Черепашка</span>
+            <span class="nav-short">Черепашка</span>
+        </a>
+        <a href="/hero-calculator">
+            <span class="nav-full">Прокачка</span>
+            <span class="nav-short">Прокачка</span>
+        </a>
     </nav>
 
     <div class="page-head">
@@ -195,7 +207,6 @@
                 <input type="text" name="media_url" placeholder="https://...">
             </div>
 
-            <!-- Выбор постера для видео -->
             <div class="poster-editor" id="create-poster-editor" style="display: none;">
                 <h4>🎬 Выбор постера (первого кадра)</h4>
                 <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
@@ -305,7 +316,6 @@
                         <input type="text" name="media_url" value="{{ slide[4] or '' }}">
                     </div>
 
-                    <!-- Выбор постера для видео при обновлении -->
                     <div class="poster-editor" id="update-poster-editor-{{ slide[0] }}" style="{% if slide[3] != 'video' %}display: none;{% endif %}">
                         <h4>🎬 Выбор постера (первого кадра)</h4>
                         <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
@@ -403,9 +413,6 @@
         if (arrow) arrow.classList.toggle('open');
     }
 
-    /* ============================================================
-       Логика выбора постера
-       ============================================================ */
     function setupPosterEditor(opts) {
         const {
             videoEl, rangeEl, timeEl, grabBtn, clearBtn,
@@ -414,7 +421,6 @@
         } = opts;
         if (!videoEl) return;
 
-        // Обновление слайдера при загрузке метаданных
         videoEl.addEventListener('loadedmetadata', () => {
             rangeEl.max = videoEl.duration || 0;
             rangeEl.value = 0;
@@ -461,7 +467,6 @@
             if (removeInput) removeInput.value = '1';
         });
 
-        // Переключение видимости редактора постера
         function updateVisibility() {
             const isVideo = mediaTypeEl.value === 'video';
             const editor = videoEl.closest('.poster-editor');
@@ -472,7 +477,6 @@
             updateVisibility();
         }
 
-        // При выборе нового видео-файла — подгружаем его в редактор
         if (mediaFileEl) {
             mediaFileEl.addEventListener('change', () => {
                 const file = mediaFileEl.files[0];
@@ -485,7 +489,6 @@
         }
     }
 
-    // Редактор для "Создать слайд"
     setupPosterEditor({
         videoEl: document.getElementById('create-poster-video'),
         rangeEl: document.getElementById('create-poster-range'),
@@ -500,7 +503,6 @@
         mediaTypeEl: document.getElementById('create-media-type')
     });
 
-    // Редакторы для каждого существующего слайда
     {% for slide in slides %}
     setupPosterEditor({
         videoEl: document.getElementById('update-poster-video-{{ slide[0] }}'),
