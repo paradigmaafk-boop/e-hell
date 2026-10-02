@@ -2093,3 +2093,22 @@ body.light-theme textarea::placeholder {
     .res-player-row .pref { font-size: 0.65rem; padding: 0.1rem 0.35rem; }
     .res-player-row .squad1 { font-size: 0.8rem; }
 }
+/* === РЕЗЕРВУАР: короткие названия и выравнивание === */
+
+/* Навигация: короткие названия на мобилке */
+.nav a .nav-full { display: inline; }
+.nav a .nav-short { display: none; }
+
+@media (max-width: 900px) {
+    .nav a .nav-full { display: none; }
+    .nav a .nav-short { display: inline; }
+}
+
+/* Кнопки шапки — одной высоты */
+.header-link {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    padding: 0;
+    vertical-align: middle;
+}
