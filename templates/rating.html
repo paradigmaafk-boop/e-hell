@@ -106,7 +106,6 @@
             transition: transform 0.25s ease, box-shadow 0.25s ease;
             user-select: none;
         }
-        /* Кнопочное состояние (можно дарить) */
         .apples-badge.apple-btn-active {
             cursor: pointer;
         }
@@ -120,7 +119,6 @@
         .apples-badge.apple-btn-active:active {
             transform: scale(0.95);
         }
-        /* Состояние disabled */
         .apples-badge.apple-btn-disabled {
             opacity: 0.45;
             cursor: not-allowed;
@@ -215,14 +213,32 @@
             color: #ffa090;
         }
 
+        /* === Заголовок рейтинга + дата === */
         .rating-title-row {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            margin-bottom: 1.25rem;
+            margin-top: 1.5rem;
+            padding-top: 0.5rem;
+            min-height: 3rem;
+        }
+        .rating-title-main {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             flex-wrap: wrap;
-            margin-bottom: 1.25rem;
-            margin-top: 1.5rem;
-            padding-top: 0.5rem;
+        }
+        .rating-update-date {
+            font-size: 0.75rem;
+            color: var(--dim);
+            letter-spacing: 0.5px;
+            font-variant-numeric: tabular-nums;
+        }
+        .rating-update-date b {
+            color: var(--muted);
+            font-weight: 500;
         }
 
         /* На карточках лидеров (Алмаз/Золото) чуть увеличим строку статов */
@@ -245,6 +261,10 @@
             .rating-title-row {
                 margin-top: 1rem;
                 padding-top: 0.35rem;
+                min-height: 2.75rem;
+            }
+            .rating-update-date {
+                font-size: 0.72rem;
             }
         }
 
@@ -265,6 +285,10 @@
             .rating-title-row {
                 margin-top: 0.85rem;
                 padding-top: 0.25rem;
+                min-height: 2.5rem;
+            }
+            .rating-update-date {
+                font-size: 0.68rem;
             }
         }
     </style>
@@ -386,11 +410,26 @@
 
     <section class="section section-tight">
         <div class="rating-title-row">
-            <span class="section-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
-                Общий рейтинг
-            </span>
-            {% if rating_type == 'total' and tooltip_text %}
-            <button class="tooltip-trigger" id="tooltipTrigger" title="Что это?">?</button>
+            <div class="rating-title-main">
+                <span class="section-title" style="margin-bottom: 0; border-bottom: none; padding-bottom: 0;">
+                    {% if rating_type == 'total' %}
+                        Общий рейтинг
+                    {% elif rating_type == 'duel' %}
+                        Рейтинг дуэли
+                    {% elif rating_type == 'arcadia' %}
+                        Рейтинг урона
+                    {% else %}
+                        Рейтинг
+                    {% endif %}
+                </span>
+                {% if rating_type == 'total' and tooltip_text %}
+                <button class="tooltip-trigger" id="tooltipTrigger" title="Что это?">?</button>
+                {% endif %}
+            </div>
+            {% if rating_type != 'total' and last_update_date %}
+            <div class="rating-update-date">
+                Дата обновления: <b>{{ last_update_date }}</b>
+            </div>
             {% endif %}
         </div>
 
