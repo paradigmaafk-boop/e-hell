@@ -9,32 +9,30 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* === Навигация в стиле боковых кнопок (без заливки) === */
+        /* ============================================================
+           НАВИГАЦИЯ РАЗДЕЛА — минималистичные табы
+           ============================================================ */
         .res-nav {
             display: flex;
-            gap: 0.6rem;
-            padding: 1.25rem 0 0;
-            border-bottom: 1px solid var(--line);
-            margin-bottom: 1.75rem;
+            gap: 0.5rem;
+            padding: 1.1rem 0 1.25rem;
             flex-wrap: wrap;
             align-items: center;
         }
         .res-nav-btn {
-            padding: 0.7rem 1.4rem;
-            border: 1px solid var(--line);
+            padding: 0.55rem 1.1rem;
             border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.06);
             color: var(--muted);
-            font-size: 0.9rem;
+            font-size: 0.82rem;
             font-weight: 500;
             text-decoration: none;
             background: transparent;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            position: relative;
-            bottom: -1px;
             font-family: 'Inter', sans-serif;
         }
         .res-nav-btn:hover {
@@ -44,388 +42,407 @@
         .res-nav-btn.active {
             color: var(--accent);
             border-color: var(--accent);
-            border-bottom-color: transparent;
-            background: transparent;
+            background: rgba(255,69,0,0.05);
         }
 
-        /* === Блок с записью === */
-        .res-session-block {
-            padding: 2rem 1.75rem 1.75rem;
-            border-radius: 20px;
-            background: linear-gradient(180deg, rgba(30,15,8,0.6), rgba(8,4,2,0.85));
-            border: 1px solid var(--line);
+        /* ============================================================
+           БЛОК ЗАПИСИ — MAJOR / TYPE-DRIVEN
+           ============================================================ */
+        .session-block {
+            padding: 2rem 0 1.75rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin-bottom: 2rem;
+        }
+        .session-block .eyebrow {
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 1.1rem;
+            font-weight: 600;
+        }
+        .session-block .title {
+            font-family: 'Forum', serif;
+            font-size: 2.6rem;
+            line-height: 1.05;
+            letter-spacing: 1px;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        .session-block .title em {
+            font-style: normal;
+            color: var(--accent-warm);
+        }
+        .session-block .meta {
+            font-size: 0.92rem;
+            color: var(--muted);
             margin-bottom: 1.75rem;
-            position: relative;
-            overflow: hidden;
+            letter-spacing: 0.3px;
         }
-        .res-session-block::before {
-            content: "";
-            position: absolute;
-            inset: -30%;
-            background: radial-gradient(circle at 30% 30%, rgba(255,69,0,0.15), transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-            animation: resHeroPulse 6s ease-in-out infinite alternate;
+        .session-block .meta .sep {
+            color: var(--dim);
+            margin: 0 0.4rem;
         }
-        @keyframes resHeroPulse {
-            0%   { opacity: 0.4; transform: scale(1); }
-            100% { opacity: 0.8; transform: scale(1.05); }
+        .session-block .meta .time-val {
+            color: var(--text);
+            font-weight: 500;
         }
-        .res-session-block > * { position: relative; z-index: 1; }
 
-        .res-session-header {
-            font-size: 0.72rem;
+        /* Кнопки внутри блока записи */
+        .btn-main {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.85rem 1.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            font-size: 0.92rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-main:hover {
+            background: var(--accent);
+            color: #0a0503;
+        }
+        .btn-main .arrow {
+            transition: transform 0.25s ease;
+        }
+        .btn-main:hover .arrow {
+            transform: translateX(4px);
+        }
+        .btn-main.btn-danger {
+            border-color: rgba(224,57,43,0.55);
+            color: #ffa090;
+        }
+        .btn-main.btn-danger:hover {
+            background: rgba(224,57,43,0.15);
+            border-color: #e0392b;
+            color: #fff;
+        }
+
+        /* Инфо о поданной заявке — в стиле flat */
+        .my-reg-info {
+            font-size: 0.88rem;
+            color: #7cf0a5;
+            padding: 0.75rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed rgba(60,200,100,0.25);
+        }
+        .my-reg-info b { font-weight: 600; }
+        .my-reg-info .dim {
+            color: var(--dim);
+            font-weight: 400;
+            font-size: 0.8rem;
+        }
+        .warn-info {
+            font-size: 0.88rem;
+            color: #ffa090;
+            padding: 0.75rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px dashed rgba(224,57,43,0.25);
+        }
+
+        /* ============================================================
+           СЕКЦИИ — FLAT ROWS
+           ============================================================ */
+        .col {
+            padding: 1.5rem 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .col:first-of-type {
+            border-top: none;
+            padding-top: 0;
+        }
+        .col-title {
+            font-size: 0.7rem;
             letter-spacing: 4px;
             text-transform: uppercase;
             color: var(--dim);
+            margin-bottom: 1rem;
             font-weight: 600;
-            margin-bottom: 1rem;
-        }
-        .res-session-header .week-key {
-            color: var(--accent-warm);
-        }
-
-        .res-session-info {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: baseline;
-            gap: 0.5rem 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .res-session-item {
-            display: inline-flex;
-            align-items: baseline;
-            gap: 0.5rem;
-            font-size: 0.95rem;
-            color: var(--muted);
-        }
-        .res-session-item .label {
-            color: var(--dim);
-            font-size: 0.82rem;
-            letter-spacing: 0.5px;
-        }
-        .res-session-item .value {
-            font-family: 'Forum', serif;
-            font-size: 1.3rem;
-            color: var(--text);
-            letter-spacing: 1px;
-            font-weight: 500;
-        }
-        .res-session-item .value.time-14 {
-            color: #4a9eff;
-            text-shadow: 0 0 12px rgba(74,158,255,0.5);
-        }
-        .res-session-item .value.time-22 {
-            color: #ff8a1f;
-            text-shadow: 0 0 12px rgba(255,138,31,0.5);
-        }
-
-        .res-register-btn-block {
-            margin-top: 0.5rem;
-        }
-
-        .res-big-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            padding: 0.9rem 2rem;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            border: 1.5px solid var(--accent);
-            font-family: 'Inter', sans-serif;
-            text-decoration: none;
-            min-width: 220px;
-        }
-        .res-big-btn-primary {
-            background: linear-gradient(135deg, #ff4500, #ffb800);
-            color: #1a0f05;
-        }
-        .res-big-btn-primary:hover {
-            box-shadow: 0 0 25px rgba(255,90,0,0.6);
-            transform: translateY(-1px);
-        }
-        .res-big-btn-secondary {
-            background: rgba(255,69,0,0.06);
-            color: var(--accent-warm);
-            border-color: var(--line);
-        }
-        .res-big-btn-secondary:hover {
-            border-color: var(--accent);
-            background: rgba(255,69,0,0.15);
-        }
-        .res-big-btn-danger {
-            background: rgba(224,57,43,0.06);
-            color: #ff9070;
-            border-color: rgba(224,57,43,0.5);
-        }
-        .res-big-btn-danger:hover {
-            border-color: #e0392b;
-            background: rgba(224,57,43,0.15);
-            color: #ffa090;
-        }
-        .res-big-btn-disabled {
-            background: rgba(120,120,120,0.08);
-            color: var(--dim);
-            border-color: var(--line);
-            cursor: not-allowed;
-        }
-
-        /* Информация о поданной заявке */
-        .res-my-registration {
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            background: rgba(20,40,20,0.3);
-            border: 1px solid rgba(60,200,100,0.4);
-            color: #7cf0a5;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
-        .res-my-registration b { color: #a8ffc8; }
-
-        /* Сообщение о невозможности регистрации (кроме "закрыта") */
-        .res-warn-msg {
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            background: rgba(40,15,15,0.3);
-            border: 1px solid rgba(224,57,43,0.4);
-            color: #ffa090;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        /* === Табы для истории === */
-        .res-tab-content { display: none; }
-        .res-tab-content.active { display: block; }
-
-        /* Секция управления для админов */
-        .res-manage-bar {
-            display: flex;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            padding: 1rem 1.25rem;
-            border-radius: 14px;
-            background: linear-gradient(180deg, rgba(40,20,10,0.9), rgba(15,8,3,0.95));
-            border: 1px solid var(--accent);
-            margin-bottom: 1.5rem;
-            box-shadow: 0 0 25px rgba(255,69,0,0.15);
-        }
-        .res-manage-bar .btn { font-size: 0.85rem; }
-
-        .res-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.25rem;
-            margin-bottom: 2rem;
-        }
-        @media (max-width: 900px) {
-            .res-grid { grid-template-columns: 1fr; }
-        }
-
-        .res-col {
-            padding: 1.5rem 1.5rem 1.25rem;
-            border-radius: 18px;
-            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
-            border: 1px solid var(--line);
-            min-height: 200px;
-        }
-        .res-col h3 {
-            font-size: 0.78rem;
-            color: var(--accent-warm);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            font-weight: 700;
-            margin-bottom: 1rem;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            text-shadow: 0 0 10px rgba(255,184,0,0.3);
+            align-items: baseline;
+            gap: 1rem;
         }
-        .res-col h3 .cnt {
-            font-size: 0.72rem;
-            background: rgba(255,69,0,0.15);
-            padding: 0.15rem 0.55rem;
-            border-radius: 999px;
+        .col-title b {
             color: var(--accent-warm);
-            letter-spacing: 1px;
+            font-weight: 600;
+            letter-spacing: 2px;
         }
 
-        .res-player-row {
+        .player-row {
             display: grid;
             grid-template-columns: 1fr auto auto;
-            gap: 0.6rem;
             align-items: center;
-            padding: 0.55rem 0.75rem;
-            border-radius: 10px;
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
+            gap: 1rem;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            font-size: 0.92rem;
         }
-        .res-player-row:hover {
-            background: rgba(255,69,0,0.05);
-            border-color: var(--line);
+        .player-row:last-child {
+            border-bottom: none;
         }
-        .res-player-row.core {
-            background: linear-gradient(90deg, rgba(255,184,0,0.12), transparent);
-        }
-        .res-player-row .nick {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-            flex-wrap: wrap;
+        .player-row .nick {
             color: var(--text);
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
             min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            word-break: break-word;
         }
-        .res-player-row .squad1 {
+        .player-row .pref {
+            font-size: 0.68rem;
+            letter-spacing: 1px;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(74,158,255,0.08);
+            color: #7cc4ff;
+            border: 1px solid rgba(74,158,255,0.2);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .player-row .pref.any {
+            background: rgba(120,120,120,0.06);
+            color: var(--dim);
+            border-color: rgba(120,120,120,0.15);
+        }
+        .player-row .power {
             font-family: 'Forum', serif;
             color: var(--accent-warm);
-            font-size: 0.88rem;
-            font-weight: 700;
-            white-space: nowrap;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
             font-variant-numeric: tabular-nums;
+            white-space: nowrap;
         }
-        .res-player-row .squad1.empty {
+        .player-row .power.empty {
             color: var(--dim);
             font-weight: 400;
         }
-        .res-player-row .pref {
-            font-size: 0.72rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 999px;
-            background: rgba(74,158,255,0.12);
-            color: #8ed6ff;
-            border: 1px solid rgba(74,158,255,0.3);
-            white-space: nowrap;
+        .player-row .actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-shrink: 0;
         }
-        .res-player-row .pref.any {
-            background: rgba(120,120,120,0.12);
-            color: var(--dim);
-            border-color: var(--line-soft);
+        .player-row.core {
+            background: linear-gradient(90deg, rgba(255,184,0,0.05), transparent 60%);
+            padding-left: 0.75rem;
+            margin-left: -0.75rem;
+            border-radius: 6px;
         }
-
-        .res-empty {
-            text-align: center;
-            padding: 2rem 1rem;
-            color: var(--muted);
-            font-style: italic;
-            font-size: 0.9rem;
-        }
-
-        .res-core-divider {
-            margin: 1rem 0 0.5rem;
-            padding: 0.4rem 0.75rem;
-            border-radius: 8px;
-            background: rgba(255,184,0,0.06);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            color: var(--accent-warm);
+        .player-row .check {
+            color: #7cf0a5;
             font-weight: 700;
+            font-size: 0.85rem;
         }
-        .res-core-divider:first-child { margin-top: 0; }
+        .player-row .cross {
+            color: #ff5a5a;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
 
-        .res-action-btn {
+        .empty-msg {
+            padding: 1.25rem 0;
+            color: var(--dim);
+            font-style: italic;
+            font-size: 0.88rem;
+        }
+
+        .core-divider {
+            font-size: 0.62rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin: 1.25rem 0 0.5rem;
+            font-weight: 600;
+        }
+        .core-divider:first-child { margin-top: 0; }
+
+        /* ============================================================
+           КНОПКИ ДЕЙСТВИЙ (минималистичные)
+           ============================================================ */
+        .action-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 30px;
-            height: 30px;
-            border-radius: 8px;
-            border: 1px solid var(--line);
-            background: rgba(255,69,0,0.05);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: transparent;
             color: var(--muted);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s ease;
             padding: 0;
             flex-shrink: 0;
         }
-        .res-action-btn:hover {
+        .action-btn:hover {
             border-color: var(--accent);
             color: var(--accent-warm);
-            background: rgba(255,69,0,0.15);
         }
-        .res-action-btn.add:hover { border-color: rgba(60,200,100,0.6); color: #7cf0a5; background: rgba(20,40,20,0.4); }
-        .res-action-btn.remove:hover { border-color: rgba(224,57,43,0.6); color: #ffa090; background: rgba(40,15,15,0.4); }
-        .res-action-btn.attend-yes { border-color: rgba(60,200,100,0.5); color: #7cf0a5; }
-        .res-action-btn.attend-yes.active { background: rgba(60,200,100,0.25); border-color: #5eda8a; color: #fff; }
-        .res-action-btn.attend-no { border-color: rgba(224,57,43,0.5); color: #ffa090; }
-        .res-action-btn.attend-no.active { background: rgba(224,57,43,0.25); border-color: #ff5a5a; color: #fff; }
+        .action-btn.add:hover {
+            border-color: rgba(60,200,100,0.6);
+            color: #7cf0a5;
+        }
+        .action-btn.remove:hover {
+            border-color: rgba(224,57,43,0.6);
+            color: #ffa090;
+        }
+        .action-btn.attend-yes {
+            border-color: rgba(60,200,100,0.35);
+            color: #7cf0a5;
+        }
+        .action-btn.attend-yes.active {
+            background: rgba(60,200,100,0.2);
+            border-color: #5eda8a;
+            color: #fff;
+        }
+        .action-btn.attend-no {
+            border-color: rgba(224,57,43,0.35);
+            color: #ffa090;
+        }
+        .action-btn.attend-no.active {
+            background: rgba(224,57,43,0.2);
+            border-color: #ff5a5a;
+            color: #fff;
+        }
 
-        /* История */
-        .res-history-week {
-            padding: 1.25rem 1.5rem;
-            border-radius: 14px;
-            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
-            border: 1px solid var(--line);
+        /* ============================================================
+           ПАНЕЛЬ УПРАВЛЕНИЯ (админ)
+           ============================================================ */
+        .manage-panel {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            padding: 1rem 0 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             margin-bottom: 1rem;
+        }
+        .manage-panel .btn {
+            padding: 0.55rem 1.1rem;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.82rem;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        .res-history-week:hover { border-color: var(--accent); }
-        .res-history-head {
+        .manage-panel .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+        }
+        .manage-panel .btn.primary {
+            background: linear-gradient(135deg, #ff5a1f, #ffb800);
+            border-color: transparent;
+            color: #0a0503;
+            font-weight: 700;
+        }
+        .manage-panel .btn.primary:hover {
+            box-shadow: 0 6px 20px rgba(255,90,30,0.35);
+        }
+
+        /* ============================================================
+           ЧЁРНАЯ МЕТКА
+           ============================================================ */
+        .blacklist-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
+            padding: 0.7rem 0;
+            border-bottom: 1px dashed rgba(224,57,43,0.2);
+            font-size: 0.9rem;
+        }
+        .blacklist-row:last-child { border-bottom: none; }
+        .blacklist-row .reason {
+            font-size: 0.78rem;
+            color: var(--dim);
+            flex: 1;
+        }
+
+        /* ============================================================
+           ИСТОРИЯ — flat
+           ============================================================ */
+        .history-week {
+            padding: 1.25rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .history-week:last-child { border-bottom: none; }
+        .history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
             flex-wrap: wrap;
         }
-        .res-history-title {
-            font-family: 'Forum', serif;
-            font-size: 1.1rem;
+        .history-title {
+            font-size: 1rem;
+            font-weight: 500;
             color: var(--text);
-            letter-spacing: 2px;
         }
-        .res-history-meta {
-            font-size: 0.82rem;
-            color: var(--muted);
+        .history-title b {
+            color: var(--accent-warm);
+            font-family: 'Forum', serif;
+            font-size: 1.05rem;
+            margin: 0 0.25rem;
+        }
+        .history-meta {
+            font-size: 0.78rem;
+            color: var(--dim);
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
         }
-        .res-history-meta b { color: var(--accent-warm); }
-        .res-history-body {
+        .history-meta b { color: var(--muted); font-weight: 500; }
+        .history-body {
             display: none;
             margin-top: 1rem;
             padding-top: 1rem;
-            border-top: 1px dashed var(--line-soft);
+            border-top: 1px dashed rgba(255,255,255,0.05);
         }
-        .res-history-body.open { display: block; }
-        .res-history-players {
+        .history-body.open { display: block; }
+        .history-players {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 0.4rem;
             margin-top: 0.5rem;
         }
-        .res-history-player {
+        .history-player {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 0.5rem;
-            padding: 0.4rem 0.7rem;
-            border-radius: 8px;
-            background: rgba(10,5,3,0.5);
+            padding: 0.4rem 0;
             font-size: 0.85rem;
+            border-bottom: 1px dashed rgba(255,255,255,0.03);
         }
-        .res-history-player .mark-yes { color: #7cf0a5; font-weight: 700; }
-        .res-history-player .mark-no { color: #ff5a5a; font-weight: 700; }
-        .res-history-player .mark-unknown { color: var(--dim); }
+        .history-player:last-child { border-bottom: none; }
 
-        /* Модальные окна */
+        /* ============================================================
+           МОДАЛЬНЫЕ ОКНА
+           ============================================================ */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
             z-index: 9999;
-            background: rgba(3, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
+            background: rgba(3, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
             align-items: center;
             justify-content: center;
             padding: 1rem;
@@ -433,62 +450,165 @@
         .modal-overlay.show { display: flex; }
         .modal-box {
             width: 100%;
-            max-width: 480px;
-            padding: 2rem 1.85rem;
-            background: linear-gradient(180deg, #150a04, #050101);
-            border: 1px solid var(--accent);
-            border-radius: 18px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,69,0,0.35);
+            max-width: 440px;
+            padding: 2rem 1.75rem 1.75rem;
+            background: #0a0503;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
             animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         @keyframes modalPop {
-            from { transform: scale(0.9); opacity: 0; }
+            from { transform: scale(0.94); opacity: 0; }
             to   { transform: scale(1); opacity: 1; }
         }
         .modal-title {
-            font-family: 'Forum', serif;
-            font-size: 1.3rem;
-            letter-spacing: 3px;
+            font-size: 0.72rem;
+            letter-spacing: 4px;
             text-transform: uppercase;
-            color: var(--accent-warm);
-            text-align: center;
-            margin-bottom: 1.25rem;
-            text-shadow: 0 0 12px rgba(255,184,0,0.5);
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 1rem;
         }
         .modal-text {
             color: var(--muted);
-            text-align: center;
             font-size: 0.95rem;
             line-height: 1.6;
             margin-bottom: 1.5rem;
         }
-        .modal-text b {
-            color: var(--accent-warm);
-            font-weight: 600;
-        }
+        .modal-text b { color: var(--accent-warm); font-weight: 600; }
+        .modal-text a { color: var(--accent-warm); }
         .modal-actions {
             display: flex;
-            justify-content: center;
-            gap: 0.75rem;
+            justify-content: flex-end;
+            gap: 0.6rem;
         }
-        .modal-actions .btn { min-width: 140px; }
+        .modal-actions .btn {
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .modal-actions .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+        }
+        .modal-actions .btn.primary {
+            background: linear-gradient(135deg, #ff5a1f, #ffb800);
+            border-color: transparent;
+            color: #0a0503;
+            font-weight: 700;
+        }
 
+        /* Переключатель времени в модалке */
+        .time-choice {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .time-choice form { display: block; }
+        .time-choice button {
+            width: 100%;
+            padding: 1rem 0.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            font-family: 'Forum', serif;
+            font-size: 1.4rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            letter-spacing: 2px;
+        }
+        .time-choice button.t14 {
+            color: #7cc4ff;
+            border-color: rgba(74,158,255,0.25);
+        }
+        .time-choice button.t14:hover {
+            border-color: #4a9eff;
+            background: rgba(74,158,255,0.08);
+        }
+        .time-choice button.t22 {
+            color: #ffb800;
+            border-color: rgba(255,184,0,0.25);
+        }
+        .time-choice button.t22:hover {
+            border-color: var(--accent-warm);
+            background: rgba(255,184,0,0.08);
+        }
+
+        /* Табы */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ============================================================
+           МОБИЛЬНАЯ АДАПТАЦИЯ
+           ============================================================ */
         @media (max-width: 700px) {
             .res-nav {
                 gap: 0.4rem;
-                padding: 1rem 0 0;
-                margin-bottom: 1.25rem;
+                padding: 1rem 0 1.1rem;
             }
             .res-nav-btn {
-                padding: 0.6rem 1rem;
-                font-size: 0.82rem;
+                padding: 0.5rem 0.9rem;
+                font-size: 0.78rem;
                 flex: 1 1 auto;
                 justify-content: center;
             }
-            .res-session-block { padding: 1.5rem 1.25rem 1.25rem; }
-            .res-session-item .value { font-size: 1.15rem; }
-            .res-big-btn { width: 100%; min-width: 0; }
-            .res-player-row { grid-template-columns: 1fr auto; font-size: 0.85rem; }
+            .session-block {
+                padding: 1.5rem 0 1.5rem;
+            }
+            .session-block .title {
+                font-size: 1.9rem;
+                letter-spacing: 0.5px;
+            }
+            .session-block .eyebrow {
+                font-size: 0.65rem;
+                letter-spacing: 3px;
+                margin-bottom: 0.9rem;
+            }
+            .session-block .meta {
+                font-size: 0.85rem;
+                margin-bottom: 1.4rem;
+            }
+            .btn-main {
+                width: 100%;
+                justify-content: center;
+                padding: 0.85rem 1.5rem;
+            }
+            .player-row {
+                grid-template-columns: 1fr auto;
+                gap: 0.6rem;
+                padding: 0.7rem 0;
+                font-size: 0.88rem;
+            }
+            .player-row .actions {
+                grid-column: 1 / -1;
+                justify-content: flex-end;
+            }
+            .col-title {
+                font-size: 0.65rem;
+                letter-spacing: 3px;
+            }
+        }
+        @media (max-width: 420px) {
+            .session-block .title {
+                font-size: 1.6rem;
+            }
+            .player-row .power {
+                font-size: 0.88rem;
+            }
+            .btn-main {
+                font-size: 0.88rem;
+            }
         }
     </style>
 </head>
@@ -590,7 +710,7 @@
         {% endif %}
     {% endwith %}
 
-    <!-- === Навигация раздела (в стиле кнопок) === -->
+    <!-- === Навигация раздела === -->
     <div class="res-nav">
         <a href="#" class="res-nav-btn active" data-tab="roster" onclick="switchResTab(event, 'roster')">
             Состав и заявки
@@ -603,83 +723,72 @@
         </a>
     </div>
 
-    <!-- === Блок записи === -->
-    <div class="res-tab-content active" id="tab-roster">
+    <!-- ============================================================
+         ТАБ: Состав и заявки
+         ============================================================ -->
+    <div class="tab-content active" id="tab-roster">
 
-        <section class="res-session-block">
-            <div class="res-session-header">
-                Игра №<span class="week-key">{{ week.week_key }}</span>
-            </div>
-
-            <div class="res-session-info">
-                <div class="res-session-item">
-                    <span class="label">Дата игры:</span>
-                    <span class="value">{{ game_date_str }} (воскресенье)</span>
-                </div>
-                <div class="res-session-item">
-                    <span class="label">Время игры:</span>
-                    <span class="value time-{{ week.session_time }}">{{ week.session_time }}:00</span>
-                </div>
-                {% if can_edit %}
-                <button type="button" class="res-nav-btn" onclick="openTimeModal()" style="margin-left: auto;">
-                    ✎ Изменить время
-                </button>
-                {% endif %}
+        <!-- === Блок записи === -->
+        <div class="session-block">
+            <div class="eyebrow">Игра № {{ week.week_key }}</div>
+            <h1 class="title">
+                Воскресенье, <em>{{ game_date_full }}</em>
+            </h1>
+            <div class="meta">
+                <span class="time-val">{{ week.session_time }}:00</span>
+                <span class="sep">·</span>
+                сбор в {{ (week.session_time|int - 1) }}:45
+                <span class="sep">·</span>
+                формат: РР
             </div>
 
             {% if session.get('user_id') %}
                 {% if my_registration %}
-                    <div class="res-my-registration">
-                        ✓ Вы записаны. Предпочтение:
+                    <div class="my-reg-info">
+                        ✓ Вы записаны · предпочтение:
                         {% if my_registration[1] == '14' %}14:00
                         {% elif my_registration[1] == '22' %}22:00
                         {% else %}не важно{% endif %}
-                        · {{ my_registration[2][:16] }}
+                        <span class="dim">· {{ my_registration[2][:16] }}</span>
                     </div>
                     {% if reg_status.is_open %}
                     <form method="POST" action="/reservoir/unregister"
                           onsubmit="return confirm('Отменить заявку?');">
-                        <button type="submit" class="res-big-btn res-big-btn-danger">Отменить заявку</button>
+                        <button type="submit" class="btn-main btn-danger">Отменить заявку</button>
                     </form>
                     {% else %}
-                    <div class="res-warn-msg">Регистрация закрыта — отменить заявку уже нельзя.</div>
+                    <div class="warn-info">Регистрация закрыта — отменить заявку уже нельзя.</div>
                     {% endif %}
                 {% elif my_can_register %}
-                    <form method="POST" action="/reservoir/register" id="registerForm">
-                        <div class="res-register-btn-block">
-                            <button type="submit" class="res-big-btn res-big-btn-primary">
-                                ⚔ Записаться на игру
-                            </button>
-                        </div>
+                    <form method="POST" action="/reservoir/register" style="display: inline;">
+                        <button type="submit" class="btn-main">
+                            Записаться
+                            <span class="arrow">→</span>
+                        </button>
                     </form>
                 {% else %}
-                    <!-- Кнопка «Регистрация»: если что-то мешает — модалка -->
-                    <div class="res-register-btn-block">
-                        <button type="button" class="res-big-btn res-big-btn-secondary"
-                                onclick="openRegistrationInfoModal()">
-                            📝 Регистрация
-                        </button>
-                    </div>
+                    <button type="button" class="btn-main" onclick="openRegistrationInfoModal()">
+                        Записаться
+                        <span class="arrow">→</span>
+                    </button>
                 {% endif %}
             {% else %}
-                <div class="res-register-btn-block">
-                    <button type="button" class="res-big-btn res-big-btn-secondary"
-                            onclick="openRegistrationInfoModal()">
-                        📝 Регистрация
-                    </button>
-                </div>
+                <button type="button" class="btn-main" onclick="openRegistrationInfoModal()">
+                    Записаться
+                    <span class="arrow">→</span>
+                </button>
             {% endif %}
-        </section>
+        </div>
 
-        <!-- Админский блок управления -->
+        <!-- === Панель управления (админам) === -->
         {% if can_edit %}
-        <section class="res-manage-bar">
-            <form method="POST" action="/reservoir/admin/save-roster" id="saveRosterForm" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
-                <button type="submit" class="btn btn-primary" form="saveRosterForm">Сохранить состав</button>
+        <div class="manage-panel">
+            <form method="POST" action="/reservoir/admin/save-roster" id="saveRosterForm">
+                <button type="submit" class="btn primary" form="saveRosterForm">Сохранить состав</button>
             </form>
             <form method="POST" action="/reservoir/admin/publish" style="display: inline;">
                 <button type="submit" class="btn"
-                        onclick="return confirm('Опубликовать текущий состав? Его увидят все.');">
+                        onclick="return confirm('Опубликовать текущий состав?');">
                     Опубликовать
                 </button>
             </form>
@@ -688,17 +797,18 @@
                 <button type="submit" class="btn">Снять с публикации</button>
             </form>
             {% endif %}
-        </section>
+            <button type="button" class="btn" onclick="openTimeModal()">Изменить время</button>
+        </div>
         {% endif %}
 
         <form method="POST" action="/reservoir/admin/save-roster" id="rosterMainForm">
-        <div class="res-grid">
 
-            <div class="res-col">
-                <h3>
+            <!-- === ЗАЯВКИ === -->
+            <div class="col">
+                <div class="col-title">
                     <span>Заявки</span>
-                    <span class="cnt">{{ registrations|length }}</span>
-                </h3>
+                    <b>{{ registrations|length }}</b>
+                </div>
 
                 {% if registrations %}
                     {% for reg in registrations %}
@@ -707,7 +817,7 @@
                         {% set reg_username = reg[4] %}
                         {% set reg_nick = reg[5] or reg_username %}
                         {% set reg_squad1 = reg[6] %}
-                        <div class="res-player-row">
+                        <div class="player-row">
                             <div class="nick">
                                 <span>{{ reg_nick }}</span>
                                 <span class="pref {% if reg_pref == 'any' %}any{% endif %}">
@@ -716,12 +826,12 @@
                                     {% else %}любое{% endif %}
                                 </span>
                             </div>
-                            <div class="squad1 {% if not reg_squad1 %}empty{% endif %}">
-                                {% if reg_squad1 %}⚔ {{ reg_squad1 }}{% else %}⚔ —{% endif %}
+                            <div class="power {% if not reg_squad1 %}empty{% endif %}">
+                                {% if reg_squad1 %}{{ reg_squad1 }}{% else %}—{% endif %}
                             </div>
-                            <div style="display:flex; gap:0.3rem;">
+                            <div class="actions">
                                 {% if can_edit %}
-                                    <button type="button" class="res-action-btn add"
+                                    <button type="button" class="action-btn add"
                                             title="Добавить в состав"
                                             onclick="quickAddToRoster({{ reg_user_id }}, '{{ reg_nick|e }}', '{{ reg_squad1|default('', true) }}', 'rotation')">
                                         +
@@ -729,43 +839,44 @@
                                     <form method="POST" action="/reservoir/admin/cancel-registration" style="display:inline;"
                                           onsubmit="return confirm('Отменить заявку игрока {{ reg_nick }}?');">
                                         <input type="hidden" name="user_id" value="{{ reg_user_id }}">
-                                        <button type="submit" class="res-action-btn remove" title="Отменить заявку">✕</button>
+                                        <button type="submit" class="action-btn remove" title="Отменить заявку">✕</button>
                                     </form>
                                 {% endif %}
                             </div>
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="res-empty">Пока никто не подал заявку</div>
+                    <div class="empty-msg">Пока никто не подал заявку</div>
                 {% endif %}
             </div>
 
-            <div class="res-col">
-                <h3>
+            <!-- === СОСТАВ === -->
+            <div class="col">
+                <div class="col-title">
                     <span>Состав</span>
-                    <span class="cnt" id="rosterCount">{{ roster|length }} / 30</span>
-                </h3>
+                    <b id="rosterCount">{{ roster|length }} / 30</b>
+                </div>
 
                 <div id="rosterList">
-                    <div class="res-core-divider" id="coreDivider">Основной состав</div>
+                    <div class="core-divider" id="coreDivider">Основной</div>
                     <div id="coreList">
                         {% for r in roster if r[2] == 'core' %}
                             {% set r_uid = r[1] %}
                             {% set r_nick = r[5] or r[4] %}
                             {% set r_squad1 = r[6] %}
                             {% set r_attended = r[3] %}
-                            <div class="res-player-row core" data-user-id="{{ r_uid }}">
+                            <div class="player-row core" data-user-id="{{ r_uid }}">
                                 <div class="nick">
                                     <span>{{ r_nick }}</span>
-                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✓</span>
-                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">✕</span>{% endif %}
+                                    {% if r_attended == 1 %}<span class="check">✓</span>
+                                    {% elif r_attended == 0 %}<span class="cross">✕</span>{% endif %}
                                 </div>
-                                <div class="squad1 {% if not r_squad1 %}empty{% endif %}">
-                                    {% if r_squad1 %}⚔ {{ r_squad1 }}{% else %}⚔ —{% endif %}
+                                <div class="power {% if not r_squad1 %}empty{% endif %}">
+                                    {% if r_squad1 %}{{ r_squad1 }}{% else %}—{% endif %}
                                 </div>
-                                <div style="display:flex; gap:0.3rem;">
+                                <div class="actions">
                                     {% if can_edit %}
-                                        <button type="button" class="res-action-btn remove"
+                                        <button type="button" class="action-btn remove"
                                                 title="Убрать из состава"
                                                 onclick="removeFromRoster({{ r_uid }})">✕</button>
                                     {% endif %}
@@ -774,25 +885,25 @@
                         {% endfor %}
                     </div>
 
-                    <div class="res-core-divider">Остальные</div>
+                    <div class="core-divider">Остальные</div>
                     <div id="rotationList">
                         {% for r in roster if r[2] == 'rotation' %}
                             {% set r_uid = r[1] %}
                             {% set r_nick = r[5] or r[4] %}
                             {% set r_squad1 = r[6] %}
                             {% set r_attended = r[3] %}
-                            <div class="res-player-row" data-user-id="{{ r_uid }}">
+                            <div class="player-row" data-user-id="{{ r_uid }}">
                                 <div class="nick">
                                     <span>{{ r_nick }}</span>
-                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✓</span>
-                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">✕</span>{% endif %}
+                                    {% if r_attended == 1 %}<span class="check">✓</span>
+                                    {% elif r_attended == 0 %}<span class="cross">✕</span>{% endif %}
                                 </div>
-                                <div class="squad1 {% if not r_squad1 %}empty{% endif %}">
-                                    {% if r_squad1 %}⚔ {{ r_squad1 }}{% else %}⚔ —{% endif %}
+                                <div class="power {% if not r_squad1 %}empty{% endif %}">
+                                    {% if r_squad1 %}{{ r_squad1 }}{% else %}—{% endif %}
                                 </div>
-                                <div style="display:flex; gap:0.3rem;">
+                                <div class="actions">
                                     {% if can_edit %}
-                                        <button type="button" class="res-action-btn remove"
+                                        <button type="button" class="action-btn remove"
                                                 title="Убрать из состава"
                                                 onclick="removeFromRoster({{ r_uid }})">✕</button>
                                     {% endif %}
@@ -803,88 +914,89 @@
                 </div>
 
                 {% if not roster %}
-                    <div class="res-empty">Состав пока не сформирован</div>
+                    <div class="empty-msg">Состав пока не сформирован</div>
                 {% endif %}
 
                 <div id="rosterHiddenFields"></div>
             </div>
 
-        </div>
         </form>
 
+        <!-- === Отметки о посещении (админ) === -->
         {% if can_edit and roster %}
-        <section class="res-col" style="margin-bottom: 2rem;">
-            <h3>Отметки о посещении</h3>
-            <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem;">
-                Отметьте, кто пришёл на игру. Кто отмечен как «не пришёл» — получает чёрную метку и пропускает следующую неделю.
-            </p>
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.5rem;">
+        <div class="col">
+            <div class="col-title">Отметки о посещении</div>
+            <div style="color: var(--dim); font-size: 0.82rem; margin-bottom: 1rem;">
+                Кто отмечен как «не пришёл» — получает чёрную метку и пропускает следующую неделю.
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.3rem;">
                 {% for r in roster %}
                     {% set r_uid = r[1] %}
                     {% set r_nick = r[5] or r[4] %}
                     {% set r_attended = r[3] %}
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; padding:0.4rem 0.7rem; border-radius:10px; background:rgba(10,5,3,0.5);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; padding:0.5rem 0; border-bottom: 1px dashed rgba(255,255,255,0.04);">
                         <span style="font-size:0.88rem;">{{ r_nick }}</span>
-                        <div style="display:flex; gap:0.3rem;">
+                        <div style="display:flex; gap:0.35rem;">
                             <form method="POST" action="/reservoir/admin/attendance" style="display:inline;">
                                 <input type="hidden" name="user_id" value="{{ r_uid }}">
                                 <input type="hidden" name="week_key" value="{{ week.week_key }}">
                                 <input type="hidden" name="attended" value="1">
-                                <button type="submit" class="res-action-btn attend-yes {% if r_attended == 1 %}active{% endif %}" title="Пришёл">✓</button>
+                                <button type="submit" class="action-btn attend-yes {% if r_attended == 1 %}active{% endif %}" title="Пришёл">✓</button>
                             </form>
                             <form method="POST" action="/reservoir/admin/attendance" style="display:inline;">
                                 <input type="hidden" name="user_id" value="{{ r_uid }}">
                                 <input type="hidden" name="week_key" value="{{ week.week_key }}">
                                 <input type="hidden" name="attended" value="0">
-                                <button type="submit" class="res-action-btn attend-no {% if r_attended == 0 %}active{% endif %}" title="Не пришёл">✕</button>
+                                <button type="submit" class="action-btn attend-no {% if r_attended == 0 %}active{% endif %}" title="Не пришёл">✕</button>
                             </form>
                         </div>
                     </div>
                 {% endfor %}
             </div>
-        </section>
+        </div>
         {% endif %}
 
+        <!-- === Чёрные метки === -->
         {% if blacklist %}
-        <section class="res-col" style="margin-bottom: 2rem; border-color: rgba(224,57,43,0.4);">
-            <h3 style="color:#ffa090;">Чёрные метки на эту неделю</h3>
+        <div class="col" style="border-top-color: rgba(224,57,43,0.2);">
+            <div class="col-title" style="color:#ffa090;">Чёрные метки на эту неделю</div>
             {% for b in blacklist %}
                 {% set b_uid = b[1] %}
                 {% set b_reason = b[2] %}
                 {% set b_nick = b[5] or b[4] %}
-                <div class="res-player-row" style="border-color: rgba(224,57,43,0.3);">
-                    <div class="nick">{{ b_nick }}</div>
-                    <div style="font-size:0.78rem; color:var(--dim);">{{ b_reason or 'Неявка' }}</div>
-                    <div>
-                        {% if can_edit %}
-                        <form method="POST" action="/reservoir/admin/blacklist-remove" style="display:inline;"
-                              onsubmit="return confirm('Снять чёрную метку с {{ b_nick }}?');">
-                            <input type="hidden" name="user_id" value="{{ b_uid }}">
-                            <input type="hidden" name="week_key" value="{{ week.week_key }}">
-                            <button type="submit" class="res-action-btn remove" title="Снять метку">✕</button>
-                        </form>
-                        {% endif %}
-                    </div>
+                <div class="blacklist-row">
+                    <span>{{ b_nick }}</span>
+                    <span class="reason">{{ b_reason or 'Неявка' }}</span>
+                    {% if can_edit %}
+                    <form method="POST" action="/reservoir/admin/blacklist-remove" style="display:inline;"
+                          onsubmit="return confirm('Снять чёрную метку с {{ b_nick }}?');">
+                        <input type="hidden" name="user_id" value="{{ b_uid }}">
+                        <input type="hidden" name="week_key" value="{{ week.week_key }}">
+                        <button type="submit" class="action-btn remove" title="Снять метку">✕</button>
+                    </form>
+                    {% endif %}
                 </div>
             {% endfor %}
-        </section>
+        </div>
         {% endif %}
 
     </div>
 
-    <!-- === История === -->
-    <div class="res-tab-content" id="tab-history">
-        <section class="section">
+    <!-- ============================================================
+         ТАБ: История
+         ============================================================ -->
+    <div class="tab-content" id="tab-history">
+        <div class="col" style="border-top: none; padding-top: 1rem;">
             {% if history_data %}
                 {% for h in history_data %}
-                <div class="res-history-week" onclick="toggleHistoryWeek(this)">
-                    <div class="res-history-head">
+                <div class="history-week" onclick="toggleHistoryWeek(this)">
+                    <div class="history-head">
                         <div>
-                            <div class="res-history-title">
-                                Неделя {{ h.week_key.split('-W')[1] }} · {{ h.week_key.split('-W')[0] }}
-                                · Играли в {{ h.session_time }}:00
+                            <div class="history-title">
+                                Неделя <b>{{ h.week_key.split('-W')[1] }}</b> · {{ h.week_key.split('-W')[0] }}
+                                <span style="color: var(--dim); margin-left: 0.5rem;">{{ h.session_time }}:00</span>
                             </div>
-                            <div class="res-history-meta">
+                            <div class="history-meta" style="margin-top: 0.4rem;">
                                 <span>Играли: <b>{{ h.roster|length }}</b></span>
                                 <span>Заявок: <b>{{ h.registrations|length }}</b></span>
                                 {% set ns = namespace(attended=0, missed=0) %}
@@ -897,59 +1009,56 @@
                                 {% if h.roster_published %}<span style="color: var(--accent-warm);">Опубликован</span>{% endif %}
                             </div>
                         </div>
-                        <div style="color: var(--dim); font-size: 1.2rem;">▼</div>
+                        <div style="color: var(--dim); font-size: 1rem;">▼</div>
                     </div>
 
-                    <div class="res-history-body">
+                    <div class="history-body">
                         {% if h.roster %}
-                            <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color: var(--dim); margin-bottom: 0.5rem;">
-                                Состав
-                            </div>
-                            <div class="res-history-players">
+                            <div class="history-players">
                                 {% for r in h.roster %}
                                     {% set r_nick = r[5] or r[4] %}
                                     {% set r_squad1 = r[6] %}
-                                    <div class="res-history-player">
+                                    <div class="history-player">
                                         <span>
                                             {{ r_nick }}
-                                            {% if r_squad1 %}<span style="color:var(--accent-warm); font-size:0.78rem;"> · ⚔ {{ r_squad1 }}</span>{% endif %}
+                                            {% if r_squad1 %}<span style="color:var(--accent-warm); font-size:0.78rem;"> · {{ r_squad1 }}</span>{% endif %}
                                         </span>
                                         <span>
-                                            {% if r[3] == 1 %}<span class="mark-yes">✓</span>
-                                            {% elif r[3] == 0 %}<span class="mark-no">✕</span>
-                                            {% else %}<span class="mark-unknown">?</span>{% endif %}
+                                            {% if r[3] == 1 %}<span class="check">✓</span>
+                                            {% elif r[3] == 0 %}<span class="cross">✕</span>
+                                            {% else %}<span style="color: var(--dim);">?</span>{% endif %}
                                         </span>
                                     </div>
                                 {% endfor %}
                             </div>
                         {% else %}
-                            <div class="res-empty">Состав не сохранился</div>
+                            <div class="empty-msg">Состав не сохранился</div>
                         {% endif %}
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="res-empty">История пока пуста</div>
+                <div class="empty-msg">История пока пуста</div>
             {% endif %}
-        </section>
+        </div>
     </div>
 
 </div>
 
-<!-- === Модалка: время сессии === -->
+<!-- === Модалка: изменение времени (админ) === -->
 {% if can_edit %}
 <div class="modal-overlay" id="timeModal">
     <div class="modal-box">
         <div class="modal-title">Время сессии</div>
-        <p class="modal-text">Выберите во сколько играем на этой неделе</p>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+        <p class="modal-text">Выберите время игры на эту неделю</p>
+        <div class="time-choice">
             <form method="POST" action="/reservoir/admin/set-session">
                 <input type="hidden" name="session_time" value="14">
-                <button type="submit" style="width:100%; padding: 1.2rem 0.6rem; border-radius: 14px; border: 2px solid rgba(74,158,255,0.5); background: rgba(10,5,3,0.6); color: #8ed6ff; font: inherit; font-size: 1.6rem; font-family: 'Forum', serif; font-weight: 700; cursor: pointer; letter-spacing: 3px;">14:00</button>
+                <button type="submit" class="t14">14:00</button>
             </form>
             <form method="POST" action="/reservoir/admin/set-session">
                 <input type="hidden" name="session_time" value="22">
-                <button type="submit" style="width:100%; padding: 1.2rem 0.6rem; border-radius: 14px; border: 2px solid rgba(255,138,31,0.5); background: rgba(10,5,3,0.6); color: #ff8a1f; font: inherit; font-size: 1.6rem; font-family: 'Forum', serif; font-weight: 700; cursor: pointer; letter-spacing: 3px;">22:00</button>
+                <button type="submit" class="t22">22:00</button>
             </form>
         </div>
         <div class="modal-actions">
@@ -962,36 +1071,36 @@
 <!-- === Модалка: регистрация недоступна === -->
 <div class="modal-overlay" id="registrationInfoModal">
     <div class="modal-box">
-        <div class="modal-title">Регистрация недоступна</div>
+        <div class="modal-title">Регистрация</div>
         <p class="modal-text">
             {% if session.get('user_id') and my_cannot_reason and my_cannot_reason != reg_status.message %}
                 {{ my_cannot_reason }}
             {% elif not session.get('user_id') %}
-                Чтобы записаться, <a href="/login" style="color: var(--accent-warm);">войдите</a> или
-                <a href="/register" style="color: var(--accent-warm);">зарегистрируйтесь</a>.
+                Чтобы записаться, <a href="/login">войдите</a> или
+                <a href="/register">зарегистрируйтесь</a>.
             {% else %}
                 Регистрация откроется <b>{{ registration_opens_str }}</b>.
             {% endif %}
         </p>
         <div class="modal-actions">
-            <button type="button" class="btn btn-primary" onclick="closeRegistrationInfoModal()">Понятно</button>
+            <button type="button" class="btn primary" onclick="closeRegistrationInfoModal()">Понятно</button>
         </div>
     </div>
 </div>
 
 <script>
-    // === Переключение табов ===
+    /* === Табы === */
     function switchResTab(e, tabName) {
         if (e) e.preventDefault();
         document.querySelectorAll('.res-nav-btn[data-tab]').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.res-tab-content').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
         const btn = document.querySelector('.res-nav-btn[data-tab="' + tabName + '"]');
         const content = document.getElementById('tab-' + tabName);
         if (btn) btn.classList.add('active');
         if (content) content.classList.add('active');
     }
 
-    // === Модалки ===
+    /* === Модалки === */
     function openTimeModal() {
         document.getElementById('timeModal').classList.add('show');
     }
@@ -1004,18 +1113,16 @@
     function closeRegistrationInfoModal() {
         document.getElementById('registrationInfoModal').classList.remove('show');
     }
-
-    // Закрытие по клику на фон
     document.querySelectorAll('.modal-overlay').forEach(m => {
         m.addEventListener('click', (e) => {
             if (e.target === m) m.classList.remove('show');
         });
     });
 
-    // === Ростер ===
+    /* === Ростер === */
     function getRosterUserIds() {
         const ids = [];
-        document.querySelectorAll('#rosterList .res-player-row[data-user-id]').forEach(row => {
+        document.querySelectorAll('#rosterList .player-row[data-user-id]').forEach(row => {
             ids.push(parseInt(row.dataset.userId));
         });
         return ids;
@@ -1035,14 +1142,14 @@
         if (!hidden) return;
         hidden.innerHTML = '';
 
-        coreList.querySelectorAll('.res-player-row[data-user-id]').forEach(row => {
+        coreList.querySelectorAll('.player-row[data-user-id]').forEach(row => {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'core_ids';
             input.value = row.dataset.userId;
             hidden.appendChild(input);
         });
-        rotationList.querySelectorAll('.res-player-row[data-user-id]').forEach(row => {
+        rotationList.querySelectorAll('.player-row[data-user-id]').forEach(row => {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'rotation_ids';
@@ -1064,13 +1171,13 @@
         const listId = role === 'core' ? 'coreList' : 'rotationList';
         const list = document.getElementById(listId);
         const row = document.createElement('div');
-        row.className = 'res-player-row' + (role === 'core' ? ' core' : '');
+        row.className = 'player-row' + (role === 'core' ? ' core' : '');
         row.dataset.userId = userId;
         row.innerHTML = `
             <div class="nick"><span>${nickname}</span></div>
-            <div class="squad1 ${squad1 ? '' : 'empty'}">${squad1 ? '⚔ ' + squad1 : '⚔ —'}</div>
-            <div style="display:flex; gap:0.3rem;">
-                <button type="button" class="res-action-btn remove" title="Убрать" onclick="removeFromRoster(${userId})">✕</button>
+            <div class="power ${squad1 ? '' : 'empty'}">${squad1 ? squad1 : '—'}</div>
+            <div class="actions">
+                <button type="button" class="action-btn remove" title="Убрать" onclick="removeFromRoster(${userId})">✕</button>
             </div>
         `;
         list.appendChild(row);
@@ -1078,7 +1185,7 @@
     }
 
     function removeFromRoster(userId) {
-        const row = document.querySelector(`#rosterList .res-player-row[data-user-id="${userId}"]`);
+        const row = document.querySelector(`#rosterList .player-row[data-user-id="${userId}"]`);
         if (row) row.remove();
         updateRosterCounter();
     }
@@ -1098,11 +1205,11 @@
     updateRosterCounter();
 
     function toggleHistoryWeek(el) {
-        const body = el.querySelector('.res-history-body');
-        body.classList.toggle('open');
+        const body = el.querySelector('.history-body');
+        if (body) body.classList.toggle('open');
     }
 
-    // === Тема ===
+    /* === Тема === */
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     if (toggleBtn) {
