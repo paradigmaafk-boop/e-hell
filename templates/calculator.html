@@ -82,11 +82,13 @@
             </div>
         </a>
         <div class="header-right">
-            {% if session['logged_in'] %}
+            {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                <a href="/logout" class="link-btn">Выйти</a>
+                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
-                <a href="/login" class="link-btn">Войти</a>
+                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
+                <a href="/login" class="link-btn header-link">Войти</a>
             {% endif %}
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
@@ -113,8 +115,8 @@
             <span class="nav-full">Калькулятор</span>
             <span class="nav-short">Калькулятор</span>
         </a>
-        {% if session['username'] == 'admin' %}
-        <a href="/admin" class="nav-admin">⚙ Админ</a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
     </nav>
 
