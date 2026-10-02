@@ -37,6 +37,7 @@ def init_db():
             created_at TEXT NOT NULL
         )
     """)
+    # Миграции
     cursor.execute("""
         DO $$
         BEGIN
@@ -51,6 +52,27 @@ def init_db():
             IF NOT EXISTS (SELECT 1 FROM information_schema.columns
                            WHERE table_name='users' AND column_name='created_at') THEN
                 ALTER TABLE users ADD COLUMN created_at TEXT;
+            END IF;
+            -- Боевая мощь отрядов
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='users' AND column_name='squad_1') THEN
+                ALTER TABLE users ADD COLUMN squad_1 TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='users' AND column_name='squad_2') THEN
+                ALTER TABLE users ADD COLUMN squad_2 TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='users' AND column_name='squad_3') THEN
+                ALTER TABLE users ADD COLUMN squad_3 TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='users' AND column_name='squad_4') THEN
+                ALTER TABLE users ADD COLUMN squad_4 TEXT;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='users' AND column_name='squad_5') THEN
+                ALTER TABLE users ADD COLUMN squad_5 TEXT;
             END IF;
         END $$;
     """)
@@ -185,7 +207,6 @@ def init_db():
             VALUES (%s, %s, NULL, 'super_admin', %s)
         """, ('admin', hashed, now))
 
-    # Дефолтный текст тултипа
     cursor.execute("SELECT id FROM site_settings WHERE key = 'rating_tooltip_text'")
     if not cursor.fetchone():
         cursor.execute("""
@@ -215,7 +236,8 @@ def check_user(username, password):
 def get_user_by_id(user_id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT id, username, password, linked_nickname, role, created_at
+    cursor.execute("""SELECT id, username, password, linked_nickname, role, created_at,
+                             squad_1, squad_2, squad_3, squad_4, squad_5
                       FROM users WHERE id = %s""", (user_id,))
     row = cursor.fetchone()
     conn.close()
@@ -375,6 +397,65 @@ def count_super_admins():
     n = cursor.fetchone()[0]
     conn.close()
     return n
+
+
+# ============================================================
+# БОЕВАЯ МОЩЬ ОТРЯДОВ
+# ============================================================
+
+def update_user_squads(user_id, squads_list):
+    """
+    squads_list: список из 5 элементов (строк или None).
+    Каждый элемент — строка в формате "103,5" или None.
+    """
+    while len(squads_list) < 5:
+        squads_list.append(None)
+    squads_list = squads_list[:5]
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE users SET squad_1 = %s, squad_2 = %s, squad_3 = %s,
+                             squad_4 = %s, squad_5 = %s
+            WHERE id = %s
+        """, (squads_list[0], squads_list[1], squads_list[2],
+              squads_list[3], squads_list[4], user_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"update_user_squads error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_user_squads(user_id):
+    """Возвращает список из 5 значений (строки или None)."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT squad_1, squad_2, squad_3, squad_4, squad_5
+                      FROM users WHERE id = %s""", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return [None] * 5
+    return list(row)
+
+
+def get_squads_by_nickname_map():
+    """dict: {nickname: squad_1_value} для показа в общем рейтинге.
+       Только если squad_1 заполнен."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT linked_nickname, squad_1 FROM users
+                      WHERE linked_nickname IS NOT NULL
+                        AND squad_1 IS NOT NULL
+                        AND squad_1 <> ''""")
+    data = cursor.fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in data}
 
 
 # ============================================================
@@ -743,7 +824,6 @@ def reset_apples():
 
 
 def reset_apples_given_by_user(user_id):
-    """Обнуляет только отданные яблоки конкретного пользователя (без учёта недели)."""
     conn = get_connection()
     cursor = conn.cursor()
     try:
