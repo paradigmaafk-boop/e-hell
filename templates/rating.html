@@ -81,11 +81,13 @@
             word-break: break-word;
             margin-bottom: 1.5rem;
         }
-        .tooltip-modal-actions { display: flex; justify-content: center; }
+        .tooltip-modal-actions {
+            display: flex;
+            justify-content: center;
+        }
         .tooltip-modal-actions .btn { min-width: 140px; }
         body.light-theme .tooltip-modal-box { background: #fffaf2; }
 
-        /* Apples */
         .apples-badge {
             display: inline-flex;
             align-items: center;
@@ -112,7 +114,6 @@
             100% { transform: scale(1); box-shadow: 0 0 0 rgba(255,90,90,0); background: rgba(255, 60, 60, 0.08); }
         }
 
-        /* Боевая мощь 1-го отряда */
         .squad-badge {
             display: inline-flex;
             align-items: center;
@@ -326,24 +327,24 @@
         </a>
         <a href="/rating/duel" {% if rating_type == 'duel' %}class="active"{% endif %}>
             <span class="nav-full">Рейтинг Дуэли</span>
-            <span class="nav-short">Дуэль</span>
+            <span class="nav-short">VS</span>
         </a>
         <a href="/rating/arcadia" {% if rating_type == 'arcadia' %}class="active"{% endif %}>
             <span class="nav-full">Рейтинг Аркадии</span>
             <span class="nav-short">Аркадия</span>
         </a>
-        <a href="/reservoir-map">Резервуар</a>
-        <a href="/calculator">Калькулятор</a>
+        <a href="/reservoir">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">РР</span>
+        </a>
+        <a href="/calculator">
+            <span class="nav-full">Калькулятор</span>
+            <span class="nav-short">Калькулятор</span>
+        </a>
         {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
     </nav>
-
-    <div class="breadcrumbs">
-        <a href="/">← На главную</a>
-        <span class="sep">·</span>
-        <span class="current">{{ display_name }}</span>
-    </div>
 
     <div class="page-head">
         <h1 class="page-title">{{ display_name }}</h1>
