@@ -446,9 +446,6 @@
         </a>
         <div class="header-right">
             <span class="user">Привет, <b>{{ player.username }}</b></span>
-            {% if is_admin %}
-                <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
-            {% endif %}
             <a href="/logout" class="link-btn header-link">Выйти</a>
             <button class="moon" id="theme-toggle">🌙</button>
         </div>
