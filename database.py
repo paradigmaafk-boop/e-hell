@@ -187,7 +187,6 @@ def init_db():
         )
     """)
 
-    # === РЕЗЕРВУАР: РАСПИСАНИЕ НЕДЕЛЬ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservoir_weeks (
             week_key TEXT PRIMARY KEY,
@@ -199,7 +198,6 @@ def init_db():
         )
     """)
 
-    # === РЕЗЕРВУАР: ЗАЯВКИ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservoir_registrations (
             id SERIAL PRIMARY KEY,
@@ -215,7 +213,6 @@ def init_db():
         ON reservoir_registrations (week_key)
     """)
 
-    # === РЕЗЕРВУАР: СОСТАВ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservoir_roster (
             id SERIAL PRIMARY KEY,
@@ -232,7 +229,6 @@ def init_db():
         ON reservoir_roster (week_key)
     """)
 
-    # === РЕЗЕРВУАР: ЧЁРНЫЕ МЕТКИ ===
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservoir_blacklist (
             id SERIAL PRIMARY KEY,
@@ -244,7 +240,6 @@ def init_db():
         )
     """)
 
-    # === СУПЕР-АДМИН ===
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     hashed = _hash('admin123')
     cursor.execute("SELECT id FROM users WHERE username = %s", ('admin',))
@@ -262,7 +257,7 @@ def init_db():
         cursor.execute("""
             INSERT INTO site_settings (key, value, updated_at)
             VALUES ('rating_tooltip_text', %s, %s)
-        """, ('Это рейтинг союза. Каждую неделю игроки могут дарить яблоки 🍎 другим участникам союза. Яблоки копятся весь сезон, а топ-10 игроков по сбору яблок получают иммунитет от ротации.', now))
+        """, ('Это рейтинг союза. Каждую неделю игроки могут дарить яблоки другим участникам союза. Яблоки копятся весь сезон, а топ-10 игроков по сбору яблок получают иммунитет от ротации.', now))
 
     conn.commit()
     conn.close()
@@ -1103,16 +1098,15 @@ def _iso_week_key(dt=None):
 
 
 def _default_session_for_week(week_key):
-    """Чётная ISO-неделя → 14, нечётная → 22."""
+    """Чётная ISO-неделя → 22, нечётная → 14."""
     try:
         week_num = int(week_key.split('-W')[1])
     except Exception:
-        return '14'
-    return '14' if week_num % 2 == 0 else '22'
+        return '22'
+    return '22' if week_num % 2 == 0 else '14'
 
 
 def get_or_create_reservoir_week(week_key=None):
-    """Возвращает актуальную запись недели, создавая при необходимости."""
     week_key = week_key or _iso_week_key()
     conn = get_connection()
     cursor = conn.cursor()
@@ -1132,7 +1126,6 @@ def get_or_create_reservoir_week(week_key=None):
             'updated_at': row[5],
         }
 
-    # создаём новую
     default_session = _default_session_for_week(week_key)
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
@@ -1159,7 +1152,7 @@ def get_or_create_reservoir_week(week_key=None):
 def set_reservoir_session_time(week_key, session_time):
     if session_time not in ('14', '22'):
         return False
-    get_or_create_reservoir_week(week_key)  # гарантируем существование
+    get_or_create_reservoir_week(week_key)
 
     conn = get_connection()
     cursor = conn.cursor()
@@ -1216,7 +1209,6 @@ def get_reservoir_week_history(limit=30):
 # ============================================================
 
 def get_reservoir_registrations(week_key):
-    """Возвращает список заявок с ником и мощью 1-го отряда."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -1288,7 +1280,6 @@ def cancel_reservoir_registration(week_key, user_id):
 # ============================================================
 
 def get_reservoir_roster(week_key):
-    """Возвращает список состава с ником, мощью, ролью, attended."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
@@ -1307,15 +1298,10 @@ def get_reservoir_roster(week_key):
 
 
 def save_reservoir_roster(week_key, roster_items):
-    """
-    roster_items: список словарей [{'user_id': int, 'role': 'core'|'rotation'}, ...]
-    Полностью заменяет состав на текущую неделю.
-    """
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
-        # сохраняем attended старых записей, чтобы не потерять
         cursor.execute("""SELECT user_id, attended FROM reservoir_roster WHERE week_key = %s""",
                        (week_key,))
         old_attended = {row[0]: row[1] for row in cursor.fetchall()}
@@ -1344,7 +1330,6 @@ def save_reservoir_roster(week_key, roster_items):
 
 
 def set_reservoir_attendance(week_key, user_id, attended):
-    """attended: 1 — пришёл, 0 — не пришёл, None — сбросить."""
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -1354,7 +1339,6 @@ def set_reservoir_attendance(week_key, user_id, attended):
                        (attended, week_key, user_id))
         conn.commit()
 
-        # если attended = 0 → добавим чёрную метку на следующую неделю
         if attended == 0:
             next_week = _next_week_key(week_key)
             try:
@@ -1444,7 +1428,6 @@ def remove_from_blacklist(week_key, user_id):
 
 
 def get_user_reservoir_history(user_id, limit=30):
-    """История участий игрока: [(week_key, role, attended), ...]."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("""
