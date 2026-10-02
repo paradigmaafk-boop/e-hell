@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Резервуар | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* === Табы Резервуара === */
+        .res-tabs {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 0 1rem;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .res-tab {
+            padding: 0.7rem 1.4rem;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(255,69,0,0.03);
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+        .res-tab:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+            background: rgba(255,69,0,0.08);
+        }
+        .res-tab.active {
+            background: linear-gradient(180deg, rgba(255,69,0,0.2), rgba(255,184,0,0.05));
+            border-color: var(--accent);
+            color: var(--accent-warm);
+            box-shadow: 0 0 20px rgba(255,69,0,0.25);
+        }
+        .res-tab-num {
+            font-size: 0.72rem;
+            background: rgba(255,69,0,0.15);
+            color: var(--accent-warm);
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        /* === Hero-блок недели === */
+        .res-hero {
+            position: relative;
+            padding: 2rem 1.75rem 1.75rem;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(30,15,8,0.95), rgba(8,4,2,0.98));
+            border: 1px solid var(--line);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .res-hero::before {
+            content: "";
+            position: absolute;
+            inset: -30%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,69,0,0.25), transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+            animation: resHeroPulse 6s ease-in-out infinite alternate;
+        }
+        @keyframes resHeroPulse {
+            0%   { opacity: 0.5; transform: scale(1); }
+            100% { opacity: 0.9; transform: scale(1.05); }
+        }
+        .res-hero > * { position: relative; z-index: 1; }
+
+        .res-hero-title {
+            font-family: 'Forum', serif;
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin-bottom: 1rem;
+        }
+        .res-hero-week {
+            color: var(--accent-warm);
+            font-weight: 600;
+        }
+
+        .res-session-plate {
+            display: inline-flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.25rem 1.75rem;
+            border-radius: 20px;
+            background: rgba(10,5,3,0.75);
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 40px rgba(255,69,0,0.35), inset 0 0 30px rgba(255,69,0,0.1);
+        }
+        .res-session-plate.s14 {
+            border-color: #4a9eff;
+            box-shadow: 0 0 40px rgba(74,158,255,0.35), inset 0 0 30px rgba(74,158,255,0.1);
+        }
+        .res-session-plate.s22 {
+            border-color: #ff8a1f;
+            box-shadow: 0 0 40px rgba(255,138,31,0.35), inset 0 0 30px rgba(255,138,31,0.1);
+        }
+
+        .res-session-label {
+            font-size: 0.72rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--dim);
+            font-weight: 600;
+        }
+        .res-session-day {
+            font-family: 'Forum', serif;
+            font-size: 1.1rem;
+            color: var(--text);
+            letter-spacing: 2px;
+            margin-bottom: 0.3rem;
+        }
+        .res-session-time {
+            font-family: 'Forum', serif;
+            font-size: 4.2rem;
+            font-weight: 700;
+            line-height: 0.95;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 4px;
+        }
+        .res-session-plate.s14 .res-session-time {
+            color: #4a9eff;
+            text-shadow: 0 0 30px rgba(74,158,255,0.7);
+        }
+        .res-session-plate.s22 .res-session-time {
+            color: #ff8a1f;
+            text-shadow: 0 0 30px rgba(255,138,31,0.7);
+        }
+        .res-session-unit {
+            font-size: 1.4rem;
+            color: var(--dim);
+            letter-spacing: 2px;
+        }
+
+        .res-hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            align-items: flex-end;
+        }
+
+        .res-status-badge {
+            padding: 0.7rem 1.25rem;
+            border-radius: 12px;
+            background: rgba(10,5,3,0.6);
+            border: 1px solid var(--line);
+            font-size: 0.85rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .res-status-badge.open {
+            border-color: rgba(60,200,100,0.5);
+            color: #7cf0a5;
+            background: rgba(20,40,20,0.4);
+        }
+        .res-status-badge.closed {
+            border-color: rgba(224,57,43,0.5);
+            color: #ffa090;
+            background: rgba(40,15,15,0.4);
+        }
+        .res-status-badge.published {
+            border-color: rgba(255,184,0,0.5);
+            color: var(--accent-warm);
+            background: rgba(40,25,5,0.4);
+            margin-top: 0.4rem;
+        }
+
+        /* === Блок регистрации игрока === */
+        .res-register {
+            padding: 1.5rem 1.75rem;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
+            border: 1px solid var(--line);
+            margin-bottom: 1.5rem;
+        }
+        .res-register h3 {
+            font-size: 0.72rem;
+            color: var(--accent-warm);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(255,184,0,0.35);
+        }
+        .res-register-form {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .res-session-radio {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .res-session-radio label {
+            cursor: pointer;
+            padding: 0.6rem 1.1rem;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            background: rgba(255,69,0,0.03);
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .res-session-radio label:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+        }
+        .res-session-radio input {
+            display: none;
+        }
+        .res-session-radio input:checked + span {
+            color: var(--accent-warm);
+        }
+        .res-session-radio label.checked {
+            border-color: var(--accent);
+            background: rgba(255,69,0,0.15);
+            color: var(--accent-warm);
+            box-shadow: 0 0 15px rgba(255,69,0,0.3);
+        }
+
+        .res-info-plate {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            background: rgba(10,5,3,0.5);
+            border: 1px solid var(--line-soft);
+            font-size: 0.88rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+        .res-info-plate.warn {
+            border-color: rgba(224,57,43,0.4);
+            background: rgba(40,15,15,0.35);
+            color: #ffa090;
+        }
+        .res-info-plate.ok {
+            border-color: rgba(60,200,100,0.4);
+            background: rgba(20,40,20,0.35);
+            color: #7cf0a5;
+        }
+
+        /* === Двухколоночная сетка: Заявки / Состав === */
+        .res-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 900px) {
+            .res-grid { grid-template-columns: 1fr; }
+        }
+
+        .res-col {
+            padding: 1.5rem 1.5rem 1.25rem;
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
+            border: 1px solid var(--line);
+            min-height: 200px;
+        }
+        .res-col h3 {
+            font-size: 0.78rem;
+            color: var(--accent-warm);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-shadow: 0 0 10px rgba(255,184,0,0.3);
+        }
+        .res-col h3 .cnt {
+            font-size: 0.72rem;
+            background: rgba(255,69,0,0.15);
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            color: var(--accent-warm);
+            letter-spacing: 1px;
+        }
+
+        .res-player-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 0.6rem;
+            align-items: center;
+            padding: 0.55rem 0.75rem;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+        .res-player-row:hover {
+            background: rgba(255,69,0,0.05);
+            border-color: var(--line);
+        }
+        .res-player-row.core {
+            background: linear-gradient(90deg, rgba(255,184,0,0.12), transparent);
+            border-left: 3px solid var(--accent-warm);
+        }
+        .res-player-row .nick {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            color: var(--text);
+            font-weight: 500;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .res-player-row .squad1 {
+            font-family: 'Forum', serif;
+            color: var(--accent-warm);
+            font-size: 0.88rem;
+            font-weight: 700;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .res-player-row .squad1.empty {
+            color: var(--dim);
+            font-weight: 400;
+        }
+        .res-player-row .pref {
+            font-size: 0.72rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(74,158,255,0.12);
+            color: #8ed6ff;
+            border: 1px solid rgba(74,158,255,0.3);
+            white-space: nowrap;
+        }
+        .res-player-row .pref.any {
+            background: rgba(120,120,120,0.12);
+            color: var(--dim);
+            border-color: var(--line-soft);
+        }
+
+        .res-empty {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--muted);
+            font-style: italic;
+            font-size: 0.9rem;
+        }
+
+        .res-core-divider {
+            margin: 1rem 0 0.5rem;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(255,184,0,0.15), transparent);
+            border-left: 3px solid var(--accent-warm);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent-warm);
+            font-weight: 700;
+        }
+
+        /* Кнопки действий */
+        .res-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: rgba(255,69,0,0.05);
+            color: var(--muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .res-action-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+            background: rgba(255,69,0,0.15);
+        }
+        .res-action-btn.add:hover { border-color: rgba(60,200,100,0.6); color: #7cf0a5; background: rgba(20,40,20,0.4); }
+        .res-action-btn.remove:hover { border-color: rgba(224,57,43,0.6); color: #ffa090; background: rgba(40,15,15,0.4); }
+        .res-action-btn.attend-yes { border-color: rgba(60,200,100,0.5); color: #7cf0a5; }
+        .res-action-btn.attend-yes.active { background: rgba(60,200,100,0.25); border-color: #5eda8a; color: #fff; }
+        .res-action-btn.attend-no { border-color: rgba(224,57,43,0.5); color: #ffa090; }
+        .res-action-btn.attend-no.active { background: rgba(224,57,43,0.25); border-color: #ff5a5a; color: #fff; }
+
+        .res-manage-bar {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            padding: 1rem 1.25rem;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(40,20,10,0.9), rgba(15,8,3,0.95));
+            border: 1px solid var(--accent);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 25px rgba(255,69,0,0.15);
+        }
+        .res-manage-bar .btn { font-size: 0.85rem; }
+
+        /* История */
+        .res-history-week {
+            padding: 1.25rem 1.5rem;
+            border-radius: 14px;
+            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(10,5,3,0.95));
+            border: 1px solid var(--line);
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .res-history-week:hover {
+            border-color: var(--accent);
+        }
+        .res-history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .res-history-title {
+            font-family: 'Forum', serif;
+            font-size: 1.1rem;
+            color: var(--text);
+            letter-spacing: 2px;
+        }
+        .res-history-meta {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .res-history-meta b {
+            color: var(--accent-warm);
+        }
+        .res-history-body {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--line-soft);
+        }
+        .res-history-body.open {
+            display: block;
+        }
+        .res-history-players {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+        .res-history-player {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.4rem 0.7rem;
+            border-radius: 8px;
+            background: rgba(10,5,3,0.5);
+            font-size: 0.85rem;
+        }
+        .res-history-player .mark-yes { color: #7cf0a5; font-weight: 700; }
+        .res-history-player .mark-no { color: #ff5a5a; font-weight: 700; }
+        .res-history-player .mark-unknown { color: var(--dim); }
+
+        /* Модалка смены времени */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(3, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            width: 100%;
+            max-width: 520px;
+            padding: 2rem 1.85rem;
+            background: linear-gradient(180deg, #150a04, #050101);
+            border: 1px solid var(--accent);
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(255,69,0,0.35);
+            animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.9); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+        .modal-title {
+            font-family: 'Forum', serif;
+            font-size: 1.3rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent-warm);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 0 12px rgba(255,184,0,0.5);
+        }
+        .time-choice {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .time-choice button {
+            padding: 1.5rem 1rem;
+            border-radius: 14px;
+            border: 2px solid var(--line);
+            background: rgba(10,5,3,0.6);
+            color: var(--text);
+            font: inherit;
+            font-size: 2rem;
+            font-family: 'Forum', serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 3px;
+        }
+        .time-choice button.t14 {
+            border-color: rgba(74,158,255,0.5);
+            color: #8ed6ff;
+        }
+        .time-choice button.t14:hover {
+            border-color: #4a9eff;
+            box-shadow: 0 0 25px rgba(74,158,255,0.5);
+            background: rgba(74,158,255,0.15);
+        }
+        .time-choice button.t22 {
+            border-color: rgba(255,138,31,0.5);
+            color: #ff8a1f;
+        }
+        .time-choice button.t22:hover {
+            border-color: #ff8a1f;
+            box-shadow: 0 0 25px rgba(255,138,31,0.5);
+            background: rgba(255,138,31,0.15);
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        @media (max-width: 700px) {
+            .res-hero { grid-template-columns: 1fr; }
+            .res-hero-actions { align-items: stretch; }
+            .res-session-plate { justify-content: center; text-align: center; padding: 1rem 1.25rem; }
+            .res-session-time { font-size: 3rem; }
+            .res-session-unit { font-size: 1rem; }
+            .res-player-row { grid-template-columns: 1fr auto; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                {% if session.get('role') in ['admin', 'super_admin'] %}
+                    <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
+                {% endif %}
+                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/logout" class="link-btn header-link">Выйти</a>
+            {% else %}
+                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
+                <a href="/login" class="link-btn header-link">Войти</a>
+            {% endif %}
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total">Рейтинг</a>
+        <a href="/rating/duel">Рейтинг Дуэли</a>
+        <a href="/rating/arcadia">Рейтинг Аркадии</a>
+        <a href="/reservoir" class="active">Резервуар</a>
+        <a href="/calculator">Калькулятор</a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
+    </nav>
+
+    <div class="breadcrumbs">
+        <a href="/">← На главную</a>
+        <span class="sep">·</span>
+        <span class="current">Резервуар</span>
+    </div>
+
+    <div class="page-head">
+        <h1 class="page-title">Резервуар</h1>
+        <p class="page-sub">Регистрация, состав и история игры</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Табы -->
+    <div class="res-tabs">
+        <button class="res-tab active" data-tab="roster" type="button">
+            📋 Состав и заявки
+        </button>
+        <button class="res-tab" data-tab="history" type="button">
+            📜 История
+        </button>
+        <a href="/reservoir/map" class="res-tab" style="margin-left: auto;">
+            🗺 Карта боя
+        </a>
+    </div>
+
+    <!-- === TAB: ROSTER === -->
+    <div id="tab-roster" class="res-tab-content">
+
+        <!-- Hero: время недели -->
+        <section class="res-hero">
+            <div>
+                <div class="res-hero-title">
+                    Резервуар · неделя <span class="res-hero-week">{{ week.week_key }}</span>
+                </div>
+
+                <div class="res-session-plate s{{ week.session_time }}">
+                    <div>
+                        <div class="res-session-label">Играем в</div>
+                        <div class="res-session-time">
+                            {{ week.session_time }}<span class="res-session-unit">:00</span>
+                        </div>
+                        <div class="res-session-day">
+                            {% if reg_status.is_open %}
+                                Воскресенье на этой неделе
+                            {% else %}
+                                Воскресенье этой недели
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="res-hero-actions">
+                <div class="res-status-badge {% if reg_status.is_open %}open{% else %}closed{% endif %}">
+                    {{ reg_status.message }}
+                </div>
+
+                {% if week.roster_published %}
+                <div class="res-status-badge published">
+                    ✅ Состав опубликован
+                </div>
+                {% else %}
+                <div class="res-status-badge">
+                    ⏳ Состав ещё не опубликован
+                </div>
+                {% endif %}
+
+                {% if can_edit %}
+                <button type="button" class="btn btn-small" onclick="openTimeModal()">✏ Изменить время</button>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Панель управления (только для управляющего) -->
+        {% if can_edit %}
+        <section class="res-manage-bar">
+            <form method="POST" action="/reservoir/admin/save-roster" id="saveRosterForm" style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                <button type="submit" class="btn btn-primary" form="saveRosterForm">💾 Сохранить состав</button>
+            </form>
+            <form method="POST" action="/reservoir/admin/publish" style="display: inline;">
+                <button type="submit" class="btn"
+                        onclick="return confirm('Опубликовать текущий состав? Его увидят все.');">
+                    📢 Опубликовать
+                </button>
+            </form>
+            {% if week.roster_published %}
+            <form method="POST" action="/reservoir/admin/unpublish" style="display: inline;">
+                <button type="submit" class="btn">↩ Снять с публикации</button>
+            </form>
+            {% endif %}
+        </section>
+        {% endif %}
+
+        <!-- Регистрация игрока -->
+        {% if session.get('user_id') %}
+        <section class="res-register">
+            <h3>📝 Заявка на игру</h3>
+
+            {% if my_registration %}
+                <div class="res-info-plate ok" style="margin-bottom: 1rem;">
+                    ✅ Вы подали заявку. Предпочтение:
+                    {% if my_registration[1] == '14' %}14:00
+                    {% elif my_registration[1] == '22' %}22:00
+                    {% else %}не важно{% endif %}
+                    · {{ my_registration[2][:16] }}
+                </div>
+                {% if reg_status.is_open %}
+                <form method="POST" action="/reservoir/unregister"
+                      onsubmit="return confirm('Отменить заявку?');">
+                    <button type="submit" class="btn btn-danger">✕ Отменить заявку</button>
+                </form>
+                {% else %}
+                <div class="res-info-plate warn">Регистрация закрыта — отменить заявку уже нельзя.</div>
+                {% endif %}
+            {% elif my_can_register %}
+                <form method="POST" action="/reservoir/register" class="res-register-form" id="registerForm">
+                    <div class="res-session-radio" id="sessionRadio">
+                        <label class="checked">
+                            <input type="radio" name="preferred_session" value="any" checked>
+                            <span>Без разницы</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="preferred_session" value="14">
+                            <span>Хочу в 14:00</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="preferred_session" value="22">
+                            <span>Хочу в 22:00</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">🎯 Подать заявку</button>
+                </form>
+            {% else %}
+                <div class="res-info-plate warn">{{ my_cannot_reason }}</div>
+            {% endif %}
+        </section>
+        {% else %}
+        <section class="res-register">
+            <div class="res-info-plate">
+                Чтобы подать заявку, <a href="/login" style="color: var(--accent-warm);">войдите</a> или
+                <a href="/register" style="color: var(--accent-warm);">зарегистрируйтесь</a>.
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Двухколоночная сетка -->
+        <form method="POST" action="/reservoir/admin/save-roster" id="rosterMainForm">
+        <div class="res-grid">
+
+            <!-- Заявки -->
+            <div class="res-col">
+                <h3>
+                    <span>📨 Заявки</span>
+                    <span class="cnt">{{ registrations|length }}</span>
+                </h3>
+
+                {% if registrations %}
+                    {% for reg in registrations %}
+                        {% set reg_user_id = reg[1] %}
+                        {% set reg_pref = reg[2] %}
+                        {% set reg_username = reg[4] %}
+                        {% set reg_nick = reg[5] or reg_username %}
+                        {% set reg_squad1 = reg[6] %}
+                        {% set is_in_roster = reg_user_id in roster_ids %}
+                        <div class="res-player-row">
+                            <div class="nick">
+                                <span>{{ reg_nick }}</span>
+                                <span class="pref {% if reg_pref == 'any' %}any{% endif %}">
+                                    {% if reg_pref == '14' %}14:00
+                                    {% elif reg_pref == '22' %}22:00
+                                    {% else %}любое{% endif %}
+                                </span>
+                            </div>
+                            <div class="squad1 {% if not reg_squad1 %}empty{% endif %}">
+                                {% if reg_squad1 %}⚔ {{ reg_squad1 }}{% else %}⚔ —{% endif %}
+                            </div>
+                            <div style="display:flex; gap:0.3rem;">
+                                {% if can_edit %}
+                                    <button type="button" class="res-action-btn add"
+                                            title="Добавить в состав"
+                                            onclick="quickAddToRoster({{ reg_user_id }}, '{{ reg_nick|e }}', '{{ reg_squad1|default('', true) }}', 'rotation')">
+                                        +
+                                    </button>
+                                    <form method="POST" action="/reservoir/admin/cancel-registration" style="display:inline;"
+                                          onsubmit="return confirm('Отменить заявку игрока {{ reg_nick }}?');">
+                                        <input type="hidden" name="user_id" value="{{ reg_user_id }}">
+                                        <button type="submit" class="res-action-btn remove" title="Отменить заявку">✕</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="res-empty">Пока никто не подал заявку</div>
+                {% endif %}
+            </div>
+
+            <!-- Состав -->
+            <div class="res-col">
+                <h3>
+                    <span>🎯 Состав</span>
+                    <span class="cnt" id="rosterCount">{{ roster|length }} / 30</span>
+                </h3>
+
+                <div id="rosterList">
+                    <!-- Core -->
+                    <div class="res-core-divider" id="coreDivider">🏆 Основной состав</div>
+                    <div id="coreList">
+                        {% for r in roster if r[2] == 'core' %}
+                            {% set r_uid = r[1] %}
+                            {% set r_nick = r[5] or r[4] %}
+                            {% set r_squad1 = r[6] %}
+                            {% set r_attended = r[3] %}
+                            <div class="res-player-row core" data-user-id="{{ r_uid }}">
+                                <div class="nick">
+                                    <span>{{ r_nick }}</span>
+                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✅</span>
+                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">❌</span>{% endif %}
+                                </div>
+                                <div class="squad1 {% if not r_squad1 %}empty{% endif %}">
+                                    {% if r_squad1 %}⚔ {{ r_squad1 }}{% else %}⚔ —{% endif %}
+                                </div>
+                                <div style="display:flex; gap:0.3rem;">
+                                    {% if can_edit %}
+                                        <button type="button" class="res-action-btn remove"
+                                                title="Убрать из состава"
+                                                onclick="removeFromRoster({{ r_uid }})">✕</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Rotation -->
+                    <div class="res-core-divider">⚔ Остальные</div>
+                    <div id="rotationList">
+                        {% for r in roster if r[2] == 'rotation' %}
+                            {% set r_uid = r[1] %}
+                            {% set r_nick = r[5] or r[4] %}
+                            {% set r_squad1 = r[6] %}
+                            {% set r_attended = r[3] %}
+                            <div class="res-player-row" data-user-id="{{ r_uid }}">
+                                <div class="nick">
+                                    <span>{{ r_nick }}</span>
+                                    {% if r_attended == 1 %}<span style="color:#7cf0a5; font-weight:700;">✅</span>
+                                    {% elif r_attended == 0 %}<span style="color:#ff5a5a; font-weight:700;">❌</span>{% endif %}
+                                </div>
+                                <div class="squad1 {% if not r_squad1 %}empty{% endif %}">
+                                    {% if r_squad1 %}⚔ {{ r_squad1 }}{% else %}⚔ —{% endif %}
+                                </div>
+                                <div style="display:flex; gap:0.3rem;">
+                                    {% if can_edit %}
+                                        <button type="button" class="res-action-btn remove"
+                                                title="Убрать из состава"
+                                                onclick="removeFromRoster({{ r_uid }})">✕</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {% if not roster %}
+                    <div class="res-empty">Состав пока не сформирован</div>
+                {% endif %}
+
+                <!-- Скрытые поля для отправки состава -->
+                <div id="rosterHiddenFields"></div>
+            </div>
+
+        </div>
+        </form>
+
+        <!-- После игры: отметки явки -->
+        {% if can_edit and roster %}
+        <section class="res-col" style="margin-bottom: 2rem;">
+            <h3>📝 Отметки о посещении</h3>
+            <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                Отметьте, кто пришёл на игру. Кто отмечен как «не пришёл» — получает чёрную метку и пропускает следующую неделю.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.5rem;">
+                {% for r in roster %}
+                    {% set r_uid = r[1] %}
+                    {% set r_nick = r[5] or r[4] %}
+                    {% set r_attended = r[3] %}
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:0.5rem; padding:0.4rem 0.7rem; border-radius:10px; background:rgba(10,5,3,0.5);">
+                        <span style="font-size:0.88rem;">{{ r_nick }}</span>
+                        <div style="display:flex; gap:0.3rem;">
+                            <form method="POST" action="/reservoir/admin/attendance" style="display:inline;">
+                                <input type="hidden" name="user_id" value="{{ r_uid }}">
+                                <input type="hidden" name="week_key" value="{{ week.week_key }}">
+                                <input type="hidden" name="attended" value="1">
+                                <button type="submit" class="res-action-btn attend-yes {% if r_attended == 1 %}active{% endif %}" title="Пришёл">✅</button>
+                            </form>
+                            <form method="POST" action="/reservoir/admin/attendance" style="display:inline;">
+                                <input type="hidden" name="user_id" value="{{ r_uid }}">
+                                <input type="hidden" name="week_key" value="{{ week.week_key }}">
+                                <input type="hidden" name="attended" value="0">
+                                <button type="submit" class="res-action-btn attend-no {% if r_attended == 0 %}active{% endif %}" title="Не пришёл">❌</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- Чёрные метки -->
+        {% if blacklist %}
+        <section class="res-col" style="margin-bottom: 2rem; border-color: rgba(224,57,43,0.4);">
+            <h3 style="color:#ffa090;">⛔ Чёрные метки на эту неделю</h3>
+            {% for b in blacklist %}
+                {% set b_uid = b[1] %}
+                {% set b_reason = b[2] %}
+                {% set b_nick = b[5] or b[4] %}
+                <div class="res-player-row" style="border-color: rgba(224,57,43,0.3);">
+                    <div class="nick">{{ b_nick }}</div>
+                    <div style="font-size:0.78rem; color:var(--dim);">{{ b_reason or 'Неявка' }}</div>
+                    <div>
+                        {% if can_edit %}
+                        <form method="POST" action="/reservoir/admin/blacklist-remove" style="display:inline;"
+                              onsubmit="return confirm('Снять чёрную метку с {{ b_nick }}?');">
+                            <input type="hidden" name="user_id" value="{{ b_uid }}">
+                            <input type="hidden" name="week_key" value="{{ week.week_key }}">
+                            <button type="submit" class="res-action-btn remove" title="Снять метку">✕</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </section>
+        {% endif %}
+
+    </div>
+
+    <!-- === TAB: HISTORY === -->
+    <div id="tab-history" class="res-tab-content" style="display:none;">
+        <section class="section">
+            <div class="section-title">История недель</div>
+
+            {% if history_data %}
+                {% for h in history_data %}
+                <div class="res-history-week" onclick="toggleHistoryWeek(this)">
+                    <div class="res-history-head">
+                        <div>
+                            <div class="res-history-title">
+                                Неделя {{ h.week_key.split('-W')[1] }} · {{ h.week_key.split('-W')[0] }}
+                                · Играли в {{ h.session_time }}:00
+                            </div>
+                            <div class="res-history-meta">
+                                <span>Играли: <b>{{ h.roster|length }}</b></span>
+                                <span>Заявок: <b>{{ h.registrations|length }}</b></span>
+                                {% set ns = namespace(attended=0, missed=0) %}
+                                {% for r in h.roster %}
+                                    {% if r[3] == 1 %}{% set ns.attended = ns.attended + 1 %}{% endif %}
+                                    {% if r[3] == 0 %}{% set ns.missed = ns.missed + 1 %}{% endif %}
+                                {% endfor %}
+                                <span>✅ Пришли: <b>{{ ns.attended }}</b></span>
+                                <span>❌ Не пришли: <b>{{ ns.missed }}</b></span>
+                                {% if h.roster_published %}<span style="color: var(--accent-warm);">📢 Опубликован</span>{% endif %}
+                            </div>
+                        </div>
+                        <div style="color: var(--dim); font-size: 1.2rem;">▼</div>
+                    </div>
+
+                    <div class="res-history-body">
+                        {% if h.roster %}
+                            <div style="font-size:0.72rem; text-transform:uppercase; letter-spacing:3px; color: var(--dim); margin-bottom: 0.5rem;">
+                                Состав
+                            </div>
+                            <div class="res-history-players">
+                                {% for r in h.roster %}
+                                    {% set r_nick = r[5] or r[4] %}
+                                    {% set r_squad1 = r[6] %}
+                                    <div class="res-history-player">
+                                        <span>
+                                            {% if r[2] == 'core' %}🏆 {% endif %}{{ r_nick }}
+                                            {% if r_squad1 %}<span style="color:var(--accent-warm); font-size:0.78rem;"> · ⚔ {{ r_squad1 }}</span>{% endif %}
+                                        </span>
+                                        <span>
+                                            {% if r[3] == 1 %}<span class="mark-yes">✅</span>
+                                            {% elif r[3] == 0 %}<span class="mark-no">❌</span>
+                                            {% else %}<span class="mark-unknown">❓</span>{% endif %}
+                                        </span>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="res-empty">Состав не сохранился</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="res-empty">История пока пуста</div>
+            {% endif %}
+        </section>
+    </div>
+
+</div>
+
+<!-- === Модалка смены времени === -->
+{% if can_edit %}
+<div class="modal-overlay" id="timeModal">
+    <div class="modal-box">
+        <div class="modal-title">⏰ Время сессии</div>
+        <p style="color: var(--muted); text-align:center; font-size: 0.85rem; margin-bottom: 1.5rem;">
+            Выберите во сколько играем на этой неделе
+        </p>
+        <div class="time-choice">
+            <form method="POST" action="/reservoir/admin/set-session">
+                <input type="hidden" name="session_time" value="14">
+                <button type="submit" class="t14">14:00</button>
+            </form>
+            <form method="POST" action="/reservoir/admin/set-session">
+                <input type="hidden" name="session_time" value="22">
+                <button type="submit" class="t22">22:00</button>
+            </form>
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn" onclick="closeTimeModal()">Отмена</button>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    // === Табы ===
+    document.querySelectorAll('.res-tab[data-tab]').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.res-tab[data-tab]').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const target = tab.dataset.tab;
+            document.querySelectorAll('.res-tab-content').forEach(c => c.style.display = 'none');
+            document.getElementById('tab-' + target).style.display = '';
+        });
+    });
+
+    // === Модалка времени ===
+    function openTimeModal() {
+        document.getElementById('timeModal').classList.add('show');
+    }
+    function closeTimeModal() {
+        document.getElementById('timeModal').classList.remove('show');
+    }
+
+    // === Радио-кнопки времени ===
+    document.querySelectorAll('.res-session-radio label').forEach(label => {
+        label.addEventListener('click', () => {
+            document.querySelectorAll('.res-session-radio label').forEach(l => l.classList.remove('checked'));
+            label.classList.add('checked');
+        });
+    });
+
+    // === Формирование состава ===
+    const rosterIds = {{ roster | map(attribute=1) | list | tojson }};
+
+    // Проверим, есть ли у нас уже добавленные ID
+    function getRosterUserIds() {
+        const ids = [];
+        document.querySelectorAll('#rosterList .res-player-row[data-user-id]').forEach(row => {
+            ids.push(parseInt(row.dataset.userId));
+        });
+        return ids;
+    }
+
+    function updateRosterCounter() {
+        const ids = getRosterUserIds();
+        document.getElementById('rosterCount').textContent = ids.length + ' / 30';
+    }
+
+    function buildHiddenFields() {
+        const coreList = document.getElementById('coreList');
+        const rotationList = document.getElementById('rotationList');
+        const hidden = document.getElementById('rosterHiddenFields');
+        hidden.innerHTML = '';
+
+        coreList.querySelectorAll('.res-player-row[data-user-id]').forEach(row => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'core_ids';
+            input.value = row.dataset.userId;
+            hidden.appendChild(input);
+        });
+        rotationList.querySelectorAll('.res-player-row[data-user-id]').forEach(row => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'rotation_ids';
+            input.value = row.dataset.userId;
+            hidden.appendChild(input);
+        });
+    }
+
+    function quickAddToRoster(userId, nickname, squad1, role) {
+        // если уже в составе — выходим
+        if (getRosterUserIds().includes(userId)) {
+            alert('Этот игрок уже в составе');
+            return;
+        }
+        const total = getRosterUserIds().length;
+        if (total >= 30) {
+            alert('Состав уже 30/30 — больше нельзя');
+            return;
+        }
+        const listId = role === 'core' ? 'coreList' : 'rotationList';
+        const list = document.getElementById(listId);
+        const row = document.createElement('div');
+        row.className = 'res-player-row' + (role === 'core' ? ' core' : '');
+        row.dataset.userId = userId;
+        row.innerHTML = `
+            <div class="nick"><span>${nickname}</span></div>
+            <div class="squad1 ${squad1 ? '' : 'empty'}">${squad1 ? '⚔ ' + squad1 : '⚔ —'}</div>
+            <div style="display:flex; gap:0.3rem;">
+                <button type="button" class="res-action-btn remove" title="Убрать" onclick="removeFromRoster(${userId})">✕</button>
+            </div>
+        `;
+        list.appendChild(row);
+        updateRosterCounter();
+    }
+
+    function removeFromRoster(userId) {
+        const row = document.querySelector(`#rosterList .res-player-row[data-user-id="${userId}"]`);
+        if (row) row.remove();
+        updateRosterCounter();
+    }
+
+    // Обновляем счётчик и hidden-поля при отправке формы
+    const mainForm = document.getElementById('rosterMainForm');
+    if (mainForm) {
+        mainForm.addEventListener('submit', (e) => {
+            buildHiddenFields();
+            const total = getRosterUserIds().length;
+            if (total > 30) {
+                e.preventDefault();
+                alert('Слишком много игроков в составе: ' + total + ' из 30');
+            }
+        });
+    }
+
+    updateRosterCounter();
+
+    // === История недель ===
+    function toggleHistoryWeek(el) {
+        const body = el.querySelector('.res-history-body');
+        body.classList.toggle('open');
+    }
+
+    // === Тема ===
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+</script>
+
+</body>
+</html>
