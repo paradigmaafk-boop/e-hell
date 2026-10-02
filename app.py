@@ -34,6 +34,7 @@ from database import (
     get_reservoir_roster, save_reservoir_roster, set_reservoir_attendance,
     get_blacklist_for_week, is_user_blacklisted, remove_from_blacklist,
     get_user_reservoir_history,
+    get_last_update_date,
 )
 from werkzeug.utils import secure_filename
 
@@ -398,6 +399,11 @@ def rating_view(rating_type):
 
     tooltip_text = get_setting('rating_tooltip_text', '')
 
+    # Дата последнего обновления — только для дуэли и аркадии
+    last_update_date = None
+    if rating_type in ('duel', 'arcadia'):
+        last_update_date = get_last_update_date(rating_type)
+
     return render_template('rating.html',
                            rating=rating_data,
                            rating_type=rating_type,
@@ -409,7 +415,8 @@ def rating_view(rating_type):
                            is_logged_player=is_logged_player,
                            my_linked_nickname=my_linked_nickname,
                            tooltip_text=tooltip_text,
-                           apples_per_week=APPLES_PER_WEEK)
+                           apples_per_week=APPLES_PER_WEEK,
+                           last_update_date=last_update_date)
 
 
 @app.route('/give-apple', methods=['POST'])
@@ -1433,6 +1440,8 @@ def delete_player_route(rating_type, nickname):
 def rating_stats():
     count_once('visits', 'counted_visit')
     visit_count = get_counter_value('visits')
+    home_count = get_counter_value('home')
+    reservoir_count = get_counter_value('reservoir')
     turtle_count = get_counter_value('turtle_calculator')
     hero_count = get_counter_value('hero_calculator')
     chart_count = get_counter_value('chart_views')
@@ -1440,6 +1449,8 @@ def rating_stats():
 
     return render_template('rating_stats.html',
                            visit_count=visit_count,
+                           home_count=home_count,
+                           reservoir_count=reservoir_count,
                            turtle_count=turtle_count,
                            hero_count=hero_count,
                            chart_count=chart_count,
