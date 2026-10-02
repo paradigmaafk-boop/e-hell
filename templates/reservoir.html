@@ -9,41 +9,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* === Табы Резервуара === */
+        /* === Табы Резервуара — как на главной === */
         .res-tabs {
             display: flex;
-            gap: 0.5rem;
-            padding: 0.5rem 0 1rem;
+            gap: 1.75rem;
+            padding: 0.75rem 0 0;
             border-bottom: 1px solid var(--line);
             margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            align-items: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex-wrap: nowrap;
         }
+        .res-tabs::-webkit-scrollbar { display: none; }
         .res-tab {
-            padding: 0.7rem 1.4rem;
-            border-radius: 12px;
-            border: 1px solid var(--line);
-            background: rgba(255,69,0,0.03);
+            padding: 0 0 0.75rem;
+            border: none;
+            background: none;
             color: var(--muted);
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 0.92rem;
+            font-weight: 500;
             text-decoration: none;
-            transition: all 0.25s ease;
+            white-space: nowrap;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
         }
-        .res-tab:hover {
-            border-color: var(--accent);
-            color: var(--accent-warm);
-            background: rgba(255,69,0,0.08);
-        }
+        .res-tab:hover { color: var(--accent-warm); }
         .res-tab.active {
-            background: linear-gradient(180deg, rgba(255,69,0,0.2), rgba(255,184,0,0.05));
-            border-color: var(--accent);
-            color: var(--accent-warm);
-            box-shadow: 0 0 20px rgba(255,69,0,0.25);
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: none;
+            box-shadow: none;
         }
 
         /* === Hero-блок недели === */
@@ -82,48 +80,10 @@
             text-transform: uppercase;
             color: var(--dim);
             margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
         }
         .res-hero-week {
             color: var(--accent-warm);
             font-weight: 600;
-        }
-        /* Инлайн-статус регистрации в строке заголовка */
-        .res-reg-inline {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 999px;
-            font-size: 0.72rem;
-            letter-spacing: 1px;
-            font-weight: 600;
-            text-transform: none;
-            font-family: 'Inter', sans-serif;
-        }
-        .res-reg-inline.open {
-            background: rgba(20,40,20,0.5);
-            border: 1px solid rgba(60,200,100,0.5);
-            color: #7cf0a5;
-        }
-        .res-reg-inline.closed {
-            background: rgba(40,15,15,0.5);
-            border: 1px solid rgba(224,57,43,0.5);
-            color: #ffa090;
-        }
-        .res-reg-inline .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-            animation: regPulse 1.6s ease-in-out infinite;
-        }
-        @keyframes regPulse {
-            0%, 100% { opacity: 0.4; }
-            50%      { opacity: 1; }
         }
 
         .res-session-plate {
@@ -260,7 +220,7 @@
             color: #7cf0a5;
         }
 
-        /* === Двухколоночная сетка: Заявки / Состав === */
+        /* === Двухколоночная сетка === */
         .res-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -376,7 +336,6 @@
         }
         .res-core-divider:first-child { margin-top: 0; }
 
-        /* Кнопки действий */
         .res-action-btn {
             display: inline-flex;
             align-items: center;
@@ -418,7 +377,6 @@
         }
         .res-manage-bar .btn { font-size: 0.85rem; }
 
-        /* История */
         .res-history-week {
             padding: 1.25rem 1.5rem;
             border-radius: 14px;
@@ -477,7 +435,6 @@
         .res-history-player .mark-no { color: #ff5a5a; font-weight: 700; }
         .res-history-player .mark-unknown { color: var(--dim); }
 
-        /* Модалка смены времени */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -561,8 +518,6 @@
             .res-session-time { font-size: 3rem; }
             .res-session-unit { font-size: 1rem; }
             .res-player-row { grid-template-columns: 1fr auto; font-size: 0.85rem; }
-            .res-tabs { flex-direction: column; align-items: stretch; }
-            .res-tab { justify-content: center; }
         }
     </style>
 </head>
@@ -620,9 +575,6 @@
         <div class="header-right">
             {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                {% if session.get('role') in ['admin', 'super_admin'] %}
-                    <a href="/admin" class="link-btn header-link" style="color: var(--accent-warm);">⚙ Админ</a>
-                {% endif %}
                 <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
                 <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
@@ -634,11 +586,26 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/total">Рейтинг</a>
-        <a href="/rating/duel">Рейтинг Дуэли</a>
-        <a href="/rating/arcadia">Рейтинг Аркадии</a>
-        <a href="/reservoir" class="active">Резервуар</a>
-        <a href="/calculator">Калькулятор</a>
+        <a href="/rating/total">
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel">
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">Дуэль</span>
+        </a>
+        <a href="/rating/arcadia">
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
+        <a href="/reservoir" class="active">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">Резервуар</span>
+        </a>
+        <a href="/calculator">
+            <span class="nav-full">Калькулятор</span>
+            <span class="nav-short">Калькулятор</span>
+        </a>
         {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
@@ -663,7 +630,7 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Табы: все три рядом -->
+    <!-- Табы -->
     <div class="res-tabs">
         <button class="res-tab active" data-tab="roster" type="button">
             Состав и заявки
@@ -679,15 +646,11 @@
     <!-- === TAB: ROSTER === -->
     <div id="tab-roster" class="res-tab-content">
 
-        <!-- Hero: время недели + встроенный статус -->
+        <!-- Hero: время недели -->
         <section class="res-hero">
             <div>
                 <div class="res-hero-title">
-                    <span>Резервуар · неделя <span class="res-hero-week">{{ week.week_key }}</span></span>
-                    <span class="res-reg-inline {% if reg_status.is_open %}open{% else %}closed{% endif %}">
-                        <span class="dot"></span>
-                        {{ reg_status.message }}
-                    </span>
+                    Резервуар · Игра в воскресенье{% if sunday_date %}, {{ sunday_date }}{% endif %}
                 </div>
 
                 <div class="res-session-plate s{{ week.session_time }}">
@@ -697,11 +660,7 @@
                             {{ week.session_time }}<span class="res-session-unit">:00</span>
                         </div>
                         <div class="res-session-day">
-                            {% if reg_status.is_open %}
-                                Воскресенье на этой неделе
-                            {% else %}
-                                Воскресенье этой недели
-                            {% endif %}
+                            Воскресенье{% if sunday_date %}, {{ sunday_date }}{% endif %}
                         </div>
                     </div>
                 </div>
@@ -1074,7 +1033,6 @@
 {% endif %}
 
 <script>
-    // === Табы ===
     document.querySelectorAll('.res-tab[data-tab]').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.res-tab[data-tab]').forEach(t => t.classList.remove('active'));
@@ -1085,7 +1043,6 @@
         });
     });
 
-    // === Модалка времени ===
     function openTimeModal() {
         document.getElementById('timeModal').classList.add('show');
     }
@@ -1093,7 +1050,6 @@
         document.getElementById('timeModal').classList.remove('show');
     }
 
-    // === Радио-кнопки времени ===
     document.querySelectorAll('.res-session-radio label').forEach(label => {
         label.addEventListener('click', () => {
             document.querySelectorAll('.res-session-radio label').forEach(l => l.classList.remove('checked'));
@@ -1101,7 +1057,6 @@
         });
     });
 
-    // === Формирование состава ===
     function getRosterUserIds() {
         const ids = [];
         document.querySelectorAll('#rosterList .res-player-row[data-user-id]').forEach(row => {
@@ -1183,13 +1138,11 @@
 
     updateRosterCounter();
 
-    // === История недель ===
     function toggleHistoryWeek(el) {
         const body = el.querySelector('.res-history-body');
         body.classList.toggle('open');
     }
 
-    // === Тема ===
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     toggleBtn.addEventListener('click', () => {
