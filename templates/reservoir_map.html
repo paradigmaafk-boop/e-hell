@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* Только карта — спец. стили для поля, точек и панелей */
         .map-page {
             max-width: 1800px;
             margin: 0 auto;
@@ -33,7 +32,6 @@
         .save-hint { font-size: 0.78rem; color: var(--dim); font-style: italic; }
         .save-hint.saved { color: var(--accent-warm); text-shadow: 0 0 10px rgba(255,184,0,0.6); }
 
-        /* Кнопка-таб на страницу состава */
         .to-roster-btn {
             display: inline-flex;
             align-items: center;
@@ -466,7 +464,6 @@
     </defs>
 </svg>
 
-
 <div class="map-page">
 
     <header class="header">
@@ -512,24 +509,30 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/total">Рейтинг</a>
-        <a href="/rating/duel">Рейтинг Дуэли</a>
-        <a href="/rating/arcadia">Рейтинг Аркадии</a>
-        <a href="/reservoir">Состав</a>
-        <a href="/reservoir/map" class="active">Карта боя</a>
-        <a href="/calculator">Калькулятор</a>
+        <a href="/rating/total">
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel">
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">VS</span>
+        </a>
+        <a href="/rating/arcadia">
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
+        <a href="/reservoir">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">РР</span>
+        </a>
+        <a href="/calculator">
+            <span class="nav-full">Калькулятор</span>
+            <span class="nav-short">Калькулятор</span>
+        </a>
         {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
         {% endif %}
     </nav>
-
-    <div class="breadcrumbs">
-        <a href="/">← На главную</a>
-        <span class="sep">·</span>
-        <a href="/reservoir">Резервуар</a>
-        <span class="sep">·</span>
-        <span class="current">Карта боя</span>
-    </div>
 
     <div class="admin-bar">
         <div class="page-title-block">
@@ -548,7 +551,6 @@
         </div>
     </div>
 
-    <!-- === Блок тактики боя === -->
     <section class="tactics-block">
         <div class="tactics-header">
             <span class="tactics-label">📋 Тактика боя</span>
@@ -561,7 +563,6 @@
              {% if can_edit_reservoir %}contenteditable="false"{% endif %}>{{ map_values.get('tactics-text', 'Тактика боя ещё не заполнена. Администратор может добавить описание.') }}</div>
     </section>
 
-    <!-- === Единая панель управления (только для админа/резервуара) === -->
     {% if can_edit_reservoir %}
     <div class="control-panel">
         <div class="control-row">
