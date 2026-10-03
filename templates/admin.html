@@ -344,14 +344,24 @@
         <div class="danger-zone" style="margin-top: 0; padding-top: 0; border-top: none;">
             <h4>⚠️ Опасная зона</h4>
             <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem;">
-                Сброс рейтинга полностью удалит всех игроков, всю историю очков и все яблоки. Действие необратимо.
+                Сброс рейтинга удалит всю историю очков указанного раздела и обнулит текущие очки.
+                Аккаунты игроков, привязки ников и яблоки за сезон <b>останутся нетронутыми</b>.
             </p>
-            <form action="/reset-rating/duel" method="POST"
-                  onsubmit="return confirm('⚠️ ВНИМАНИЕ!\n\nЭто действие полностью удалит ВСЕ данные рейтинга Дуэль:\n— всех игроков\n— всю историю очков\n— все яблоки за сезон\n\nОтменить это действие НЕВОЗМОЖНО!\n\nПродолжить?');">
-                <button type="submit" class="btn btn-danger">
-                    🗑️ Сбросить весь рейтинг Дуэль
-                </button>
-            </form>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <form action="/reset-rating/duel" method="POST"
+                      onsubmit="return confirm('⚠️ Сбросить рейтинг Дуэли?\n\nБудет удалено:\n— вся история очков Дуэли\n— текущие очки обнулятся\n\nОстанутся:\n— аккаунты игроков\n— привязки ников\n— яблоки за сезон\n\nПродолжить?');">
+                    <button type="submit" class="btn btn-danger">
+                        🗑️ Сбросить рейтинг Дуэли
+                    </button>
+                </form>
+
+                <form action="/reset-rating/arcadia" method="POST"
+                      onsubmit="return confirm('⚠️ Сбросить рейтинг Аркадии?\n\nБудет удалено:\n— вся история очков Аркадии\n— текущие очки обнулятся\n\nОстанутся:\n— аккаунты игроков\n— привязки ников\n— яблоки за сезон\n\nПродолжить?');">
+                    <button type="submit" class="btn btn-danger">
+                        🗑️ Сбросить рейтинг Аркадии
+                    </button>
+                </form>
+            </div>
         </div>
     </section>
 
