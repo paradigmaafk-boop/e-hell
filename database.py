@@ -719,14 +719,26 @@ def get_all_time_leaders(rating_type, limit=3):
 
 
 def reset_rating(rating_type):
+    """
+    Сбрасывает рейтинг указанного типа:
+    - удаляет всю историю (history_<rating_type>)
+    - обнуляет очки в players_<rating_type>
+
+    Яблоки, аккаунты, привязки ников — НЕ трогаются.
+    """
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute(f"DELETE FROM players_{rating_type}")
+        # Удаляем всю историю замеров
         cursor.execute(f"DELETE FROM history_{rating_type}")
+
+        # Обнуляем очки у всех игроков рейтинга (сами записи игроков оставляем)
+        cursor.execute(f"UPDATE players_{rating_type} SET points = 0")
+
         conn.commit()
         return True
-    except:
+    except Exception as e:
+        print(f"reset_rating error: {e}")
         conn.rollback()
         return False
     finally:
@@ -768,6 +780,30 @@ def get_rating_display_name(rating_type):
         'total': 'Рейтинг',
     }
     return names.get(rating_type, rating_type)
+
+
+def get_last_update_date(rating_type):
+    """
+    Возвращает дату последнего обновления рейтинга
+    в формате DD.MM.YYYY, либо None если данных нет.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT MAX(date) FROM history_{rating_type}")
+        row = cursor.fetchone()
+        if not row or not row[0]:
+            return None
+        date_str = str(row[0])[:10]
+        parts = date_str.split('-')
+        if len(parts) == 3:
+            return f"{parts[2]}.{parts[1]}.{parts[0]}"
+        return date_str
+    except Exception as e:
+        print(f"get_last_update_date error: {e}")
+        return None
+    finally:
+        conn.close()
 
 
 # ============================================================
@@ -1439,30 +1475,3 @@ def get_user_reservoir_history(user_id, limit=30):
     data = cursor.fetchall()
     conn.close()
     return data
-# ============================================================
-# ДАТА ПОСЛЕДНЕГО ОБНОВЛЕНИЯ РЕЙТИНГА
-# ============================================================
-
-def get_last_update_date(rating_type):
-    """
-    Возвращает дату последнего обновления рейтинга
-    в формате DD.MM.YYYY, либо None если данных нет.
-    """
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        cursor.execute(f"SELECT MAX(date) FROM history_{rating_type}")
-        row = cursor.fetchone()
-        if not row or not row[0]:
-            return None
-        # date хранится как 'YYYY-MM-DD HH:MM:SS'
-        date_str = str(row[0])[:10]  # 'YYYY-MM-DD'
-        parts = date_str.split('-')
-        if len(parts) == 3:
-            return f"{parts[2]}.{parts[1]}.{parts[0]}"  # DD.MM.YYYY
-        return date_str
-    except Exception as e:
-        print(f"get_last_update_date error: {e}")
-        return None
-    finally:
-        conn.close()
