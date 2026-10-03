@@ -35,6 +35,9 @@ from database import (
     get_blacklist_for_week, is_user_blacklisted, remove_from_blacklist,
     get_user_reservoir_history,
     get_last_update_date,
+    associate_players,
+    get_all_duel_players_with_points,
+    get_all_arcadia_players_with_points,
 )
 from werkzeug.utils import secure_filename
 
@@ -268,16 +271,6 @@ def get_player_rank_data(linked_nickname):
 
 
 def _registration_status(now=None):
-    """
-    Возвращает dict:
-      {
-        'is_open': bool,
-        'status': 'soon'|'open'|'closed',
-        'message': str,
-        'time_left': str | None
-      }
-    Регистрация открыта с Пн 00:00 до Чт 15:00 текущей ISO-недели.
-    """
     now = now or datetime.now()
     weekday = now.weekday()
 
@@ -394,6 +387,8 @@ def rating_view(rating_type):
     my_apples_left = 0
     is_logged_player = False
     my_linked_nickname = None
+    all_duel_players = []
+    all_arcadia_players = []
 
     if rating_type == 'total':
         apples_map = get_apples_received_map()
@@ -406,6 +401,10 @@ def rating_view(rating_type):
                 my_linked_nickname = user[3]
                 given = get_apples_given_this_week(session['user_id'])
                 my_apples_left = max(0, APPLES_PER_WEEK - given)
+
+        if session.get('role') in ('admin', 'super_admin'):
+            all_duel_players = get_all_duel_players_with_points()
+            all_arcadia_players = get_all_arcadia_players_with_points()
 
     tooltip_text = get_setting('rating_tooltip_text', '')
 
@@ -425,7 +424,29 @@ def rating_view(rating_type):
                            my_linked_nickname=my_linked_nickname,
                            tooltip_text=tooltip_text,
                            apples_per_week=APPLES_PER_WEEK,
-                           last_update_date=last_update_date)
+                           last_update_date=last_update_date,
+                           all_duel_players=all_duel_players,
+                           all_arcadia_players=all_arcadia_players)
+
+
+@app.route('/associate-player', methods=['POST'])
+@admin_required
+def associate_player_route():
+    """Объединяет выбранные записи дуэли и аркадии в целевой ник."""
+    data = request.get_json() or {}
+    target = (data.get('target') or '').strip()
+    duel_nicks = data.get('duel_nicks') or []
+    arcadia_nicks = data.get('arcadia_nicks') or []
+
+    if not target:
+        return jsonify({'success': False, 'error': 'Не указан игрок.'}), 400
+
+    ok, msg = associate_players(target, duel_nicks, arcadia_nicks)
+    if ok:
+        increment_counter('admin_actions')
+        return jsonify({'success': True, 'message': msg})
+    else:
+        return jsonify({'success': False, 'error': msg}), 400
 
 
 @app.route('/give-apple', methods=['POST'])
