@@ -88,6 +88,21 @@ def init_db():
             UNIQUE(old_nickname)
         )
     """)
+    # Миграция: если в старой БД есть колонка rating_type с NOT NULL — снимаем ограничение
+    # (в текущей логике колонка не используется, а её NOT NULL мешает работе)
+    cursor.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (
+                SELECT 1 FROM information_schema.columns
+                WHERE table_name = 'nickname_aliases'
+                  AND column_name = 'rating_type'
+                  AND is_nullable = 'NO'
+            ) THEN
+                ALTER TABLE nickname_aliases ALTER COLUMN rating_type DROP NOT NULL;
+            END IF;
+        END $$;
+    """)
 
     for rt in ['duel', 'arcadia']:
         cursor.execute(f"""
@@ -261,6 +276,16 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+
+def _has_column(cursor, table_name, column_name):
+    """Проверяет, есть ли колонка в таблице."""
+    cursor.execute("""
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = %s AND column_name = %s
+        LIMIT 1
+    """, (table_name, column_name))
+    return cursor.fetchone() is not None
 
 
 # ============================================================
@@ -501,6 +526,43 @@ def get_squads_by_nickname_map():
 # АЛИАСЫ НИКНЕЙМОВ
 # ============================================================
 
+def _insert_alias(cursor, current_nickname, old_nickname, created_at, rating_type=None):
+    """
+    Вставляет алиас. Если в таблице есть колонка rating_type — заполняет её,
+    чтобы не нарушать NOT NULL (для старых БД).
+    """
+    has_rating_type = _has_column(cursor, 'nickname_aliases', 'rating_type')
+    if has_rating_type:
+        rt_value = rating_type or 'any'
+        cursor.execute("""INSERT INTO nickname_aliases
+                          (current_nickname, old_nickname, created_at, rating_type)
+                          VALUES (%s, %s, %s, %s)""",
+                       (current_nickname, old_nickname, created_at, rt_value))
+    else:
+        cursor.execute("""INSERT INTO nickname_aliases
+                          (current_nickname, old_nickname, created_at)
+                          VALUES (%s, %s, %s)""",
+                       (current_nickname, old_nickname, created_at))
+
+
+def _update_alias(cursor, current_nickname, old_nickname, created_at, rating_type=None):
+    """
+    Обновляет алиас. Если в таблице есть колонка rating_type — заполняет её.
+    """
+    has_rating_type = _has_column(cursor, 'nickname_aliases', 'rating_type')
+    if has_rating_type:
+        rt_value = rating_type or 'any'
+        cursor.execute("""UPDATE nickname_aliases
+                          SET current_nickname = %s, created_at = %s, rating_type = %s
+                          WHERE old_nickname = %s""",
+                       (current_nickname, created_at, rt_value, old_nickname))
+    else:
+        cursor.execute("""UPDATE nickname_aliases
+                          SET current_nickname = %s, created_at = %s
+                          WHERE old_nickname = %s""",
+                       (current_nickname, created_at, old_nickname))
+
+
 def add_nickname_alias(current_nickname, old_nickname):
     conn = get_connection()
     cursor = conn.cursor()
@@ -509,13 +571,9 @@ def add_nickname_alias(current_nickname, old_nickname):
         cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (old_nickname,))
         existing = cursor.fetchone()
         if existing:
-            cursor.execute("""UPDATE nickname_aliases SET current_nickname = %s, created_at = %s
-                              WHERE old_nickname = %s""",
-                           (current_nickname, created_at, old_nickname))
+            _update_alias(cursor, current_nickname, old_nickname, created_at)
         else:
-            cursor.execute("""INSERT INTO nickname_aliases (current_nickname, old_nickname, created_at)
-                              VALUES (%s, %s, %s)""",
-                           (current_nickname, old_nickname, created_at))
+            _insert_alias(cursor, current_nickname, old_nickname, created_at)
 
         for rt in ['duel', 'arcadia']:
             cursor.execute(f"UPDATE history_{rt} SET nickname = %s WHERE nickname = %s",
@@ -855,6 +913,35 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
         if not duel_nicks and not arcadia_nicks:
             return False, 'Ничего не выбрано для ассоциации.'
 
+        # Проверим, есть ли колонка rating_type в nickname_aliases
+        has_rating_type = _has_column(cursor, 'nickname_aliases', 'rating_type')
+
+        def upsert_alias(old_nick):
+            """Вставляет или обновляет алиас old_nick → target_nickname."""
+            cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (old_nick,))
+            if cursor.fetchone():
+                if has_rating_type:
+                    cursor.execute("""UPDATE nickname_aliases
+                                      SET current_nickname = %s, created_at = %s, rating_type = %s
+                                      WHERE old_nickname = %s""",
+                                   (target_nickname, now, 'any', old_nick))
+                else:
+                    cursor.execute("""UPDATE nickname_aliases
+                                      SET current_nickname = %s, created_at = %s
+                                      WHERE old_nickname = %s""",
+                                   (target_nickname, now, old_nick))
+            else:
+                if has_rating_type:
+                    cursor.execute("""INSERT INTO nickname_aliases
+                                      (current_nickname, old_nickname, created_at, rating_type)
+                                      VALUES (%s, %s, %s, %s)""",
+                                   (target_nickname, old_nick, now, 'any'))
+                else:
+                    cursor.execute("""INSERT INTO nickname_aliases
+                                      (current_nickname, old_nickname, created_at)
+                                      VALUES (%s, %s, %s)""",
+                                   (target_nickname, old_nick, now))
+
         # === 1. Суммируем очки Дуэли ===
         duel_added = 0
         for nick in duel_nicks:
@@ -868,17 +955,7 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
                            (target_nickname, nick))
             cursor.execute("DELETE FROM players_duel WHERE nickname = %s", (nick,))
 
-            cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (nick,))
-            if cursor.fetchone():
-                cursor.execute("""UPDATE nickname_aliases
-                                  SET current_nickname = %s, created_at = %s
-                                  WHERE old_nickname = %s""",
-                               (target_nickname, now, nick))
-            else:
-                cursor.execute("""INSERT INTO nickname_aliases
-                                  (current_nickname, old_nickname, created_at)
-                                  VALUES (%s, %s, %s)""",
-                               (target_nickname, nick, now))
+            upsert_alias(nick)
 
             cursor.execute("UPDATE users SET linked_nickname = %s WHERE linked_nickname = %s",
                            (target_nickname, nick))
@@ -898,17 +975,7 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
                            (target_nickname, nick))
             cursor.execute("DELETE FROM players_arcadia WHERE nickname = %s", (nick,))
 
-            cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (nick,))
-            if cursor.fetchone():
-                cursor.execute("""UPDATE nickname_aliases
-                                  SET current_nickname = %s, created_at = %s
-                                  WHERE old_nickname = %s""",
-                               (target_nickname, now, nick))
-            else:
-                cursor.execute("""INSERT INTO nickname_aliases
-                                  (current_nickname, old_nickname, created_at)
-                                  VALUES (%s, %s, %s)""",
-                               (target_nickname, nick, now))
+            upsert_alias(nick)
 
             cursor.execute("UPDATE users SET linked_nickname = %s WHERE linked_nickname = %s",
                            (target_nickname, nick))
