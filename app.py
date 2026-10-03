@@ -279,7 +279,7 @@ def _registration_status(now=None):
     Регистрация открыта с Пн 00:00 до Чт 15:00 текущей ISO-недели.
     """
     now = now or datetime.now()
-    weekday = now.weekday()  # 0 = Пн, 6 = Вс
+    weekday = now.weekday()
 
     is_open = False
     status = 'closed'
@@ -349,15 +349,8 @@ def _human_delta(delta):
 
 
 def _next_monday_00(now=None):
-    """
-    Возвращает datetime ближайшего понедельника 00:00, когда откроется регистрация.
-    Логика:
-      - Если сейчас понедельник (любое время) — регистрация уже открыта
-        на текущей неделе, следующее открытие через 7 дней.
-      - Если сейчас вт–вс — следующий понедельник наступающей недели.
-    """
     now = now or datetime.now()
-    wd = now.weekday()  # 0 = Пн
+    wd = now.weekday()
     base = now.replace(hour=0, minute=0, second=0, microsecond=0)
     if wd == 0:
         return base + timedelta(days=7)
@@ -416,7 +409,6 @@ def rating_view(rating_type):
 
     tooltip_text = get_setting('rating_tooltip_text', '')
 
-    # Дата последнего обновления — только для дуэли и аркадии
     last_update_date = None
     if rating_type in ('duel', 'arcadia'):
         last_update_date = get_last_update_date(rating_type)
@@ -792,9 +784,8 @@ def reservoir_index():
             'registrations': hw_regs,
         })
 
-    # === Дата игры (воскресенье текущей ISO-недели) ===
     now = datetime.now()
-    iso_weekday = now.isoweekday()  # 1=Пн ... 7=Вс
+    iso_weekday = now.isoweekday()
     days_until_sunday = 7 - iso_weekday
     game_date = (now + timedelta(days=days_until_sunday)).replace(
         hour=0, minute=0, second=0, microsecond=0
@@ -806,7 +797,6 @@ def reservoir_index():
     ]
     game_date_full = f"{game_date.day} {MONTHS_RU[game_date.month]}"
 
-    # === Когда откроется следующая регистрация ===
     next_monday = _next_monday_00(now)
     registration_opens_str = next_monday.strftime('%d.%m.%Y в %H:%M')
 
@@ -1442,13 +1432,18 @@ def reset_rating_route(rating_type):
     if rating_type not in rt_ids or rating_type == 'total':
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
+
     if reset_rating(rating_type):
-        if rating_type == 'duel':
-            reset_apples()
         increment_counter('admin_actions')
-        flash('Рейтинг полностью сброшен!')
+        if rating_type == 'duel':
+            flash('Рейтинг Дуэли сброшен. Яблоки и игроки сохранены.')
+        elif rating_type == 'arcadia':
+            flash('Рейтинг Аркадии сброшен. Яблоки и игроки сохранены.')
+        else:
+            flash('Рейтинг сброшен.')
     else:
         flash('Ошибка при сбросе рейтинга')
+
     return redirect(url_for('rating_view', rating_type=rating_type))
 
 
