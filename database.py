@@ -729,12 +729,8 @@ def reset_rating(rating_type):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Удаляем всю историю замеров
         cursor.execute(f"DELETE FROM history_{rating_type}")
-
-        # Обнуляем очки у всех игроков рейтинга (сами записи игроков оставляем)
         cursor.execute(f"UPDATE players_{rating_type} SET points = 0")
-
         conn.commit()
         return True
     except Exception as e:
@@ -802,6 +798,168 @@ def get_last_update_date(rating_type):
     except Exception as e:
         print(f"get_last_update_date error: {e}")
         return None
+    finally:
+        conn.close()
+
+
+# ============================================================
+# АССОЦИАЦИЯ ЗАПИСЕЙ РЕЙТИНГА
+# ============================================================
+
+def get_all_duel_players_with_points():
+    """Список всех игроков в players_duel с очками, отсортированный по очкам."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT nickname, points FROM players_duel ORDER BY points DESC, nickname ASC")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def get_all_arcadia_players_with_points():
+    """Список всех игроков в players_arcadia с очками, отсортированный по очкам."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT nickname, points FROM players_arcadia ORDER BY points DESC, nickname ASC")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def associate_players(target_nickname, duel_nicks, arcadia_nicks):
+    """
+    Объединяет записи из players_duel / players_arcadia в target_nickname.
+
+    - Очки выбранных записей суммируются с очками target_nickname.
+    - Выбранные записи из players_* удаляются.
+    - История (history_*) выбранных записей переписывается на target_nickname.
+    - Выбранные ники сохраняются как алиасы (nickname_aliases → target_nickname),
+      чтобы при следующей загрузке Excel они снова склеились.
+    - Если аккаунт был привязан к выбранному нику — привязка переезжает на target_nickname.
+    - Яблоки, подаренные выбранным никам, тоже переезжают на target_nickname.
+
+    Возвращает: (успех: bool, сообщение: str)
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    try:
+        duel_nicks = [n.strip() for n in (duel_nicks or []) if n and n.strip()]
+        arcadia_nicks = [n.strip() for n in (arcadia_nicks or []) if n and n.strip()]
+
+        # Нельзя объединять ник сам с собой
+        duel_nicks = [n for n in duel_nicks if n != target_nickname]
+        arcadia_nicks = [n for n in arcadia_nicks if n != target_nickname]
+
+        if not duel_nicks and not arcadia_nicks:
+            return False, 'Ничего не выбрано для ассоциации.'
+
+        # === 1. Суммируем очки Дуэли ===
+        duel_added = 0
+        for nick in duel_nicks:
+            cursor.execute("SELECT points FROM players_duel WHERE nickname = %s", (nick,))
+            row = cursor.fetchone()
+            if not row:
+                continue
+            duel_added += row[0]
+
+            cursor.execute("UPDATE history_duel SET nickname = %s WHERE nickname = %s",
+                           (target_nickname, nick))
+            cursor.execute("DELETE FROM players_duel WHERE nickname = %s", (nick,))
+
+            cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (nick,))
+            if cursor.fetchone():
+                cursor.execute("""UPDATE nickname_aliases
+                                  SET current_nickname = %s, created_at = %s
+                                  WHERE old_nickname = %s""",
+                               (target_nickname, now, nick))
+            else:
+                cursor.execute("""INSERT INTO nickname_aliases
+                                  (current_nickname, old_nickname, created_at)
+                                  VALUES (%s, %s, %s)""",
+                               (target_nickname, nick, now))
+
+            cursor.execute("UPDATE users SET linked_nickname = %s WHERE linked_nickname = %s",
+                           (target_nickname, nick))
+            cursor.execute("UPDATE apples SET to_nickname = %s WHERE to_nickname = %s",
+                           (target_nickname, nick))
+
+        # === 2. Суммируем очки Аркадии ===
+        arcadia_added = 0
+        for nick in arcadia_nicks:
+            cursor.execute("SELECT points FROM players_arcadia WHERE nickname = %s", (nick,))
+            row = cursor.fetchone()
+            if not row:
+                continue
+            arcadia_added += row[0]
+
+            cursor.execute("UPDATE history_arcadia SET nickname = %s WHERE nickname = %s",
+                           (target_nickname, nick))
+            cursor.execute("DELETE FROM players_arcadia WHERE nickname = %s", (nick,))
+
+            cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (nick,))
+            if cursor.fetchone():
+                cursor.execute("""UPDATE nickname_aliases
+                                  SET current_nickname = %s, created_at = %s
+                                  WHERE old_nickname = %s""",
+                               (target_nickname, now, nick))
+            else:
+                cursor.execute("""INSERT INTO nickname_aliases
+                                  (current_nickname, old_nickname, created_at)
+                                  VALUES (%s, %s, %s)""",
+                               (target_nickname, nick, now))
+
+            cursor.execute("UPDATE users SET linked_nickname = %s WHERE linked_nickname = %s",
+                           (target_nickname, nick))
+            cursor.execute("UPDATE apples SET to_nickname = %s WHERE to_nickname = %s",
+                           (target_nickname, nick))
+
+        # === 3. Обновляем очки у target_nickname ===
+        if duel_added > 0:
+            cursor.execute("SELECT points FROM players_duel WHERE nickname = %s", (target_nickname,))
+            row = cursor.fetchone()
+            if row:
+                cursor.execute(
+                    "UPDATE players_duel SET points = points + %s, last_updated = %s WHERE nickname = %s",
+                    (duel_added, now, target_nickname)
+                )
+            else:
+                cursor.execute(
+                    """INSERT INTO players_duel (nickname, points, last_updated)
+                       VALUES (%s, %s, %s)""",
+                    (target_nickname, duel_added, now)
+                )
+
+        if arcadia_added > 0:
+            cursor.execute("SELECT points FROM players_arcadia WHERE nickname = %s", (target_nickname,))
+            row = cursor.fetchone()
+            if row:
+                cursor.execute(
+                    "UPDATE players_arcadia SET points = points + %s, last_updated = %s WHERE nickname = %s",
+                    (arcadia_added, now, target_nickname)
+                )
+            else:
+                cursor.execute(
+                    """INSERT INTO players_arcadia (nickname, points, last_updated)
+                       VALUES (%s, %s, %s)""",
+                    (target_nickname, arcadia_added, now)
+                )
+
+        conn.commit()
+
+        total = len(duel_nicks) + len(arcadia_nicks)
+        msg = f'Объединено записей: {total}'
+        if duel_added:
+            msg += f' (+{duel_added} к Дуэли)'
+        if arcadia_added:
+            msg += f' (+{arcadia_added} к Аркадии)'
+        return True, msg
+
+    except Exception as e:
+        print(f"associate_players error: {e}")
+        conn.rollback()
+        return False, f'Ошибка при ассоциации: {e}'
     finally:
         conn.close()
 
