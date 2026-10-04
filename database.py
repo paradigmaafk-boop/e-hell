@@ -88,8 +88,6 @@ def init_db():
             UNIQUE(old_nickname)
         )
     """)
-    # Миграция: если в старой БД есть колонка rating_type с NOT NULL — снимаем ограничение
-    # (в текущей логике колонка не используется, а её NOT NULL мешает работе)
     cursor.execute("""
         DO $$
         BEGIN
@@ -527,10 +525,6 @@ def get_squads_by_nickname_map():
 # ============================================================
 
 def _insert_alias(cursor, current_nickname, old_nickname, created_at, rating_type=None):
-    """
-    Вставляет алиас. Если в таблице есть колонка rating_type — заполняет её,
-    чтобы не нарушать NOT NULL (для старых БД).
-    """
     has_rating_type = _has_column(cursor, 'nickname_aliases', 'rating_type')
     if has_rating_type:
         rt_value = rating_type or 'any'
@@ -546,9 +540,6 @@ def _insert_alias(cursor, current_nickname, old_nickname, created_at, rating_typ
 
 
 def _update_alias(cursor, current_nickname, old_nickname, created_at, rating_type=None):
-    """
-    Обновляет алиас. Если в таблице есть колонка rating_type — заполняет её.
-    """
     has_rating_type = _has_column(cursor, 'nickname_aliases', 'rating_type')
     if has_rating_type:
         rt_value = rating_type or 'any'
@@ -800,15 +791,29 @@ def reset_rating(rating_type):
 
 
 def delete_player(rating_type, nickname):
+    """
+    Мягкое удаление игрока из рейтинга:
+    - удаляет запись из players_<rating_type> (очки больше не показываются в этом рейтинге)
+    - удаляет всю историю из history_<rating_type>
+
+    Аккаунты, привязки (users.linked_nickname), яблоки (apples),
+    алиасы (nickname_aliases) — НЕ трогаются.
+    """
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Удаляем запись игрока из рейтинга
         cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nickname,))
+
+        # Удаляем всю его историю из этого рейтинга
         cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
-        cursor.execute("DELETE FROM nickname_aliases WHERE current_nickname = %s OR old_nickname = %s",
-                       (nickname, nickname))
-        cursor.execute("UPDATE users SET linked_nickname = NULL WHERE linked_nickname = %s", (nickname,))
-        cursor.execute("DELETE FROM apples WHERE to_nickname = %s", (nickname,))
+
+        # Важно: НЕ трогаем:
+        # - users.linked_nickname (привязка ЛК к нику)
+        # - apples (подаренные яблоки)
+        # - nickname_aliases (алиасы ников)
+        # - players_<другой_тип> и history_<другой_тип> (другой рейтинг)
+
         conn.commit()
         return True
     except Exception as e:
@@ -887,16 +892,6 @@ def get_all_arcadia_players_with_points():
 def associate_players(target_nickname, duel_nicks, arcadia_nicks):
     """
     Объединяет записи из players_duel / players_arcadia в target_nickname.
-
-    - Очки выбранных записей суммируются с очками target_nickname.
-    - Выбранные записи из players_* удаляются.
-    - История (history_*) выбранных записей переписывается на target_nickname.
-    - Выбранные ники сохраняются как алиасы (nickname_aliases → target_nickname),
-      чтобы при следующей загрузке Excel они снова склеились.
-    - Если аккаунт был привязан к выбранному нику — привязка переезжает на target_nickname.
-    - Яблоки, подаренные выбранным никам, тоже переезжают на target_nickname.
-
-    Возвращает: (успех: bool, сообщение: str)
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -906,18 +901,15 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
         duel_nicks = [n.strip() for n in (duel_nicks or []) if n and n.strip()]
         arcadia_nicks = [n.strip() for n in (arcadia_nicks or []) if n and n.strip()]
 
-        # Нельзя объединять ник сам с собой
         duel_nicks = [n for n in duel_nicks if n != target_nickname]
         arcadia_nicks = [n for n in arcadia_nicks if n != target_nickname]
 
         if not duel_nicks and not arcadia_nicks:
             return False, 'Ничего не выбрано для ассоциации.'
 
-        # Проверим, есть ли колонка rating_type в nickname_aliases
         has_rating_type = _has_column(cursor, 'nickname_aliases', 'rating_type')
 
         def upsert_alias(old_nick):
-            """Вставляет или обновляет алиас old_nick → target_nickname."""
             cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (old_nick,))
             if cursor.fetchone():
                 if has_rating_type:
@@ -942,7 +934,6 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
                                       VALUES (%s, %s, %s)""",
                                    (target_nickname, old_nick, now))
 
-        # === 1. Суммируем очки Дуэли ===
         duel_added = 0
         for nick in duel_nicks:
             cursor.execute("SELECT points FROM players_duel WHERE nickname = %s", (nick,))
@@ -962,7 +953,6 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
             cursor.execute("UPDATE apples SET to_nickname = %s WHERE to_nickname = %s",
                            (target_nickname, nick))
 
-        # === 2. Суммируем очки Аркадии ===
         arcadia_added = 0
         for nick in arcadia_nicks:
             cursor.execute("SELECT points FROM players_arcadia WHERE nickname = %s", (nick,))
@@ -982,7 +972,6 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
             cursor.execute("UPDATE apples SET to_nickname = %s WHERE to_nickname = %s",
                            (target_nickname, nick))
 
-        # === 3. Обновляем очки у target_nickname ===
         if duel_added > 0:
             cursor.execute("SELECT points FROM players_duel WHERE nickname = %s", (target_nickname,))
             row = cursor.fetchone()
@@ -1359,7 +1348,6 @@ def _iso_week_key(dt=None):
 
 
 def _default_session_for_week(week_key):
-    """Чётная ISO-неделя → 22, нечётная → 14."""
     try:
         week_num = int(week_key.split('-W')[1])
     except Exception:
