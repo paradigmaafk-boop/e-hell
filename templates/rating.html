@@ -841,20 +841,6 @@
         {% endif %}
     </section>
 
-    {% if session.get('role') == 'super_admin' and rating_type == 'duel' %}
-    <section class="admin-panel">
-        <h3>Админ-панель</h3>
-        <div class="admin-grid">
-            <a href="/rating-stats" class="btn">Статистика</a>
-            <a href="/manage-nicknames" class="btn">Никнеймы</a>
-            <a href="/admin/vacations" class="btn">Журнал отпусков</a>
-            <a href="/admin/carousel" class="btn">Карусель</a>
-            <a href="/underperforming/{{ rating_type }}" class="btn">Отстающие</a>
-            <a href="/consistently-underperforming/{{ rating_type }}" class="btn">Стабильно отстающие</a>
-        </div>
-    </section>
-    {% endif %}
-
 </div>
 
 {% if rating_type == 'total' and tooltip_text %}
