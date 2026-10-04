@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
+        /* === Управление ролями === */
         .roles-block {
             margin-top: 2rem;
             padding: 1.5rem;
@@ -77,38 +78,7 @@
         body.light-theme .roles-block { background: #fff8ec; }
         body.light-theme .role-row { background: #fff5e6; }
 
-        .apples-admin-block {
-            margin-top: 2rem;
-            padding: 1.5rem;
-            border: 1px solid rgba(255,60,60,0.35);
-            border-radius: 16px;
-            background: linear-gradient(180deg, rgba(40,15,15,0.85), rgba(12,6,3,0.95));
-        }
-        .apples-admin-block h3 {
-            font-size: 0.72rem;
-            color: #ff8a8a;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            font-weight: 600;
-            margin-bottom: 0.85rem;
-        }
-        .apples-admin-block p {
-            color: var(--muted);
-            font-size: 0.88rem;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
-        .apples-admin-actions {
-            display: flex;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-        .apples-admin-actions .btn {
-            flex: 1;
-            min-width: 220px;
-        }
-        body.light-theme .apples-admin-block { background: #fff5e6; }
-
+        /* === Тултип === */
         .tooltip-admin-block {
             margin-top: 2rem;
             padding: 1.5rem;
@@ -132,8 +102,117 @@
         }
         body.light-theme .tooltip-admin-block { background: #fff8ec; }
 
+        /* ============================================================
+           БЛОК «СБРОСЫ» — рейтинги + яблоки
+           ============================================================ */
+        .reset-block {
+            margin-top: 2rem;
+            padding: 1.75rem;
+            border: 1px solid rgba(224,57,43,0.3);
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(40,15,15,0.55), rgba(12,6,3,0.95));
+            box-shadow: 0 0 30px rgba(224,57,43,0.06);
+        }
+        .reset-block > h3 {
+            font-size: 0.72rem;
+            color: #ff8a8a;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .reset-block > p {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+
+        .reset-group {
+            margin-bottom: 1.5rem;
+        }
+        .reset-group:last-child {
+            margin-bottom: 0;
+        }
+        .reset-group-title {
+            font-size: 0.68rem;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--line-soft);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .reset-group-title .ico {
+            font-size: 0.9rem;
+        }
+
+        .reset-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 0.6rem;
+        }
+        .reset-buttons form {
+            display: block;
+        }
+        .reset-buttons .btn {
+            width: 100%;
+            text-align: center;
+            padding: 0.75rem 1rem;
+            font-size: 0.82rem;
+            font-weight: 500;
+        }
+        .reset-buttons .btn-danger {
+            border-color: rgba(224,57,43,0.35);
+            color: #ff9070;
+            background: rgba(224,57,43,0.04);
+        }
+        .reset-buttons .btn-danger:hover {
+            border-color: #e0392b;
+            color: #fff;
+            background: rgba(224,57,43,0.15);
+        }
+        /* Особая «очень опасная» кнопка */
+        .reset-buttons .btn-critical {
+            border-color: rgba(224,57,43,0.6);
+            color: #fff;
+            background: linear-gradient(180deg, rgba(224,57,43,0.25), rgba(140,30,20,0.15));
+        }
+        .reset-buttons .btn-critical:hover {
+            background: linear-gradient(180deg, #e0392b, #8c1e14);
+            border-color: #e0392b;
+            box-shadow: 0 0 20px rgba(224,57,43,0.5);
+        }
+        .reset-buttons .btn-primary {
+            background: linear-gradient(135deg, #ff5a1f, #ffb800);
+            border-color: transparent;
+            color: #0a0503;
+            font-weight: 700;
+        }
+        .reset-buttons .btn-primary:hover {
+            box-shadow: 0 6px 20px rgba(255,90,30,0.35);
+        }
+
+        body.light-theme .reset-block {
+            background: #fff5ec;
+            border-color: #e0b0a8;
+        }
+        body.light-theme .reset-buttons .btn-danger {
+            color: #c0281c;
+        }
+
         @media (max-width: 780px) {
             .role-row { grid-template-columns: 1fr; }
+            .reset-buttons {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -277,24 +356,6 @@
         </p>
         <a href="/admin/rating-tooltip" class="btn btn-primary">✏ Установить текст для тултипа в рейтинге</a>
     </section>
-
-    <section class="apples-admin-block">
-        <h3>🍎 Управление яблоками</h3>
-        <p>
-            «Обнулить мои отданные яблоки» — сбрасывает только ваш счётчик «отдано на этой неделе».
-            Остальные яблоки других игроков не тронуты. Удобно для тестов.
-        </p>
-        <div class="apples-admin-actions">
-            <form method="POST" action="/admin/reset-my-apples"
-                  onsubmit="return confirm('Обнулить ВАШ счётчик отданных яблок?\n\nВы сможете снова подарить 5 яблок на этой неделе. Яблоки других игроков не тронутся.');">
-                <button type="submit" class="btn btn-primary">🍎 Обнулить мои отданные яблоки</button>
-            </form>
-            <form method="POST" action="/admin/reset-apples"
-                  onsubmit="return confirm('⚠️ Сбросить ВСЕ яблоки у ВСЕХ игроков?\n\nЭто удалит все подарки за сезон. Действие необратимо.');">
-                <button type="submit" class="btn btn-danger">🍎 Сбросить все яблоки у всех</button>
-            </form>
-        </div>
-    </section>
     {% endif %}
 
     {% if is_super_admin and admin_players %}
@@ -340,14 +401,27 @@
     </section>
     {% endif %}
 
-    <section class="admin-panel" style="margin-top: 2rem;">
-        <div class="danger-zone" style="margin-top: 0; padding-top: 0; border-top: none;">
-            <h4>⚠️ Опасная зона</h4>
-            <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem;">
-                Сброс рейтинга удалит всю историю очков указанного раздела и обнулит текущие очки.
-                Аккаунты игроков, привязки ников и яблоки за сезон <b>останутся нетронутыми</b>.
+    <!-- ============================================================
+         ЕДИНЫЙ БЛОК «СБРОСЫ» — рейтинги + яблоки
+         ============================================================ -->
+    {% if is_super_admin %}
+    <section class="reset-block">
+        <h3>⚠️ Сбросы</h3>
+        <p>
+            Внимание! Эти действия необратимы. Перед использованием убедитесь, что понимаете последствия.
+        </p>
+
+        <!-- === СБРОС РЕЙТИНГОВ === -->
+        <div class="reset-group">
+            <div class="reset-group-title">
+                <span class="ico">📊</span>
+                <span>Сброс рейтингов</span>
+            </div>
+            <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 0.85rem;">
+                Удаляет всю историю очков указанного рейтинга и обнуляет текущие очки.
+                Аккаунты игроков, привязки ников и <b>яблоки</b> — <b>остаются нетронутыми</b>.
             </p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <div class="reset-buttons">
                 <form action="/reset-rating/duel" method="POST"
                       onsubmit="return confirm('⚠️ Сбросить рейтинг Дуэли?\n\nБудет удалено:\n— вся история очков Дуэли\n— текущие очки обнулятся\n\nОстанутся:\n— аккаунты игроков\n— привязки ников\n— яблоки за сезон\n\nПродолжить?');">
                     <button type="submit" class="btn btn-danger">
@@ -363,7 +437,35 @@
                 </form>
             </div>
         </div>
+
+        <!-- === СБРОС ЯБЛОК === -->
+        <div class="reset-group">
+            <div class="reset-group-title">
+                <span class="ico">🍎</span>
+                <span>Сброс яблок</span>
+            </div>
+            <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 0.85rem;">
+                «Мои отданные» — обнуляет только ваш личный счётчик отданных яблок на этой неделе.
+                «Все у всех» — удаляет <b>все подарки за сезон</b> без возможности восстановления.
+            </p>
+            <div class="reset-buttons">
+                <form method="POST" action="/admin/reset-my-apples"
+                      onsubmit="return confirm('Обнулить ВАШ счётчик отданных яблок?\n\nВы сможете снова подарить 5 яблок на этой неделе. Яблоки других игроков не тронутся.');">
+                    <button type="submit" class="btn btn-primary">
+                        🍎 Обнулить мои отданные яблоки
+                    </button>
+                </form>
+
+                <form method="POST" action="/admin/reset-apples"
+                      onsubmit="return confirm('⚠️ Сбросить ВСЕ яблоки у ВСЕХ игроков?\n\nЭто удалит все подарки за сезон. Действие необратимо.');">
+                    <button type="submit" class="btn btn-critical">
+                        🍎 Сбросить все яблоки у всех
+                    </button>
+                </form>
+            </div>
+        </div>
     </section>
+    {% endif %}
 
 </div>
 
