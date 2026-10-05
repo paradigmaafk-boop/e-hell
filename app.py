@@ -4,8 +4,6 @@ import re
 from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
-from flask_babel import Babel, gettext as _, format_date, format_number
-from flask_babel import get_locale as babel_get_locale
 import pandas as pd
 import psycopg2
 from database import (
@@ -46,33 +44,6 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = 'your_secret_key_here_change_it_to_something_secret'
-
-# ============================================================
-# МУЛЬТИЯЗЫЧНОСТЬ (Flask-Babel)
-# ============================================================
-app.config['BABEL_DEFAULT_LOCALE'] = 'ru'
-app.config['BABEL_DEFAULT_TIMEZONE'] = 'Europe/Moscow'
-app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'translations'
-
-
-def get_locale():
-    """Определяет язык: из session → из браузера → ru."""
-    lang = session.get('lang')
-    if lang in ('ru', 'en'):
-        return lang
-    return request.accept_languages.best_match(['ru', 'en']) or 'ru'
-
-
-babel = Babel(app, locale_selector=get_locale)
-
-
-@app.context_processor
-def inject_babel_helpers():
-    """Делает _() и get_locale() доступными в шаблонах."""
-    return {
-        '_': _,
-        'get_locale': babel_get_locale,
-    }
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
@@ -567,17 +538,6 @@ def login():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
-
-
-@app.route('/set-lang/<lang>')
-def set_lang(lang):
-    """Переключение языка. lang: 'ru' или 'en'."""
-    if lang in ('ru', 'en'):
-        session['lang'] = lang
-    referrer = request.referrer
-    if referrer and 'set-lang' not in referrer:
-        return redirect(referrer)
     return redirect(url_for('index'))
 
 
