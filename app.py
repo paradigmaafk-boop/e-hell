@@ -96,6 +96,7 @@ def linked_required(f):
 
 
 def admin_required(f):
+    """Полный админ: admin + super_admin. НЕ пропускает state_admin."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get('user_id'):
@@ -134,6 +135,20 @@ def reservoir_or_admin_required(f):
     return wrapper
 
 
+def state_editor_required(f):
+    """Доступ к редактированию карты штата: admin, super_admin, state_admin."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not session.get('user_id'):
+            flash('Войдите, чтобы продолжить.')
+            return redirect(url_for('login'))
+        if session.get('role') not in ('admin', 'super_admin', 'state_admin'):
+            flash('Доступ только для администратора штата!')
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return wrapper
+
+
 def is_admin():
     return session.get('role') in ('admin', 'super_admin')
 
@@ -142,8 +157,16 @@ def is_super_admin():
     return session.get('role') == 'super_admin'
 
 
+def is_state_admin():
+    return session.get('role') == 'state_admin'
+
+
 def can_edit_reservoir():
     return session.get('role') in ('admin', 'super_admin', 'reservoir')
+
+
+def can_edit_state():
+    return session.get('role') in ('admin', 'super_admin', 'state_admin')
 
 
 # ============================================================
@@ -527,7 +550,7 @@ def login():
             session['username'] = row[1]
             session['role'] = row[2]
             user = get_user_by_id(row[0])
-            if user and not user[3] and row[2] != 'super_admin':
+            if user and not user[3] and row[2] not in ('super_admin', 'state_admin'):
                 flash('Сначала привяжите себя к нику в рейтинге.')
                 return redirect(url_for('register_link'))
             return redirect(url_for('index'))
@@ -1106,7 +1129,7 @@ def reservoir_admin_blacklist_add():
 def admin_roles_update():
     user_id = request.form.get('user_id', type=int)
     new_role = request.form.get('new_role', '').strip()
-    if not user_id or new_role not in ('player', 'reservoir', 'admin', 'super_admin'):
+    if not user_id or new_role not in ('player', 'reservoir', 'state_admin', 'admin', 'super_admin'):
         flash('Неверные данные.')
         return redirect(url_for('admin_panel'))
 
@@ -1191,7 +1214,6 @@ def admin_reset_my_apples():
 @app.route('/admin/reset-state-tables', methods=['POST'])
 @super_admin_required
 def admin_reset_state_tables():
-    """Удаляет и заново создаёт таблицы карты штата."""
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -1302,8 +1324,8 @@ def admin_players_delete(user_id):
     if target[4] == 'admin' and not is_super_admin():
         flash('Только супер-администратор может удалять администраторов.')
         return redirect(url_for('admin_players'))
-    if target[4] == 'reservoir' and not is_super_admin():
-        flash('Только супер-администратор может удалять роль «Резервуар».')
+    if target[4] in ('reservoir', 'state_admin') and not is_super_admin():
+        flash('Только супер-администратор может удалять эту роль.')
         return redirect(url_for('admin_players'))
     if delete_user(user_id):
         increment_counter('admin_actions')
@@ -1323,7 +1345,7 @@ def admin_players_change_username(user_id):
     if target[4] == 'super_admin' and not is_super_admin():
         flash('Только супер-администратор может менять супер-администратора.')
         return redirect(url_for('admin_players'))
-    if target[4] in ('admin', 'reservoir') and not is_super_admin() and user_id != session['user_id']:
+    if target[4] in ('admin', 'reservoir', 'state_admin') and not is_super_admin() and user_id != session['user_id']:
         flash('Только супер-администратор может менять других администраторов.')
         return redirect(url_for('admin_players'))
     new_username = request.form.get('new_username', '').strip()
@@ -1350,7 +1372,7 @@ def admin_players_change_password(user_id):
     if target[4] == 'super_admin' and not is_super_admin():
         flash('Только супер-администратор может менять пароль супер-администратора.')
         return redirect(url_for('admin_players'))
-    if target[4] in ('admin', 'reservoir') and not is_super_admin() and user_id != session['user_id']:
+    if target[4] in ('admin', 'reservoir', 'state_admin') and not is_super_admin() and user_id != session['user_id']:
         flash('Только супер-администратор может менять пароли других администраторов.')
         return redirect(url_for('admin_players'))
     new_password = request.form.get('new_password', '').strip()
@@ -1373,7 +1395,7 @@ def admin_players_change_role(user_id):
         flash('Пользователь не найден.')
         return redirect(url_for('admin_players'))
     new_role = request.form.get('new_role', '').strip()
-    if new_role not in ('player', 'reservoir', 'admin'):
+    if new_role not in ('player', 'reservoir', 'state_admin', 'admin'):
         flash('Неверная роль.')
         return redirect(url_for('admin_players'))
     if user_id == session['user_id']:
@@ -1633,7 +1655,7 @@ def state_view():
     count_once('visits', 'counted_visit')
     legend = get_state_legend()
     cells = get_state_cells()
-    can_edit = is_admin()
+    can_edit = can_edit_state()
     return render_template('state.html',
                            legend=legend,
                            cells=cells,
@@ -1641,7 +1663,7 @@ def state_view():
 
 
 @app.route('/state/legend/add', methods=['POST'])
-@admin_required
+@state_editor_required
 def state_legend_add():
     data = request.get_json() or {}
     color = (data.get('color') or '').strip()
@@ -1656,7 +1678,7 @@ def state_legend_add():
 
 
 @app.route('/state/legend/delete/<int:legend_id>', methods=['POST'])
-@admin_required
+@state_editor_required
 def state_legend_delete(legend_id):
     if delete_state_legend(legend_id):
         increment_counter('admin_actions')
@@ -1665,7 +1687,7 @@ def state_legend_delete(legend_id):
 
 
 @app.route('/state/save', methods=['POST'])
-@admin_required
+@state_editor_required
 def state_save():
     data = request.get_json() or {}
     cells = data.get('cells') or []
