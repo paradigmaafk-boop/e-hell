@@ -9,7 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        html, body { min-width: 1400px; height: 100%; }
+        html, body {
+            min-width: 1400px;
+            height: 100%;
+        }
+        @media (max-width: 1000px) {
+            html, body { min-width: 0; }
+        }
 
         .state-page {
             display: flex;
@@ -17,6 +23,12 @@
             height: calc(100vh - 220px);
             min-height: 700px;
             margin-top: 0.75rem;
+        }
+        @media (max-width: 1000px) {
+            .state-page {
+                height: auto;
+                min-height: 0;
+            }
         }
 
         .state-header {
@@ -52,6 +64,12 @@
             flex: 1;
             min-height: 0;
         }
+        @media (max-width: 1000px) {
+            .state-main {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+        }
 
         /* ============================================================
            ЛЕГЕНДА
@@ -64,7 +82,12 @@
             border-radius: 12px;
             padding: 1rem;
             overflow-y: auto;
+            max-height: 100%;
         }
+        @media (max-width: 1000px) {
+            .legend-panel { max-height: 40vh; }
+        }
+
         .legend-panel h2 {
             font-size: 0.72rem;
             letter-spacing: 3px;
@@ -240,6 +263,13 @@
             overflow: auto;
             min-height: 0;
         }
+        @media (max-width: 1000px) {
+            .map-wrap {
+                height: 60vh;
+                max-height: 500px;
+                padding: 0.25rem;
+            }
+        }
 
         #map-svg {
             width: 100%;
@@ -250,6 +280,14 @@
             background: #2a2a2a;
             border-radius: 8px;
             box-shadow: 0 0 40px rgba(0,0,0,0.6);
+        }
+        @media (max-width: 1000px) {
+            #map-svg {
+                width: auto;
+                max-width: 100%;
+                height: 100%;
+                max-height: 100%;
+            }
         }
 
         /* ============================================================
@@ -909,7 +947,6 @@
     let mode = 'paint';
     let currentColor = DEFAULT_COLOR;
 
-    // Для каждой ячейки: { el, labelEl, labelText, color }
     const cells = [];
 
     /* ============================================================
