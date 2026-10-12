@@ -1188,6 +1188,47 @@ def admin_reset_my_apples():
     return redirect(url_for('admin_panel'))
 
 
+@app.route('/admin/reset-state-tables', methods=['POST'])
+@super_admin_required
+def admin_reset_state_tables():
+    """Удаляет и заново создаёт таблицы карты штата."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DROP TABLE IF EXISTS state_cells")
+        cursor.execute("DROP TABLE IF EXISTS state_legend")
+
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS state_legend (
+                id SERIAL PRIMARY KEY,
+                color TEXT NOT NULL,
+                label TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        """)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS state_cells (
+                id SERIAL PRIMARY KEY,
+                cell_index INTEGER NOT NULL UNIQUE,
+                color TEXT,
+                label TEXT,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        conn.commit()
+
+        increment_counter('admin_actions')
+        flash('✅ Таблицы карты штата пересозданы. Данные очищены.')
+    except Exception as e:
+        print(f"reset_state_tables error: {e}")
+        conn.rollback()
+        flash(f'❌ Ошибка: {e}')
+    finally:
+        conn.close()
+
+    return redirect(url_for('admin_panel'))
+
+
 @app.route('/admin/players')
 @admin_required
 def admin_players():
