@@ -9,10 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        html, body {
-            min-width: 1400px;
-            height: 100%;
-        }
+        html, body { min-width: 1400px; height: 100%; }
         @media (max-width: 1000px) {
             html, body { min-width: 0; }
         }
@@ -25,10 +22,7 @@
             margin-top: 0.75rem;
         }
         @media (max-width: 1000px) {
-            .state-page {
-                height: auto;
-                min-height: 0;
-            }
+            .state-page { height: auto; min-height: 0; }
         }
 
         .state-header {
@@ -51,11 +45,7 @@
             -webkit-text-fill-color: transparent;
             animation: fireTextFlow 8s linear infinite;
         }
-        .state-header .sub {
-            color: var(--muted);
-            font-size: 0.8rem;
-            margin-top: 0.2rem;
-        }
+        .state-header .sub { color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem; }
 
         .state-main {
             display: grid;
@@ -65,15 +55,9 @@
             min-height: 0;
         }
         @media (max-width: 1000px) {
-            .state-main {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
+            .state-main { grid-template-columns: 1fr; gap: 0.75rem; }
         }
 
-        /* ============================================================
-           ЛЕГЕНДА
-           ============================================================ */
         .legend-panel {
             display: flex;
             flex-direction: column;
@@ -84,9 +68,7 @@
             overflow-y: auto;
             max-height: 100%;
         }
-        @media (max-width: 1000px) {
-            .legend-panel { max-height: 40vh; }
-        }
+        @media (max-width: 1000px) { .legend-panel { max-height: 40vh; } }
 
         .legend-panel h2 {
             font-size: 0.72rem;
@@ -95,16 +77,9 @@
             color: var(--accent-warm);
             margin-bottom: 0.75rem;
         }
-        .legend-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.35rem;
-            margin-bottom: 1rem;
-        }
+        .legend-list { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
         .legend-row {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
             padding: 0.4rem 0.55rem;
             background: rgba(10,5,3,0.5);
             border: 1px solid var(--line-soft);
@@ -112,331 +87,185 @@
             cursor: pointer;
             transition: all 0.15s ease;
         }
-        .legend-row:hover {
-            border-color: var(--accent);
-            background: rgba(255,69,0,0.08);
-        }
-        .legend-row.active {
-            border-color: var(--accent);
-            background: rgba(255,69,0,0.15);
-        }
+        .legend-row:hover { border-color: var(--accent); background: rgba(255,69,0,0.08); }
+        .legend-row.active { border-color: var(--accent); background: rgba(255,69,0,0.15); }
         .legend-color {
-            width: 22px;
-            height: 22px;
-            flex-shrink: 0;
+            width: 22px; height: 22px; flex-shrink: 0;
             border: 1px solid rgba(0,0,0,0.5);
-            clip-path: polygon(
-                20% 0%, 80% 0%,
-                100% 20%, 100% 80%,
-                80% 100%, 20% 100%,
-                0% 80%, 0% 20%
-            );
+            clip-path: polygon(20% 0%, 80% 0%, 100% 20%, 100% 80%, 80% 100%, 20% 100%, 0% 80%, 0% 20%);
         }
-        .legend-label {
-            flex: 1;
-            font-size: 0.85rem;
-            color: var(--text);
-            word-break: break-word;
-            min-width: 0;
-        }
+        .legend-label { flex: 1; font-size: 0.85rem; color: var(--text); word-break: break-word; min-width: 0; }
         .legend-delete {
-            width: 22px;
-            height: 22px;
-            border: 1px solid var(--line);
-            border-radius: 5px;
-            background: transparent;
-            color: var(--muted);
-            font-size: 0.7rem;
-            cursor: pointer;
-            flex-shrink: 0;
-            padding: 0;
-            display: none;
+            width: 22px; height: 22px; border: 1px solid var(--line);
+            border-radius: 5px; background: transparent; color: var(--muted);
+            font-size: 0.7rem; cursor: pointer; flex-shrink: 0; padding: 0; display: none;
         }
         .legend-row:hover .legend-delete { display: flex; align-items: center; justify-content: center; }
         .legend-delete:hover { border-color: var(--danger); color: #ffa090; }
 
         .legend-add {
-            display: flex;
-            gap: 0.4rem;
-            margin-top: auto;
-            padding-top: 0.75rem;
+            display: flex; gap: 0.4rem;
+            margin-top: auto; padding-top: 0.75rem;
             border-top: 1px solid var(--line-soft);
         }
         .legend-add input[type="color"] {
-            width: 36px;
-            height: 36px;
-            padding: 0;
-            border: 1px solid var(--line);
-            border-radius: 6px;
-            background: transparent;
-            cursor: pointer;
-            flex-shrink: 0;
+            width: 36px; height: 36px; padding: 0;
+            border: 1px solid var(--line); border-radius: 6px;
+            background: transparent; cursor: pointer; flex-shrink: 0;
         }
         .legend-add input[type="text"] {
-            flex: 1;
-            min-width: 0;
+            flex: 1; min-width: 0;
             padding: 0.4rem 0.6rem;
-            border: 1px solid var(--line);
-            border-radius: 6px;
-            background: var(--panel);
-            color: var(--text);
-            font: inherit;
-            font-size: 0.82rem;
+            border: 1px solid var(--line); border-radius: 6px;
+            background: var(--panel); color: var(--text);
+            font: inherit; font-size: 0.82rem;
         }
-        .legend-add input[type="text"]:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        .legend-add input[type="text"]:focus { outline: none; border-color: var(--accent); }
         .legend-add button {
             padding: 0.4rem 0.75rem;
-            border: 1px solid var(--accent);
-            border-radius: 6px;
-            background: rgba(255,69,0,0.15);
-            color: var(--accent-warm);
-            font: inherit;
-            font-size: 0.82rem;
-            cursor: pointer;
+            border: 1px solid var(--accent); border-radius: 6px;
+            background: rgba(255,69,0,0.15); color: var(--accent-warm);
+            font: inherit; font-size: 0.82rem; cursor: pointer;
         }
         .legend-add button:hover { background: var(--accent); color: #fff; }
 
-        /* ============================================================
-           ПРАВАЯ ЧАСТЬ: панель + карта
-           ============================================================ */
-        .map-column {
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
+        .map-column { display: flex; flex-direction: column; min-height: 0; }
 
         .toolbar {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            display: flex; align-items: center; gap: 0.5rem;
             padding: 0.5rem 0.75rem;
             background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(15,8,3,0.95));
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 0.5rem;
+            border: 1px solid var(--line); border-radius: 10px;
+            flex-wrap: wrap; margin-bottom: 0.5rem;
         }
         .toolbar-group {
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
-            padding-right: 0.6rem;
-            border-right: 1px solid var(--line);
+            display: flex; align-items: center; gap: 0.3rem;
+            padding-right: 0.6rem; border-right: 1px solid var(--line);
         }
         .toolbar-group:last-child { border-right: none; }
         .toolbar-label {
-            font-size: 0.65rem;
-            color: var(--dim);
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            font-size: 0.65rem; color: var(--dim);
+            text-transform: uppercase; letter-spacing: 1.5px;
             margin-right: 0.2rem;
         }
         .tool-btn {
             padding: 0.35rem 0.7rem;
-            border: 1px solid var(--line);
-            border-radius: 5px;
-            background: transparent;
-            color: var(--muted);
-            font: inherit;
-            font-size: 0.78rem;
-            cursor: pointer;
+            border: 1px solid var(--line); border-radius: 5px;
+            background: transparent; color: var(--muted);
+            font: inherit; font-size: 0.78rem; cursor: pointer;
             transition: all 0.15s ease;
         }
         .tool-btn:hover { border-color: var(--accent); color: var(--accent-warm); }
         .tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-        /* ============================================================
-           КОНТЕЙНЕР КАРТЫ
-           ============================================================ */
         .map-wrap {
             flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             padding: 0.5rem;
             background: linear-gradient(180deg, rgba(20,10,5,0.5), rgba(8,4,2,0.7));
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            overflow: auto;
-            min-height: 0;
+            border: 1px solid var(--line); border-radius: 12px;
+            overflow: auto; min-height: 0;
         }
         @media (max-width: 1000px) {
-            .map-wrap {
-                height: 60vh;
-                max-height: 500px;
-                padding: 0.25rem;
-            }
+            .map-wrap { height: 60vh; max-height: 500px; padding: 0.25rem; }
         }
 
         #map-svg {
-            width: 100%;
-            height: 100%;
-            max-width: 100%;
-            max-height: 100%;
+            width: 100%; height: 100%;
+            max-width: 100%; max-height: 100%;
             display: block;
             background: #2a2a2a;
             border-radius: 8px;
             box-shadow: 0 0 40px rgba(0,0,0,0.6);
         }
         @media (max-width: 1000px) {
-            #map-svg {
-                width: auto;
-                max-width: 100%;
-                height: 100%;
-                max-height: 100%;
-            }
+            #map-svg { width: auto; max-width: 100%; height: 100%; max-height: 100%; }
         }
 
-        /* ============================================================
-           ЯЧЕЙКИ КАРТЫ
-           ============================================================ */
         .cell {
-            stroke: #000;
-            stroke-width: 1px;
-            cursor: pointer;
+            stroke: #000; stroke-width: 1px; cursor: pointer;
             transition: fill 0.15s, stroke 0.15s, filter 0.15s;
         }
-
         .cell:hover {
-            stroke: #ffb800;
-            stroke-width: 2.5px;
+            stroke: #ffb800; stroke-width: 2.5px;
             filter: brightness(1.25) drop-shadow(0 0 6px rgba(255,200,80,0.7));
             z-index: 10;
         }
-
         .cell .cell-label {
             fill: rgba(0,0,0,0.85);
-            font-family: 'Inter', sans-serif;
-            font-weight: 700;
-            font-size: 9px;
-            text-anchor: middle;
-            dominant-baseline: middle;
-            pointer-events: none;
-            user-select: none;
+            font-family: 'Inter', sans-serif; font-weight: 700; font-size: 9px;
+            text-anchor: middle; dominant-baseline: middle;
+            pointer-events: none; user-select: none;
         }
 
-        /* Всплывающая подсказка */
         #tooltip {
             position: fixed;
             background: rgba(0, 0, 0, 0.95);
             color: #fff;
             padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            pointer-events: none;
-            opacity: 0;
+            border-radius: 8px; font-size: 13px;
+            pointer-events: none; opacity: 0;
             transition: opacity 0.15s;
             border: 1px solid #666;
-            z-index: 100;
-            white-space: nowrap;
+            z-index: 100; white-space: nowrap;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         #tooltip.visible { opacity: 1; }
-        #tooltip b {
-            color: #F4D03F;
-            display: block;
-            margin-bottom: 4px;
-            font-size: 14px;
-        }
+        #tooltip b { color: #F4D03F; display: block; margin-bottom: 4px; font-size: 14px; }
         #tooltip small { color: #aaa; }
 
-        /* Статус-бар */
         .status-bar {
             padding: 0.4rem 0.9rem;
             background: rgba(15,8,3,0.6);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            font-size: 0.75rem;
-            color: var(--muted);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.6rem;
-            margin-top: 0.5rem;
+            border: 1px solid var(--line); border-radius: 8px;
+            font-size: 0.75rem; color: var(--muted);
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem;
         }
         .status-bar b { color: var(--accent-warm); }
 
-        /* Модалка подписи */
         .label-modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(3,0,0,0.8);
-            backdrop-filter: blur(5px);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
+            display: none; position: fixed; inset: 0;
+            background: rgba(3,0,0,0.8); backdrop-filter: blur(5px);
+            z-index: 9999; align-items: center; justify-content: center;
             padding: 1rem;
         }
         .label-modal-overlay.show { display: flex; }
         .label-modal-box {
-            width: 100%;
-            max-width: 400px;
+            width: 100%; max-width: 400px;
             padding: 1.5rem 1.75rem;
             background: linear-gradient(180deg, #150a04, #050101);
-            border: 1px solid var(--accent);
-            border-radius: 16px;
+            border: 1px solid var(--accent); border-radius: 16px;
         }
         .label-modal-title {
-            font-family: 'Forum', serif;
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--accent-warm);
-            text-align: center;
-            margin-bottom: 1rem;
+            font-family: 'Forum', serif; font-size: 1.1rem;
+            letter-spacing: 2px; text-transform: uppercase;
+            color: var(--accent-warm); text-align: center; margin-bottom: 1rem;
         }
         .label-modal-box input[type="text"] {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: var(--panel);
-            color: var(--text);
-            font: inherit;
-            font-size: 0.95rem;
-            margin-bottom: 1rem;
+            width: 100%; padding: 0.7rem 1rem;
+            border: 1px solid var(--line); border-radius: 8px;
+            background: var(--panel); color: var(--text);
+            font: inherit; font-size: 0.95rem; margin-bottom: 1rem;
         }
-        .label-modal-box input[type="text"]:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-        .label-modal-actions {
-            display: flex;
-            gap: 0.6rem;
-        }
+        .label-modal-box input[type="text"]:focus { outline: none; border-color: var(--accent); }
+        .label-modal-actions { display: flex; gap: 0.6rem; }
         .label-modal-actions button {
-            flex: 1;
-            padding: 0.6rem 1rem;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: transparent;
-            color: var(--muted);
-            font: inherit;
-            font-size: 0.85rem;
-            cursor: pointer;
+            flex: 1; padding: 0.6rem 1rem;
+            border: 1px solid var(--line); border-radius: 8px;
+            background: transparent; color: var(--muted);
+            font: inherit; font-size: 0.85rem; cursor: pointer;
         }
         .label-modal-actions button.primary {
             background: linear-gradient(135deg, #ff5a1f, #ffb800);
-            border-color: transparent;
-            color: #0a0503;
-            font-weight: 700;
+            border-color: transparent; color: #0a0503; font-weight: 700;
         }
 
-        /* Только-чтение */
         body.read-only .toolbar,
         body.read-only .legend-add,
         body.read-only .legend-delete { display: none; }
         body.read-only .cell { cursor: default; }
-        body.read-only .cell:hover {
-            stroke: #000;
-            stroke-width: 1px;
-            filter: none;
-        }
+        body.read-only .cell:hover { stroke: #000; stroke-width: 1px; filter: none; }
     </style>
 </head>
 <body class="{% if not can_edit_state %}read-only{% endif %}">
@@ -516,7 +345,6 @@
     </nav>
 
     <div class="state-page">
-
         <div class="state-header">
             <div>
                 <h1>Карта штата</h1>
@@ -531,8 +359,6 @@
         </div>
 
         <div class="state-main">
-
-            <!-- ЛЕГЕНДА -->
             <div class="legend-panel">
                 <h2>Легенда</h2>
                 <div class="legend-list" id="legendList"></div>
@@ -546,9 +372,7 @@
                 {% endif %}
             </div>
 
-            <!-- КАРТА -->
             <div class="map-column">
-
                 {% if can_edit_state %}
                 <div class="toolbar">
                     <div class="toolbar-group">
@@ -557,20 +381,16 @@
                         <button class="tool-btn" data-mode="erase">🧽 Стереть</button>
                         <button class="tool-btn" data-mode="label">✏ Подпись</button>
                     </div>
-
                     <div class="toolbar-group">
                         <button class="tool-btn" id="btnSave">💾 Сохранить</button>
                         <button class="tool-btn" id="btnClear">🗑 Очистить</button>
                     </div>
-
                     <span id="saveStatus" style="font-size:0.75rem;color:var(--dim);font-style:italic;margin-left:auto;"></span>
                 </div>
                 {% endif %}
 
                 <div class="map-wrap">
-                    <svg viewBox="50 40 950 950" id="map-svg" preserveAspectRatio="xMidYMid meet">
-                        <!-- Полигоны генерируются скриптом -->
-                    </svg>
+                    <svg viewBox="50 40 950 950" id="map-svg" preserveAspectRatio="xMidYMid meet"></svg>
                 </div>
 
                 <div class="status-bar">
@@ -578,16 +398,12 @@
                     <span>Активный цвет: <b id="statusColor">—</b></span>
                 </div>
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 <div id="tooltip"></div>
 
-<!-- МОДАЛКА ПОДПИСИ -->
 <div class="label-modal-overlay" id="labelModal">
     <div class="label-modal-box">
         <div class="label-modal-title">Подпись блока</div>
@@ -600,9 +416,6 @@
 </div>
 
 <script>
-    /* ============================================================
-       КООРДИНАТЫ ЯЧЕЕК
-       ============================================================ */
     const RAW_COORDS = [
         "489,916,511,896,527,908,538,904,551,919,530,940,521,932,513,940",
         "569,950,585,934,578,925,585,918,579,911,571,916,554,902,547,910,555,917,548,926",
@@ -934,24 +747,14 @@
 </script>
 
 <script>
-    /* ============================================================
-       СОСТОЯНИЕ
-       ============================================================ */
     const CAN_EDIT = window.CAN_EDIT;
     const svg = document.getElementById('map-svg');
     const tooltip = document.getElementById('tooltip');
-
     const DEFAULT_COLOR = '#ffffff';
     const DEFAULT_STROKE = '#000';
-
     let mode = 'paint';
     let currentColor = DEFAULT_COLOR;
-
     const cells = [];
-
-    /* ============================================================
-       ЛЕГЕНДА
-       ============================================================ */
     let legend = (window.INITIAL_LEGEND || []).filter(x => x);
     const legendList = document.getElementById('legendList');
 
@@ -959,12 +762,10 @@
         legendList.innerHTML = '';
         legend.forEach(item => {
             if (!item) return;
-
             const colorRaw = item.color;
             const labelRaw = item.label;
             if (colorRaw === null || colorRaw === undefined) return;
             if (labelRaw === null || labelRaw === undefined) return;
-
             const color = String(colorRaw).trim();
             const labelText = String(labelRaw);
             if (color === '') return;
@@ -972,9 +773,7 @@
             const row = document.createElement('div');
             row.className = 'legend-row';
             row.dataset.color = color;
-            if (color.toLowerCase() === String(currentColor || '').toLowerCase()) {
-                row.classList.add('active');
-            }
+            if (color.toLowerCase() === String(currentColor || '').toLowerCase()) row.classList.add('active');
 
             const colorBox = document.createElement('div');
             colorBox.className = 'legend-color';
@@ -998,19 +797,16 @@
                         const res = await fetch('/state/legend/delete/' + item.id, { method: 'POST' });
                         const text = await res.text();
                         let data;
-                        try {
-                            data = JSON.parse(text);
-                        } catch (parseErr) {
+                        try { data = JSON.parse(text); }
+                        catch (pe) {
                             console.error('Сервер вернул не JSON:', text.slice(0, 500));
-                            alert('Сервер вернул не JSON (статус ' + res.status + '). Откройте F12 → Console.');
+                            alert('Сервер вернул не JSON (статус ' + res.status + ').');
                             return;
                         }
                         if (data.success) {
                             legend = (data.legend || []).filter(x => x);
                             renderLegend();
-                        } else {
-                            alert('Ошибка: ' + data.error);
-                        }
+                        } else alert('Ошибка: ' + data.error);
                     } catch (err) {
                         console.error('Ошибка сети:', err);
                         alert('Ошибка сети: ' + err.message);
@@ -1018,7 +814,6 @@
                 });
                 row.appendChild(del);
             }
-
             row.addEventListener('click', () => setColor(color));
             legendList.appendChild(row);
         });
@@ -1044,10 +839,7 @@
         legendAddBtn.addEventListener('click', async () => {
             const color = document.getElementById('legendColor').value;
             const label = document.getElementById('legendLabel').value.trim();
-            if (!label) {
-                alert('Введите название');
-                return;
-            }
+            if (!label) { alert('Введите название'); return; }
             try {
                 const res = await fetch('/state/legend/add', {
                     method: 'POST',
@@ -1056,11 +848,10 @@
                 });
                 const text = await res.text();
                 let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (parseErr) {
+                try { data = JSON.parse(text); }
+                catch (pe) {
                     console.error('Сервер вернул не JSON:', text.slice(0, 500));
-                    alert('Сервер вернул не JSON (статус ' + res.status + '). Откройте F12 → Console.');
+                    alert('Сервер вернул не JSON (статус ' + res.status + ').');
                     return;
                 }
                 if (data.success) {
@@ -1068,9 +859,7 @@
                     document.getElementById('legendLabel').value = '';
                     renderLegend();
                     setColor(color);
-                } else {
-                    alert('Ошибка: ' + data.error);
-                }
+                } else alert('Ошибка: ' + data.error);
             } catch (err) {
                 console.error('Ошибка сети:', err);
                 alert('Ошибка сети: ' + err.message);
@@ -1078,15 +867,10 @@
         });
     }
 
-    /* ============================================================
-       РЕНДЕР ЯЧЕЕК
-       ============================================================ */
     function polygonCentroid(pointsStr) {
         const nums = pointsStr.split(',').map(Number);
         const pts = [];
-        for (let i = 0; i < nums.length; i += 2) {
-            pts.push({ x: nums[i], y: nums[i + 1] });
-        }
+        for (let i = 0; i < nums.length; i += 2) pts.push({ x: nums[i], y: nums[i + 1] });
         let sx = 0, sy = 0;
         pts.forEach(p => { sx += p.x; sy += p.y; });
         return { x: sx / pts.length, y: sy / pts.length };
@@ -1094,10 +878,8 @@
 
     function renderMap() {
         svg.innerHTML = '';
-
         RAW_COORDS.forEach((coordStr, i) => {
             const pointsStr = coordStr.split(',').join(' ');
-
             const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             polygon.setAttribute('points', pointsStr);
             polygon.setAttribute('class', 'cell');
@@ -1116,43 +898,27 @@
             polygon.addEventListener('mouseenter', () => {
                 const idx = +polygon.getAttribute('data-index');
                 const cell = cells[idx];
-                const label = cell && cell.labelText ? cell.labelText : `Блок №${idx + 1}`;
-                tooltip.innerHTML = `<b>${label}</b><small>ID: ${idx + 1}</small>`;
+                const lbl = cell && cell.labelText ? cell.labelText : `Блок №${idx + 1}`;
+                tooltip.innerHTML = `<b>${lbl}</b><small>ID: ${idx + 1}</small>`;
                 tooltip.classList.add('visible');
             });
-
             polygon.addEventListener('mousemove', (e) => {
                 tooltip.style.left = (e.clientX + 15) + 'px';
                 tooltip.style.top = (e.clientY - 40) + 'px';
             });
-
-            polygon.addEventListener('mouseleave', () => {
-                tooltip.classList.remove('visible');
-            });
-
-            if (CAN_EDIT) {
-                polygon.addEventListener('click', () => onCellClick(i));
-            }
+            polygon.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+            if (CAN_EDIT) polygon.addEventListener('click', () => onCellClick(i));
 
             svg.appendChild(polygon);
             svg.appendChild(labelEl);
-
-            cells.push({
-                el: polygon,
-                labelEl: labelEl,
-                color: null,
-                labelText: null,
-                index: i
-            });
+            cells.push({ el: polygon, labelEl, color: null, labelText: null, index: i });
         });
-
         loadSaved();
         updateStatus();
     }
 
     function onCellClick(index) {
         const cell = cells[index];
-
         if (mode === 'paint') {
             cell.color = currentColor;
             cell.el.setAttribute('fill', currentColor);
@@ -1167,16 +933,12 @@
         updateStatus();
     }
 
-    /* ============================================================
-       ЗАГРУЗКА СОХРАНЁННЫХ
-       ============================================================ */
     function loadSaved() {
         const saved = window.INITIAL_CELLS || [];
         saved.forEach(item => {
             if (!item) return;
             const idx = item.index;
-            if (idx === undefined || idx === null) return;
-            if (idx < 0 || idx >= cells.length) return;
+            if (idx === undefined || idx === null || idx < 0 || idx >= cells.length) return;
             const cell = cells[idx];
             if (!cell) return;
             if (item.color) {
@@ -1190,18 +952,11 @@
         });
     }
 
-    /* ============================================================
-       СОХРАНЕНИЕ
-       ============================================================ */
     function collectCells() {
         const out = [];
         cells.forEach((cell, i) => {
             if (cell.color !== null || cell.labelText !== null) {
-                out.push({
-                    index: i,
-                    color: cell.color,
-                    label: cell.labelText
-                });
+                out.push({ index: i, color: cell.color, label: cell.labelText });
             }
         });
         return out;
@@ -1219,24 +974,19 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cells: collectCells() })
             });
-
             const text = await res.text();
             let data;
-            try {
-                data = JSON.parse(text);
-            } catch (parseErr) {
+            try { data = JSON.parse(text); }
+            catch (pe) {
                 console.error('Сервер вернул не JSON:', text.slice(0, 500));
                 status.textContent = '✗ Сервер вернул не JSON (статус ' + res.status + ')';
                 btn.disabled = false;
                 return;
             }
-
             if (data.success) {
                 status.textContent = '✓ Сохранено';
                 setTimeout(() => status.textContent = '', 2000);
-            } else {
-                status.textContent = '✗ ' + (data.error || 'Ошибка');
-            }
+            } else status.textContent = '✗ ' + (data.error || 'Ошибка');
         } catch (err) {
             console.error('Ошибка сети:', err);
             status.textContent = '✗ Ошибка сети: ' + err.message;
@@ -1248,22 +998,17 @@
     if (btnSave) btnSave.addEventListener('click', saveCells);
 
     const btnClear = document.getElementById('btnClear');
-    if (btnClear) {
-        btnClear.addEventListener('click', () => {
-            if (!confirm('Очистить все цвета и подписи?')) return;
-            cells.forEach(cell => {
-                cell.color = null;
-                cell.labelText = null;
-                cell.el.setAttribute('fill', DEFAULT_COLOR);
-                cell.labelEl.textContent = '';
-            });
-            updateStatus();
+    if (btnClear) btnClear.addEventListener('click', () => {
+        if (!confirm('Очистить все цвета и подписи?')) return;
+        cells.forEach(cell => {
+            cell.color = null;
+            cell.labelText = null;
+            cell.el.setAttribute('fill', DEFAULT_COLOR);
+            cell.labelEl.textContent = '';
         });
-    }
+        updateStatus();
+    });
 
-    /* ============================================================
-       МОДАЛКА ПОДПИСИ
-       ============================================================ */
     const labelModal = document.getElementById('labelModal');
     const labelInput = document.getElementById('labelInput');
     let labelTargetIndex = null;
@@ -1280,7 +1025,6 @@
         labelModal.classList.remove('show');
         labelTargetIndex = null;
     });
-
     document.getElementById('labelSave').addEventListener('click', () => {
         if (labelTargetIndex === null) return;
         const text = labelInput.value.trim().slice(0, 20);
@@ -1290,15 +1034,11 @@
         labelModal.classList.remove('show');
         labelTargetIndex = null;
     });
-
     labelInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') document.getElementById('labelSave').click();
         if (e.key === 'Escape') document.getElementById('labelCancel').click();
     });
 
-    /* ============================================================
-       РЕЖИМ
-       ============================================================ */
     document.querySelectorAll('.tool-btn[data-mode]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.remove('active'));
@@ -1307,19 +1047,13 @@
         });
     });
 
-    /* ============================================================
-       СТАТУС
-       ============================================================ */
     function updateStatus() {
         let painted = 0;
         cells.forEach(c => { if (c.color) painted++; });
-        const statusEl = document.getElementById('statusPainted');
-        if (statusEl) statusEl.textContent = painted;
+        const el = document.getElementById('statusPainted');
+        if (el) el.textContent = painted;
     }
 
-    /* ============================================================
-       ТЕМА
-       ============================================================ */
     const toggleBtn = document.getElementById('theme-toggle');
     const bodyEl = document.body;
     if (toggleBtn) {
@@ -1334,9 +1068,6 @@
         }
     }
 
-    /* ============================================================
-       ЗАПУСК
-       ============================================================ */
     renderMap();
 </script>
 
