@@ -9,9 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* ============================================================
-           ОБЩАЯ ОБЁРТКА
-           ============================================================ */
         .state-page {
             display: flex;
             flex-direction: column;
@@ -75,12 +72,10 @@
 
         /* ============================================================
            КАРТА
-           Ромбовидная сетка из ромбиков. Без rotate() всего контейнера.
-           Каждая клетка — отдельный ромб через clip-path.
            ============================================================ */
         .state-map-wrap {
             position: relative;
-            padding: 2.5rem 1rem;
+            padding: 2rem 1rem;
             background:
                 radial-gradient(ellipse at center, rgba(255,69,0,0.06), transparent 70%),
                 linear-gradient(180deg, rgba(30,15,8,0.55), rgba(8,4,2,0.75));
@@ -94,50 +89,40 @@
             overflow-y: visible;
         }
 
-        /* Внутренняя сетка */
         .state-map {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0;
             width: max-content;
             margin: 0 auto;
-            /* Оставляем место снизу и сверху для «приподнимания» */
             padding: 20px 0;
         }
 
-        /* Одна строка ромбов */
         .map-row {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 26px;         /* половина клетки по вертикали */
+            height: 26px;
             position: relative;
         }
-        /* Чётные строки смещены влево/вправо на полклетки */
         .map-row.offset {
-            margin-left: 24px;    /* сдвиг на половину ширины клетки */
+            margin-left: 24px;
         }
 
-        /* ============================================================
-           КУБИК-РОМБ
-           ============================================================ */
         .cell {
             position: relative;
             width: 48px;
             height: 48px;
-            margin-left: -12px;   /* отрицательный margin = «сплющивание» по горизонтали */
-            margin-top: -14px;    /* отрицательный margin = «сплющивание» по вертикали */
+            margin-left: -12px;
+            margin-top: -14px;
             flex-shrink: 0;
             cursor: pointer;
             transition:
                 transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-                filter 0.28s ease,
-                z-index 0s;
+                filter 0.28s ease;
             z-index: 1;
         }
 
-        /* Сам ромбик — рисуется через clip-path и заливается цветом */
         .cell::before {
             content: "";
             position: absolute;
@@ -147,10 +132,9 @@
             box-shadow:
                 inset 0 1px 0 rgba(255,255,255,0.25),
                 inset 0 -2px 3px rgba(0,0,0,0.35);
-            transition: box-shadow 0.28s ease, filter 0.28s ease;
+            transition: box-shadow 0.28s ease;
         }
 
-        /* Внутренняя «грань» для 3D-эффекта */
         .cell::after {
             content: "";
             position: absolute;
@@ -161,7 +145,6 @@
             transition: background 0.28s ease;
         }
 
-        /* Hover: приподнимаем и подсвечиваем */
         .cell:hover {
             transform: translateY(-8px) scale(1.14);
             z-index: 100;
@@ -178,17 +161,13 @@
             background: rgba(255,255,255,0.28);
         }
 
-        /* Пустая клетка (вне ромба) — невидимая, но занимает место */
         .cell.empty {
             pointer-events: none;
             cursor: default;
         }
         .cell.empty::before,
-        .cell.empty::after {
-            display: none;
-        }
+        .cell.empty::after { display: none; }
 
-        /* Подпись внутри ромба */
         .cell-label {
             position: absolute;
             inset: 0;
@@ -196,7 +175,7 @@
             align-items: center;
             justify-content: center;
             font-family: 'Inter', sans-serif;
-            font-size: 0.5rem;
+            font-size: 0.48rem;
             font-weight: 700;
             letter-spacing: 0.2px;
             color: rgba(0,0,0,0.78);
@@ -211,7 +190,7 @@
         }
 
         /* ============================================================
-           ЦВЕТА — как в легенде
+           ЦВЕТА (как в легенде)
            ============================================================ */
         .cell.c-arcadia::before   { background: radial-gradient(circle at 35% 30%, #ffe066, #f5a800 70%, #b87a00); }
         .cell.c-military::before  { background: radial-gradient(circle at 35% 30%, #ff5a4a, #d32f2f 70%, #8e0000); }
@@ -228,7 +207,6 @@
         .cell.c-bastion5::before  { background: radial-gradient(circle at 35% 30%, #6a5233, #4d3a20 70%, #2c1e0d); }
         .cell.c-bastion6::before  { background: radial-gradient(circle at 35% 30%, #46331b, #2d1f10 70%, #150c04); }
 
-        /* Тёмные ячейки — светлый текст */
         .cell.c-bastion4 .cell-label,
         .cell.c-bastion5 .cell-label,
         .cell.c-bastion6 .cell-label,
@@ -240,60 +218,29 @@
             text-shadow: 0 1px 2px rgba(0,0,0,0.85);
         }
 
-        
-        .state-credit {
-            position: relative;
-            width: 100%;
-            max-width: 900px;
-            height: 40px;
-            margin-top: 1.5rem;
-        }
-        .state-credit span {
-            position: absolute;
-            font-family: 'Forum', serif;
-            font-size: 1rem;
-            letter-spacing: 3px;
-            color: var(--dim);
-            opacity: 0.65;
-            white-space: nowrap;
-        }
-        .state-credit .tl {
-            top: 0;
-            left: 1rem;
-            transform: rotate(-28deg);
-            transform-origin: left top;
-        }
-        .state-credit .br {
-            bottom: 0;
-            right: 1rem;
-            transform: rotate(-28deg);
-            transform-origin: right bottom;
-        }
-
         /* ============================================================
            АДАПТИВ
            ============================================================ */
-        @media (max-width: 1000px) {
-            .cell { width: 34px; height: 34px; margin-left: -8.5px; margin-top: -10px; }
-            .map-row { height: 18px; }
-            .map-row.offset { margin-left: 17px; }
-            .cell-label { font-size: 0.4rem; padding: 5px; }
+        @media (max-width: 1200px) {
+            .cell { width: 38px; height: 38px; margin-left: -9.5px; margin-top: -11px; }
+            .map-row { height: 20px; }
+            .map-row.offset { margin-left: 19px; }
+            .cell-label { font-size: 0.42rem; padding: 6px; }
+        }
+        @media (max-width: 900px) {
+            .cell { width: 28px; height: 28px; margin-left: -7px; margin-top: -8px; }
+            .map-row { height: 15px; }
+            .map-row.offset { margin-left: 14px; }
+            .cell-label { font-size: 0.34rem; padding: 4px; }
         }
         @media (max-width: 700px) {
             .state-map-wrap { padding: 1.5rem 0.5rem; }
-            .cell { width: 24px; height: 24px; margin-left: -6px; margin-top: -7px; }
-            .map-row { height: 13px; }
-            .map-row.offset { margin-left: 12px; }
-            .cell-label { font-size: 0.3rem; padding: 3px; }
+            .cell { width: 20px; height: 20px; margin-left: -5px; margin-top: -6px; }
+            .map-row { height: 11px; }
+            .map-row.offset { margin-left: 10px; }
+            .cell-label { display: none; }
             .state-legend { font-size: 0.72rem; padding: 0.7rem 1rem; }
             .state-header h1 { font-size: 1.3rem; letter-spacing: 2px; }
-            .state-credit span { font-size: 0.75rem; letter-spacing: 2px; }
-        }
-        @media (max-width: 480px) {
-            .cell { width: 18px; height: 18px; margin-left: -4.5px; margin-top: -5.5px; }
-            .map-row { height: 10px; }
-            .map-row.offset { margin-left: 9px; }
-            .cell-label { display: none; } /* на самых маленьких экранах подписи не помещаются */
         }
     </style>
 </head>
@@ -398,7 +345,6 @@
             <p class="sub">Расположение построек союза</p>
         </div>
 
-        <!-- ЛЕГЕНДА -->
         <div class="state-legend">
             <div class="legend-item"><span class="legend-swatch c-arcadia"></span>Аркадия (столица)</div>
             <div class="legend-item"><span class="legend-swatch c-military"></span>Военная база</div>
@@ -415,19 +361,15 @@
             <div class="legend-item"><span class="legend-swatch c-bastion6"></span>Бастион ур.6</div>
         </div>
 
-        <!-- КАРТА -->
         <div class="state-map-wrap">
             <div class="state-map" id="stateMap"></div>
         </div>
-
-      
 
     </div>
 
 </div>
 
 <style>
-    /* Легенда — те же цвета, что и кубики */
     .legend-swatch.c-arcadia   { background: radial-gradient(circle at 35% 30%, #ffe066, #f5a800 70%, #b87a00); }
     .legend-swatch.c-military  { background: radial-gradient(circle at 35% 30%, #ff5a4a, #d32f2f 70%, #8e0000); }
     .legend-swatch.c-research  { background: radial-gradient(circle at 35% 30%, #b47ed6, #7e3fb0 70%, #4a1470); }
@@ -445,45 +387,49 @@
 
 <script>
     /* ============================================================
-       ГЕНЕРАЦИЯ КАРТЫ
+       ГЕНЕРАЦИЯ КАРТЫ ШТАТА
        ------------------------------------------------------------
-       Ромбовидная сетка. Строк — 41 (нечётное число), чтобы центр
-       был посередине. Каждая строка состоит из N ромбиков.
-       Чётные строки смещены вправо на полклетки — это даёт
-       правильную «шахматку» ромбов.
-       ------------------------------------------------------------
-       Форма ромба: клетка рисуется, если манхэттенское расстояние
-       от центра <= радиус.
+       Форма: изометрический ромб. Радиус (манхэттенское расстояние
+       от центра) = 16. Значит, диагональ = 33 клетки.
+       Слои от центра:
+         0        — Аркадия
+         1        — Военная база
+         2-3      — Центр исследований
+         4-5      — Мегаполис
+         6-7      — Городок
+         8-9      — Завод
+         10       — Деревня
+         11-12    — Бастион ур.6
+         13       — Бастион ур.5
+         14       — Бастион ур.4
+         15       — Бастион ур.3
+         16       — Бастион ур.2
+         17       — Бастион ур.1
        ============================================================ */
     (function() {
-        const ROWS = 41;                              // 41 строка
-        const CENTER_ROW = Math.floor(ROWS / 2);      // = 20
-        const CENTER_COL = Math.floor(ROWS / 2);      // = 20
-
-        // Максимальный радиус ромба (в ромбиках от центра).
-        // На картинке от центра до угла примерно 20 ромбиков.
-        const MAX_RADIUS = 19;
-
+        const RADIUS = 16;                  // расстояние от центра
+        const SIZE = RADIUS * 2 + 1;        // = 33 строки и колонки
+        const CENTER = RADIUS;              // = 16
         const map = document.getElementById('stateMap');
 
-        // Класс в зависимости от расстояния Чебышёва
-        function getClass(dist) {
-            if (dist === 0)                 return 'c-arcadia';
-            if (dist === 1)                 return 'c-military';
-            if (dist === 2)                 return 'c-research';
-            if (dist <= 4)                  return 'c-megapolis';
-            if (dist <= 6)                  return 'c-city';
-            if (dist <= 8)                  return 'c-factory';
-            if (dist === 9)                 return 'c-village';
-            if (dist === 10)                return 'c-bastion1';
-            if (dist === 11)                return 'c-bastion2';
-            if (dist === 12)                return 'c-bastion3';
-            if (dist === 13)                return 'c-bastion4';
-            if (dist === 14)                return 'c-bastion5';
-            return 'c-bastion6';            // 15+
+        function getClass(dx, dy) {
+            const manhattan = Math.abs(dx) + Math.abs(dy);
+
+            if (manhattan === 0) return 'c-arcadia';
+            if (manhattan === 1) return 'c-military';
+            if (manhattan === 2 || manhattan === 3) return 'c-research';
+            if (manhattan === 4 || manhattan === 5) return 'c-megapolis';
+            if (manhattan === 6 || manhattan === 7) return 'c-city';
+            if (manhattan === 8 || manhattan === 9) return 'c-factory';
+            if (manhattan === 10) return 'c-village';
+            if (manhattan === 11 || manhattan === 12) return 'c-bastion6';
+            if (manhattan === 13) return 'c-bastion5';
+            if (manhattan === 14) return 'c-bastion4';
+            if (manhattan === 15) return 'c-bastion3';
+            if (manhattan === 16) return 'c-bastion2';
+            return 'c-bastion1';                // 17
         }
 
-        // Короткие подписи внутри ромба
         const labels = {
             'c-arcadia':   'Аркадия',
             'c-military':  'Воен.',
@@ -516,31 +462,23 @@
             'c-bastion6':  'Бастион ур.6'
         };
 
-        for (let y = 0; y < ROWS; y++) {
+        for (let y = 0; y < SIZE; y++) {
             const row = document.createElement('div');
             row.className = 'map-row' + (y % 2 === 1 ? ' offset' : '');
 
-            // В каждой строке — ширина, равная полной ширине ромба
-            // на этой высоте. Т.к. клетки смещены, используем
-            // нечётную «карту» из ROWS клеток, но оставляем только
-            // те, что внутри ромба.
-            for (let x = 0; x < ROWS; x++) {
-                // Сдвиг по диагонали: превращаем квадратную сетку в ромб
-                // через манхэттенское расстояние.
-                const dx = x - CENTER_COL;
-                const dy = y - CENTER_ROW;
+            for (let x = 0; x < SIZE; x++) {
+                const dx = x - CENTER;
+                const dy = y - CENTER;
                 const manhattan = Math.abs(dx) + Math.abs(dy);
 
                 const cell = document.createElement('div');
 
-                if (manhattan > MAX_RADIUS) {
-                    // Пустая клетка — сохраняет геометрию
+                if (manhattan > RADIUS) {
                     cell.className = 'cell empty';
                 } else {
-                    const cheby = Math.max(Math.abs(dx), Math.abs(dy));
-                    const cls = getClass(cheby);
+                    const cls = getClass(dx, dy);
                     cell.className = 'cell ' + cls;
-                    cell.title = titles[cls] + ' · колонка ' + (x + 1) + ', ряд ' + (y + 1);
+                    cell.title = titles[cls] + ' · ' + (x + 1) + ':' + (y + 1);
 
                     const label = document.createElement('span');
                     label.className = 'cell-label';
@@ -555,7 +493,6 @@
         }
     })();
 
-    /* Тема */
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     if (toggleBtn) {
