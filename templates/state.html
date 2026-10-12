@@ -1,345 +1,856 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Карта штата — центр + 2 слоя</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Forum&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-    :root {
-        --bg: #0a0503;
-        --line: #3a1a08;
-        --text: #f8ecdf;
-        --muted: #b88a62;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Штат | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ============================================================
+           РЕДАКТОР ПОЛЯ ШТАТА
+           ============================================================ */
+        .editor-page {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 220px);
+            min-height: 600px;
+            margin-top: 1rem;
+        }
 
-        /* Размер одной плитки (ромба) */
-        --tile: 80px;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+        .editor-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        .editor-header h1 {
+            font-family: 'Forum', serif;
+            font-size: 1.6rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fireTextFlow 8s linear infinite;
+        }
+        .editor-header .sub {
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-top: 0.2rem;
+        }
 
-    body {
-        font-family: 'Inter', system-ui, sans-serif;
-        background: #0a0503;
-        color: var(--text);
-        min-height: 100vh;
-        padding: 1.5rem 1rem 3rem;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+        /* ============================================================
+           ПАНЕЛЬ УПРАВЛЕНИЯ
+           ============================================================ */
+        .editor-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(15,8,3,0.95));
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
 
-    h1 {
-        font-family: 'Forum', serif;
-        font-size: 1.8rem;
-        letter-spacing: 4px;
-        text-transform: uppercase;
-        background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
-        background-size: 300% 100%;
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        animation: fireFlow 8s linear infinite;
-        margin-bottom: 0.4rem;
-    }
-    @keyframes fireFlow {
-        0%   { background-position: 0% 50%; }
-        100% { background-position: 300% 50%; }
-    }
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding-right: 0.75rem;
+            border-right: 1px solid var(--line);
+        }
+        .toolbar-group:last-child { border-right: none; }
 
-    .sub {
-        color: var(--muted);
-        font-size: 0.9rem;
-        margin-bottom: 1.5rem;
-    }
+        .toolbar-label {
+            font-size: 0.7rem;
+            color: var(--dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-right: 0.3rem;
+        }
 
-    /* ============================================================
-       ЛЕГЕНДА
-       ============================================================ */
-    .legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem 1.1rem;
-        justify-content: center;
-        max-width: 900px;
-        margin-bottom: 2rem;
-        padding: 0.9rem 1.25rem;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: rgba(20,10,5,0.6);
-    }
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.8rem;
-        white-space: nowrap;
-    }
-    .legend-swatch {
-        width: 14px;
-        height: 14px;
-        flex-shrink: 0;
-        border: 1px solid #1a1209;
-        transform: rotate(45deg);
-    }
+        .tool-btn {
+            padding: 0.45rem 0.9rem;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .tool-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+        }
+        .tool-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
 
-    /* ============================================================
-       КАРТА
-       ============================================================ */
-    .map-wrap {
-        padding: 3rem 2rem;
-        background: rgba(20,10,5,0.5);
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        max-width: 100%;
-        overflow: auto;
-    }
+        .color-swatch {
+            width: 26px;
+            height: 26px;
+            border-radius: 5px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.5);
+        }
+        .color-swatch:hover { transform: scale(1.1); }
+        .color-swatch.active {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px var(--accent), 0 0 12px rgba(255,69,0,0.6);
+        }
 
-    /* Сетка из ромбов.
-       Ключевая идея: строки идут с шагом в половину плитки по вертикали,
-       а каждая плитка — через отрицательные margin'ы — ставится в шахматку. */
-    .map {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: max-content;
-        margin: 0 auto;
-        padding: 40px 0;
-    }
+        .color-picker-wrapper {
+            position: relative;
+            width: 26px;
+            height: 26px;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: linear-gradient(135deg, #ff0000, #ff8800, #ffff00, #00ff00, #0088ff, #8800ff, #ff0088);
+            cursor: pointer;
+        }
+        .color-picker-wrapper input[type="color"] {
+            position: absolute;
+            inset: -4px;
+            width: calc(100% + 8px);
+            height: calc(100% + 8px);
+            border: none;
+            cursor: pointer;
+            opacity: 0;
+        }
 
-    .row {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: calc(var(--tile) * 0.5);   /* высота ряда = половина плитки */
-        position: relative;
-    }
+        .zoom-control {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .zoom-control button {
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+        .zoom-control button:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+        }
 
-    /* Нечётные ряды — сдвиг на полплитки вправо */
-    .row.offset {
-        margin-left: calc(var(--tile) * 0.5);
-    }
+        /* ============================================================
+           ПОЛЕ
+           ============================================================ */
+        .field-wrap {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 1rem;
+            background: linear-gradient(180deg, rgba(20,10,5,0.5), rgba(8,4,2,0.7));
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
 
-    /* ============================================================
-       ПЛИТКА-РОМБ
-       ============================================================ */
-    .cell {
-        position: relative;
-        width: var(--tile);
-        height: var(--tile);
-        margin-left: calc(var(--tile) * -0.25);
-        margin-top: calc(var(--tile) * -0.25);
-        flex-shrink: 0;
-        cursor: pointer;
-        transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-        z-index: 1;
-    }
+        .field {
+            display: grid;
+            gap: 0;
+            background: #000;
+            user-select: none;
+            --cell: 22px;
+            grid-template-columns: repeat(100, var(--cell));
+            grid-template-rows: repeat(100, var(--cell));
+        }
 
-    /* Ромб через clip-path */
-    .cell::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: #666;
-        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-        border: 1px solid #1a1209;
-        box-sizing: border-box;
-    }
+        .cell {
+            width: var(--cell);
+            height: var(--cell);
+            background: #ffffff;
+            border: 1px solid #cccccc;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+            position: relative;
+        }
 
-    /* Hover — приподнимаем */
-    .cell:hover {
-        transform: translateY(-8px) scale(1.08);
-        z-index: 100;
-    }
+        .cell:hover {
+            box-shadow: inset 0 0 0 2px var(--accent);
+            z-index: 2;
+        }
 
-    .cell.empty {
-        pointer-events: none;
-        cursor: default;
-    }
-    .cell.empty::before { display: none; }
+        .cell.selecting {
+            box-shadow: inset 0 0 0 2px #00aaff;
+        }
 
-    /* Подпись внутри ромба */
-    .cell-label {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.6rem;
-        font-weight: 700;
-        color: rgba(0,0,0,0.85);
-        text-align: center;
-        line-height: 1.05;
-        padding: 10px;
-        overflow: hidden;
-        pointer-events: none;
-        user-select: none;
-        z-index: 2;
-    }
+        .cell.merged-right { border-right-color: transparent; }
+        .cell.merged-left  { border-left-color: transparent; }
+        .cell.merged-top   { border-top-color: transparent; }
+        .cell.merged-bottom{ border-bottom-color: transparent; }
 
-    /* ============================================================
-       ЦВЕТА — плоские
-       ============================================================ */
-    .cell.c-arcadia::before   { background: #ffc933; }
-    .cell.c-military::before  { background: #e6392f; }
-    .cell.c-research::before  { background: #9b5cc9; }
-    .cell.c-megapolis::before { background: #ffa726; }
-    .cell.c-city::before      { background: #66bb6a; }
-    .cell.c-factory::before   { background: #26a69a; }
-    .cell.c-village::before   { background: #a9b7c6; }
+        /* ============================================================
+           СТАТУС-БАР
+           ============================================================ */
+        .editor-status {
+            padding: 0.5rem 1rem;
+            background: rgba(15,8,3,0.6);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            font-size: 0.78rem;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        .editor-status b { color: var(--accent-warm); }
 
-    .cell.c-bastion1::before  { background: #d3b98a; }
-    .cell.c-bastion2::before  { background: #b89a6b; }
-    .cell.c-bastion3::before  { background: #91764c; }
-    .cell.c-bastion4::before  { background: #6f5833; }
-    .cell.c-bastion5::before  { background: #4a3a20; }
-    .cell.c-bastion6::before  { background: #2a1d0d; }
-
-    .cell.c-trade::before {
-        background: #e8e2d6;
-        border-width: 2px;
-    }
-
-    /* Светлый текст на тёмных плитках */
-    .cell.c-bastion4 .cell-label,
-    .cell.c-bastion5 .cell-label,
-    .cell.c-bastion6 .cell-label,
-    .cell.c-research .cell-label,
-    .cell.c-military .cell-label,
-    .cell.c-city .cell-label,
-    .cell.c-factory .cell-label {
-        color: rgba(255,255,255,0.95);
-    }
-
-    /* ============================================================
-       АДАПТИВ
-       ============================================================ */
-    @media (max-width: 900px) {
-        :root { --tile: 60px; }
-        .cell-label { font-size: 0.5rem; padding: 6px; }
-    }
-    @media (max-width: 600px) {
-        :root { --tile: 42px; }
-        .cell-label { font-size: 0.36rem; padding: 4px; }
-    }
-    @media (max-width: 420px) {
-        :root { --tile: 32px; }
-        .cell-label { display: none; }
-    }
-</style>
+        /* ============================================================
+           АДАПТИВ
+           ============================================================ */
+        @media (max-width: 780px) {
+            .editor-page {
+                height: auto;
+                min-height: 0;
+            }
+            .editor-toolbar {
+                padding: 0.6rem 0.75rem;
+                gap: 0.5rem;
+            }
+            .toolbar-group {
+                padding-right: 0.5rem;
+                flex-wrap: wrap;
+            }
+            .tool-btn {
+                padding: 0.35rem 0.7rem;
+                font-size: 0.75rem;
+            }
+            .editor-header h1 { font-size: 1.25rem; letter-spacing: 2px; }
+            .color-swatch { width: 22px; height: 22px; }
+        }
+    </style>
 </head>
 <body>
 
-<h1>Карта штата</h1>
-<p class="sub">Центр + 2 слоя вокруг Аркадии</p>
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
 
-<div class="legend" id="legend"></div>
+<div class="wrap">
 
-<div class="map-wrap">
-    <div class="map" id="map"></div>
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/logout" class="link-btn header-link">Выйти</a>
+            {% else %}
+                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
+                <a href="/login" class="link-btn header-link">Войти</a>
+            {% endif %}
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total">
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel">
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">VS</span>
+        </a>
+        <a href="/rating/arcadia">
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
+        <a href="/reservoir">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">РР</span>
+        </a>
+        <a href="/state" class="active">
+            <span class="nav-full">Штат</span>
+            <span class="nav-short">Штат</span>
+        </a>
+        <a href="/calculator">
+            <span class="nav-full">Калькулятор</span>
+            <span class="nav-short">Калькулятор</span>
+        </a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
+    </nav>
+
+    <!-- ============================================================
+         РЕДАКТОР
+         ============================================================ -->
+    <div class="editor-page">
+
+        <div class="editor-header">
+            <div>
+                <h1>Карта штата</h1>
+                <p class="sub">Редактор поля 100×100 · крась, объединяй, экспортируй</p>
+            </div>
+        </div>
+
+        <div class="editor-toolbar">
+
+            <div class="toolbar-group">
+                <span class="toolbar-label">Режим</span>
+                <button class="tool-btn active" data-mode="paint">🎨 Красить</button>
+                <button class="tool-btn" data-mode="merge">🔗 Объединять</button>
+                <button class="tool-btn" data-mode="unmerge">✂ Разъединять</button>
+                <button class="tool-btn" data-mode="erase">🧽 Стереть</button>
+            </div>
+
+            <div class="toolbar-group">
+                <span class="toolbar-label">Цвет</span>
+                <div id="palette" style="display:flex; gap: 4px; flex-wrap: wrap;"></div>
+                <div class="color-picker-wrapper" title="Свой цвет">
+                    <input type="color" id="customColor" value="#ff4500">
+                </div>
+            </div>
+
+            <div class="toolbar-group">
+                <span class="toolbar-label">Масштаб</span>
+                <div class="zoom-control">
+                    <button id="zoomOut">−</button>
+                    <span id="zoomValue">22</span>
+                    <button id="zoomIn">+</button>
+                </div>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="tool-btn" id="btnExport">💾 Экспорт</button>
+                <button class="tool-btn" id="btnImport">📂 Импорт</button>
+                <button class="tool-btn" id="btnClear">🗑 Очистить</button>
+            </div>
+
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+
+        </div>
+
+        <div class="field-wrap">
+            <div class="field" id="field"></div>
+        </div>
+
+        <div class="editor-status">
+            <span>Режим: <b id="statusMode">Красить</b></span>
+            <span>Цвет: <b id="statusColor">#ff4500</b></span>
+            <span>Объединений: <b id="statusGroups">0</b></span>
+            <span>Покрашено: <b id="statusPainted">0</b></span>
+        </div>
+
+    </div>
+
 </div>
-
-<style>
-    .legend-swatch.c-arcadia   { background: #ffc933; }
-    .legend-swatch.c-military  { background: #e6392f; }
-    .legend-swatch.c-research  { background: #9b5cc9; }
-    .legend-swatch.c-megapolis { background: #ffa726; }
-    .legend-swatch.c-city      { background: #66bb6a; }
-    .legend-swatch.c-factory   { background: #26a69a; }
-    .legend-swatch.c-village   { background: #a9b7c6; }
-    .legend-swatch.c-trade     { background: #e8e2d6; }
-    .legend-swatch.c-bastion1  { background: #d3b98a; }
-    .legend-swatch.c-bastion2  { background: #b89a6b; }
-    .legend-swatch.c-bastion3  { background: #91764c; }
-    .legend-swatch.c-bastion4  { background: #6f5833; }
-    .legend-swatch.c-bastion5  { background: #4a3a20; }
-    .legend-swatch.c-bastion6  { background: #2a1d0d; }
-</style>
 
 <script>
     /* ============================================================
-       ТОЛЬКО ЦЕНТР + 2 СЛОЯ
-       Слои от Аркадии:
-         0 — Аркадия
-         1 — Военная база
-         2 — Бастион 6
-         3 — Центр исследований
-         4 — Бастион 5
-       Максимальный радиус = 4.
+       РЕДАКТОР ПОЛЯ
        ============================================================ */
-    (function() {
-        const RADIUS = 4;
-        const SIZE = RADIUS * 2 + 1;         // 9
-        const CENTER = RADIUS;               // 4
+    const SIZE = 100;
+    const field = document.getElementById('field');
 
-        const map = document.getElementById('map');
+    let mode = 'paint';
+    let currentColor = '#ff4500';
+    let cellSize = 22;
 
-        const layers = {
-            0:  { cls: 'c-arcadia',   label: 'Аркадия', title: 'Аркадия (столица)' },
-            1:  { cls: 'c-military',  label: 'Воен.',   title: 'Военная база' },
-            2:  { cls: 'c-bastion6',  label: 'Бст.6',   title: 'Бастион ур.6' },
-            3:  { cls: 'c-research',  label: 'Иссл.',   title: 'Центр исследований' },
-            4:  { cls: 'c-bastion5',  label: 'Бст.5',   title: 'Бастион ур.5' },
-        };
+    const cells = [];
+    let groupCounter = 1;
 
-        for (let y = 0; y < SIZE; y++) {
-            const row = document.createElement('div');
-            row.className = 'row' + (y % 2 === 1 ? ' offset' : '');
+    let isDragging = false;
+    let selectionStart = null;
+    const selection = new Set();
 
-            for (let x = 0; x < SIZE; x++) {
-                const dx = x - CENTER;
-                const dy = y - CENTER;
-                const manhattan = Math.abs(dx) + Math.abs(dy);
+    /* ============================================================
+       ПАЛИТРА
+       ============================================================ */
+    const paletteColors = [
+        '#ffc933', '#e6392f', '#9b5cc9', '#ffa726',
+        '#66bb6a', '#26a69a', '#a9b7c6',
+        '#d3b98a', '#b89a6b', '#91764c', '#6f5833', '#4a3a20', '#2a1d0d',
+        '#e8e2d6', '#ffffff', '#000000'
+    ];
 
-                const cell = document.createElement('div');
+    const paletteContainer = document.getElementById('palette');
+    paletteColors.forEach((color) => {
+        const sw = document.createElement('div');
+        sw.className = 'color-swatch';
+        sw.style.background = color;
+        sw.dataset.color = color;
+        sw.title = color;
+        sw.addEventListener('click', () => setColor(color));
+        paletteContainer.appendChild(sw);
+    });
 
-                if (manhattan > RADIUS) {
-                    cell.className = 'cell empty';
-                    row.appendChild(cell);
-                    continue;
-                }
+    function setColor(color) {
+        currentColor = color;
+        document.getElementById('statusColor').textContent = color;
+        document.querySelectorAll('.color-swatch').forEach(s => {
+            s.classList.toggle('active', s.dataset.color === color);
+        });
+    }
 
-                const layer = layers[manhattan];
-                const cls = layer ? layer.cls : 'c-bastion5';
-                const label = layer ? layer.label : 'Бст.5';
-                const title = layer ? layer.title : 'Бастион ур.5';
+    const customPicker = document.getElementById('customColor');
+    customPicker.addEventListener('input', (e) => setColor(e.target.value));
 
-                cell.className = 'cell ' + cls;
-                cell.title = title;
+    setColor(paletteColors[0]);
 
-                const span = document.createElement('span');
-                span.className = 'cell-label';
-                span.textContent = label;
-                cell.appendChild(span);
+    /* ============================================================
+       ГЕНЕРАЦИЯ ПОЛЯ
+       ============================================================ */
+    function initField() {
+        field.innerHTML = '';
+        cells.length = 0;
 
-                row.appendChild(cell);
+        for (let r = 0; r < SIZE; r++) {
+            const row = [];
+            for (let c = 0; c < SIZE; c++) {
+                const cellEl = document.createElement('div');
+                cellEl.className = 'cell';
+                cellEl.dataset.r = r;
+                cellEl.dataset.c = c;
+
+                cellEl.addEventListener('mousedown', onCellDown);
+                cellEl.addEventListener('mouseenter', onCellEnter);
+                cellEl.addEventListener('mouseup', onCellUp);
+
+                field.appendChild(cellEl);
+                row.push({ el: cellEl, color: null, group: null });
             }
-
-            map.appendChild(row);
+            cells.push(row);
         }
 
-        /* Легенда */
-        const legendData = [
-            { cls: 'c-arcadia',   label: 'Аркадия (столица)' },
-            { cls: 'c-military',  label: 'Военная база' },
-            { cls: 'c-research',  label: 'Центр исследований' },
-            { cls: 'c-bastion5',  label: 'Бастион ур.5' },
-            { cls: 'c-bastion6',  label: 'Бастион ур.6' },
-        ];
-
-        const legend = document.getElementById('legend');
-        legendData.forEach(item => {
-            const el = document.createElement('div');
-            el.className = 'legend-item';
-            const sw = document.createElement('span');
-            sw.className = 'legend-swatch ' + item.cls;
-            el.appendChild(sw);
-            el.appendChild(document.createTextNode(item.label));
-            legend.appendChild(el);
+        document.addEventListener('mouseup', () => {
+            if (isDragging) finishSelection();
         });
-    })();
+
+        // touch
+        field.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+    }
+
+    /* ============================================================
+       ОБРАБОТЧИКИ
+       ============================================================ */
+    function onCellDown(e) {
+        e.preventDefault();
+        const r = parseInt(this.dataset.r);
+        const c = parseInt(this.dataset.c);
+
+        if (mode === 'paint') {
+            paintAt(r, c);
+            isDragging = true;
+        } else if (mode === 'erase') {
+            eraseAt(r, c);
+            isDragging = true;
+        } else if (mode === 'merge') {
+            selection.clear();
+            selectionStart = { r, c };
+            addToSelection(r, c);
+            isDragging = true;
+        } else if (mode === 'unmerge') {
+            unmergeAt(r, c);
+        }
+    }
+
+    function onCellEnter(e) {
+        if (!isDragging) return;
+        const r = parseInt(this.dataset.r);
+        const c = parseInt(this.dataset.c);
+
+        if (mode === 'paint') {
+            paintAt(r, c);
+        } else if (mode === 'erase') {
+            eraseAt(r, c);
+        } else if (mode === 'merge' && selectionStart) {
+            selection.clear();
+            const r1 = Math.min(selectionStart.r, r);
+            const r2 = Math.max(selectionStart.r, r);
+            const c1 = Math.min(selectionStart.c, c);
+            const c2 = Math.max(selectionStart.c, c);
+            for (let rr = r1; rr <= r2; rr++) {
+                for (let cc = c1; cc <= c2; cc++) {
+                    addToSelection(rr, cc);
+                }
+            }
+        }
+    }
+
+    function onCellUp() {
+        if (!isDragging) return;
+        if (mode === 'merge') finishSelection();
+        isDragging = false;
+    }
+
+    /* ============================================================
+       КРАСКА
+       ============================================================ */
+    function paintAt(r, c) {
+        const cell = cells[r][c];
+        if (cell.group !== null) {
+            paintGroup(cell.group, currentColor);
+        } else {
+            cell.color = currentColor;
+            cell.el.style.background = currentColor;
+            updateStatus();
+        }
+    }
+
+    function paintGroup(groupId, color) {
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                if (cells[r][c].group === groupId) {
+                    cells[r][c].color = color;
+                    cells[r][c].el.style.background = color;
+                }
+            }
+        }
+        updateStatus();
+    }
+
+    /* ============================================================
+       СТИРАНИЕ
+       ============================================================ */
+    function eraseAt(r, c) {
+        const cell = cells[r][c];
+        if (cell.group !== null) {
+            eraseGroup(cell.group);
+        } else {
+            cell.color = null;
+            cell.el.style.background = '#ffffff';
+            updateStatus();
+        }
+    }
+
+    function eraseGroup(groupId) {
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                if (cells[r][c].group === groupId) {
+                    cells[r][c].color = null;
+                    cells[r][c].el.style.background = '#ffffff';
+                }
+            }
+        }
+        updateStatus();
+    }
+
+    /* ============================================================
+       ОБЪЕДИНЕНИЕ
+       ============================================================ */
+    function addToSelection(r, c) {
+        if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+        const key = r + ',' + c;
+        if (selection.has(key)) return;
+
+        const existingGroup = cells[r][c].group;
+        if (existingGroup !== null) return;
+
+        selection.add(key);
+        cells[r][c].el.classList.add('selecting');
+    }
+
+    function finishSelection() {
+        selection.forEach(key => {
+            const [r, c] = key.split(',').map(Number);
+            cells[r][c].el.classList.remove('selecting');
+        });
+
+        if (selection.size < 2) {
+            selection.clear();
+            isDragging = false;
+            return;
+        }
+
+        const groupId = groupCounter++;
+        selection.forEach(key => {
+            const [r, c] = key.split(',').map(Number);
+            cells[r][c].group = groupId;
+        });
+
+        updateGroupBorders(groupId);
+
+        selection.clear();
+        selectionStart = null;
+        isDragging = false;
+        updateStatus();
+    }
+
+    function updateGroupBorders(groupId) {
+        const groupCells = [];
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                if (cells[r][c].group === groupId) {
+                    groupCells.push({ r, c });
+                }
+            }
+        }
+
+        groupCells.forEach(({ r, c }) => {
+            const el = cells[r][c].el;
+            el.classList.remove('merged-right', 'merged-left', 'merged-top', 'merged-bottom');
+
+            if (r > 0 && cells[r - 1][c].group === groupId) el.classList.add('merged-top');
+            if (r < SIZE - 1 && cells[r + 1][c].group === groupId) el.classList.add('merged-bottom');
+            if (c > 0 && cells[r][c - 1].group === groupId) el.classList.add('merged-left');
+            if (c < SIZE - 1 && cells[r][c + 1].group === groupId) el.classList.add('merged-right');
+        });
+    }
+
+    function unmergeAt(r, c) {
+        const cell = cells[r][c];
+        if (cell.group === null) return;
+        const groupId = cell.group;
+
+        for (let rr = 0; rr < SIZE; rr++) {
+            for (let cc = 0; cc < SIZE; cc++) {
+                if (cells[rr][cc].group === groupId) {
+                    cells[rr][cc].group = null;
+                    cells[rr][cc].el.classList.remove(
+                        'merged-right', 'merged-left', 'merged-top', 'merged-bottom'
+                    );
+                }
+            }
+        }
+        updateStatus();
+    }
+
+    /* ============================================================
+       РЕЖИМ
+       ============================================================ */
+    document.querySelectorAll('.tool-btn[data-mode]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tool-btn[data-mode]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            mode = btn.dataset.mode;
+
+            const labels = {
+                paint: 'Красить',
+                merge: 'Объединять',
+                unmerge: 'Разъединять',
+                erase: 'Стереть'
+            };
+            document.getElementById('statusMode').textContent = labels[mode];
+        });
+    });
+
+    /* ============================================================
+       ЗУМ
+       ============================================================ */
+    document.getElementById('zoomIn').addEventListener('click', () => {
+        cellSize = Math.min(48, cellSize + 4);
+        applyZoom();
+    });
+    document.getElementById('zoomOut').addEventListener('click', () => {
+        cellSize = Math.max(8, cellSize - 4);
+        applyZoom();
+    });
+
+    function applyZoom() {
+        field.style.setProperty('--cell', cellSize + 'px');
+        document.getElementById('zoomValue').textContent = cellSize;
+    }
+
+    /* ============================================================
+       СТАТУС
+       ============================================================ */
+    function updateStatus() {
+        let painted = 0;
+        const groups = new Set();
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                if (cells[r][c].color) painted++;
+                if (cells[r][c].group !== null) groups.add(cells[r][c].group);
+            }
+        }
+        document.getElementById('statusPainted').textContent = painted;
+        document.getElementById('statusGroups').textContent = groups.size;
+    }
+
+    /* ============================================================
+       ЭКСПОРТ / ИМПОРТ
+       ============================================================ */
+    document.getElementById('btnExport').addEventListener('click', () => {
+        const data = { version: 1, size: SIZE, cells: [] };
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                const cell = cells[r][c];
+                if (cell.color !== null || cell.group !== null) {
+                    data.cells.push({ r, c, color: cell.color, group: cell.group });
+                }
+            }
+        }
+        const json = JSON.stringify(data);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'state-map-' + Date.now() + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btnImport').addEventListener('click', () => {
+        document.getElementById('importFile').click();
+    });
+
+    document.getElementById('importFile').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const data = JSON.parse(ev.target.result);
+                if (data.size !== SIZE) {
+                    alert('Размер поля не совпадает. Ожидается ' + SIZE);
+                    return;
+                }
+                for (let r = 0; r < SIZE; r++) {
+                    for (let c = 0; c < SIZE; c++) {
+                        cells[r][c].color = null;
+                        cells[r][c].group = null;
+                        cells[r][c].el.style.background = '#ffffff';
+                        cells[r][c].el.classList.remove(
+                            'merged-right', 'merged-left', 'merged-top', 'merged-bottom'
+                        );
+                    }
+                }
+                groupCounter = 1;
+
+                data.cells.forEach(item => {
+                    const cell = cells[item.r][item.c];
+                    if (item.color) {
+                        cell.color = item.color;
+                        cell.el.style.background = item.color;
+                    }
+                    if (item.group !== null && item.group !== undefined) {
+                        cell.group = item.group;
+                        groupCounter = Math.max(groupCounter, item.group + 1);
+                    }
+                });
+
+                const uniqueGroups = new Set();
+                for (let r = 0; r < SIZE; r++) {
+                    for (let c = 0; c < SIZE; c++) {
+                        if (cells[r][c].group !== null) uniqueGroups.add(cells[r][c].group);
+                    }
+                }
+                uniqueGroups.forEach(g => updateGroupBorders(g));
+                updateStatus();
+            } catch (err) {
+                alert('Ошибка чтения файла: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    document.getElementById('btnClear').addEventListener('click', () => {
+        if (!confirm('Очистить всё поле?')) return;
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                cells[r][c].color = null;
+                cells[r][c].group = null;
+                cells[r][c].el.style.background = '#ffffff';
+                cells[r][c].el.classList.remove(
+                    'merged-right', 'merged-left', 'merged-top', 'merged-bottom'
+                );
+            }
+        }
+        groupCounter = 1;
+        updateStatus();
+    });
+
+    /* ============================================================
+       ТЕМА
+       ============================================================ */
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+
+    /* ============================================================
+       ЗАПУСК
+       ============================================================ */
+    initField();
+    applyZoom();
+    updateStatus();
+
+    field.addEventListener('selectstart', (e) => e.preventDefault());
 </script>
 
 </body>
