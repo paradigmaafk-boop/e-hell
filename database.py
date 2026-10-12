@@ -1725,7 +1725,6 @@ def delete_state_legend(legend_id):
 
 
 def get_state_cells():
-    """Возвращает список (cell_index, color, label)."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT cell_index, color, label FROM state_cells ORDER BY cell_index ASC")
@@ -1735,10 +1734,6 @@ def get_state_cells():
 
 
 def save_state_cells(cells_list):
-    """
-    cells_list: список dict {index, color, label}.
-    Полностью перезаписывает таблицу.
-    """
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
