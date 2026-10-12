@@ -10,9 +10,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         html, body { min-width: 1400px; height: 100%; }
-        @media (max-width: 1000px) {
-            html, body { min-width: 0; }
-        }
+        @media (max-width: 1000px) { html, body { min-width: 0; } }
 
         .state-page {
             display: flex;
@@ -21,60 +19,40 @@
             min-height: 700px;
             margin-top: 0.75rem;
         }
-        @media (max-width: 1000px) {
-            .state-page { height: auto; min-height: 0; }
-        }
+        @media (max-width: 1000px) { .state-page { height: auto; min-height: 0; } }
 
         .state-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            flex-wrap: wrap;
-            margin-bottom: 0.75rem;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;
         }
         .state-header h1 {
-            font-family: 'Forum', serif;
-            font-size: 1.4rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
+            font-family: 'Forum', serif; font-size: 1.4rem;
+            letter-spacing: 4px; text-transform: uppercase;
             background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
             background-size: 300% 100%;
-            -webkit-background-clip: text;
-            background-clip: text;
+            -webkit-background-clip: text; background-clip: text;
             -webkit-text-fill-color: transparent;
             animation: fireTextFlow 8s linear infinite;
         }
         .state-header .sub { color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem; }
 
         .state-main {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 1rem;
-            flex: 1;
-            min-height: 0;
+            display: grid; grid-template-columns: 320px 1fr;
+            gap: 1rem; flex: 1; min-height: 0;
         }
-        @media (max-width: 1000px) {
-            .state-main { grid-template-columns: 1fr; gap: 0.75rem; }
-        }
+        @media (max-width: 1000px) { .state-main { grid-template-columns: 1fr; gap: 0.75rem; } }
 
         .legend-panel {
-            display: flex;
-            flex-direction: column;
+            display: flex; flex-direction: column;
             background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(15,8,3,0.95));
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 1rem;
-            overflow-y: auto;
-            max-height: 100%;
+            border: 1px solid var(--line); border-radius: 12px;
+            padding: 1rem; overflow-y: auto; max-height: 100%;
         }
         @media (max-width: 1000px) { .legend-panel { max-height: 40vh; } }
 
         .legend-panel h2 {
-            font-size: 0.72rem;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--accent-warm);
+            font-size: 0.72rem; letter-spacing: 3px;
+            text-transform: uppercase; color: var(--accent-warm);
             margin-bottom: 0.75rem;
         }
         .legend-list { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
@@ -82,10 +60,8 @@
             display: flex; align-items: center; gap: 0.5rem;
             padding: 0.4rem 0.55rem;
             background: rgba(10,5,3,0.5);
-            border: 1px solid var(--line-soft);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.15s ease;
+            border: 1px solid var(--line-soft); border-radius: 8px;
+            cursor: pointer; transition: all 0.15s ease;
         }
         .legend-row:hover { border-color: var(--accent); background: rgba(255,69,0,0.08); }
         .legend-row.active { border-color: var(--accent); background: rgba(255,69,0,0.15); }
@@ -159,28 +135,21 @@
         .tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
         .map-wrap {
-            flex: 1;
-            display: flex; justify-content: center; align-items: center;
+            flex: 1; display: flex; justify-content: center; align-items: center;
             padding: 0.5rem;
             background: linear-gradient(180deg, rgba(20,10,5,0.5), rgba(8,4,2,0.7));
             border: 1px solid var(--line); border-radius: 12px;
             overflow: auto; min-height: 0;
         }
-        @media (max-width: 1000px) {
-            .map-wrap { height: 60vh; max-height: 500px; padding: 0.25rem; }
-        }
+        @media (max-width: 1000px) { .map-wrap { height: 60vh; max-height: 500px; padding: 0.25rem; } }
 
         #map-svg {
             width: 100%; height: 100%;
             max-width: 100%; max-height: 100%;
-            display: block;
-            background: #2a2a2a;
-            border-radius: 8px;
+            display: block; background: #2a2a2a; border-radius: 8px;
             box-shadow: 0 0 40px rgba(0,0,0,0.6);
         }
-        @media (max-width: 1000px) {
-            #map-svg { width: auto; max-width: 100%; height: 100%; max-height: 100%; }
-        }
+        @media (max-width: 1000px) { #map-svg { width: auto; max-width: 100%; height: 100%; max-height: 100%; } }
 
         .cell {
             stroke: #000; stroke-width: 1px; cursor: pointer;
@@ -201,8 +170,7 @@
         #tooltip {
             position: fixed;
             background: rgba(0, 0, 0, 0.95);
-            color: #fff;
-            padding: 10px 14px;
+            color: #fff; padding: 10px 14px;
             border-radius: 8px; font-size: 13px;
             pointer-events: none; opacity: 0;
             transition: opacity 0.15s;
@@ -292,7 +260,6 @@
 </svg>
 
 <div class="wrap">
-
     <header class="header">
         <a href="/" class="brand">
             <div class="brand-emblem">
@@ -758,22 +725,42 @@
     let legend = (window.INITIAL_LEGEND || []).filter(x => x);
     const legendList = document.getElementById('legendList');
 
+    // Приводит элемент легенды к объекту {id, color, label}
+    function normalizeLegendItem(item) {
+        if (!item) return null;
+        let id, color, label;
+        if (Array.isArray(item)) {
+            id = item[0]; color = item[1]; label = item[2];
+        } else {
+            id = item.id; color = item.color; label = item.label;
+        }
+        if (id === undefined || id === null) return null;
+        if (color === undefined || color === null) return null;
+        if (label === undefined || label === null) return null;
+        const c = String(color).trim();
+        if (c === '') return null;
+        return { id, color: c, label: String(label) };
+    }
+
+    function normalizeLegendArray(arr) {
+        return (arr || [])
+            .map(normalizeLegendItem)
+            .filter(x => x);
+    }
+
     function renderLegend() {
         legendList.innerHTML = '';
         legend.forEach(item => {
-            if (!item) return;
-            const colorRaw = item.color;
-            const labelRaw = item.label;
-            if (colorRaw === null || colorRaw === undefined) return;
-            if (labelRaw === null || labelRaw === undefined) return;
-            const color = String(colorRaw).trim();
-            const labelText = String(labelRaw);
-            if (color === '') return;
+            const norm = normalizeLegendItem(item);
+            if (!norm) return;
+            const { id, color, label: labelText } = norm;
 
             const row = document.createElement('div');
             row.className = 'legend-row';
             row.dataset.color = color;
-            if (color.toLowerCase() === String(currentColor || '').toLowerCase()) row.classList.add('active');
+            if (color.toLowerCase() === String(currentColor || '').toLowerCase()) {
+                row.classList.add('active');
+            }
 
             const colorBox = document.createElement('div');
             colorBox.className = 'legend-color';
@@ -794,19 +781,21 @@
                     e.stopPropagation();
                     if (!confirm('Удалить «' + labelText + '» из легенды?')) return;
                     try {
-                        const res = await fetch('/state/legend/delete/' + item.id, { method: 'POST' });
+                        const res = await fetch('/state/legend/delete/' + id, { method: 'POST' });
                         const text = await res.text();
                         let data;
                         try { data = JSON.parse(text); }
-                        catch (pe) {
+                        catch (parseErr) {
                             console.error('Сервер вернул не JSON:', text.slice(0, 500));
                             alert('Сервер вернул не JSON (статус ' + res.status + ').');
                             return;
                         }
                         if (data.success) {
-                            legend = (data.legend || []).filter(x => x);
+                            legend = normalizeLegendArray(data.legend);
                             renderLegend();
-                        } else alert('Ошибка: ' + data.error);
+                        } else {
+                            alert('Ошибка: ' + data.error);
+                        }
                     } catch (err) {
                         console.error('Ошибка сети:', err);
                         alert('Ошибка сети: ' + err.message);
@@ -814,6 +803,7 @@
                 });
                 row.appendChild(del);
             }
+
             row.addEventListener('click', () => setColor(color));
             legendList.appendChild(row);
         });
@@ -839,7 +829,10 @@
         legendAddBtn.addEventListener('click', async () => {
             const color = document.getElementById('legendColor').value;
             const label = document.getElementById('legendLabel').value.trim();
-            if (!label) { alert('Введите название'); return; }
+            if (!label) {
+                alert('Введите название');
+                return;
+            }
             try {
                 const res = await fetch('/state/legend/add', {
                     method: 'POST',
@@ -849,17 +842,19 @@
                 const text = await res.text();
                 let data;
                 try { data = JSON.parse(text); }
-                catch (pe) {
+                catch (parseErr) {
                     console.error('Сервер вернул не JSON:', text.slice(0, 500));
                     alert('Сервер вернул не JSON (статус ' + res.status + ').');
                     return;
                 }
                 if (data.success) {
-                    legend = (data.legend || []).filter(x => x);
+                    legend = normalizeLegendArray(data.legend);
                     document.getElementById('legendLabel').value = '';
                     renderLegend();
                     setColor(color);
-                } else alert('Ошибка: ' + data.error);
+                } else {
+                    alert('Ошибка: ' + data.error);
+                }
             } catch (err) {
                 console.error('Ошибка сети:', err);
                 alert('Ошибка сети: ' + err.message);
@@ -870,7 +865,9 @@
     function polygonCentroid(pointsStr) {
         const nums = pointsStr.split(',').map(Number);
         const pts = [];
-        for (let i = 0; i < nums.length; i += 2) pts.push({ x: nums[i], y: nums[i + 1] });
+        for (let i = 0; i < nums.length; i += 2) {
+            pts.push({ x: nums[i], y: nums[i + 1] });
+        }
         let sx = 0, sy = 0;
         pts.forEach(p => { sx += p.x; sy += p.y; });
         return { x: sx / pts.length, y: sy / pts.length };
@@ -878,8 +875,10 @@
 
     function renderMap() {
         svg.innerHTML = '';
+
         RAW_COORDS.forEach((coordStr, i) => {
             const pointsStr = coordStr.split(',').join(' ');
+
             const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             polygon.setAttribute('points', pointsStr);
             polygon.setAttribute('class', 'cell');
@@ -902,23 +901,39 @@
                 tooltip.innerHTML = `<b>${lbl}</b><small>ID: ${idx + 1}</small>`;
                 tooltip.classList.add('visible');
             });
+
             polygon.addEventListener('mousemove', (e) => {
                 tooltip.style.left = (e.clientX + 15) + 'px';
                 tooltip.style.top = (e.clientY - 40) + 'px';
             });
-            polygon.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
-            if (CAN_EDIT) polygon.addEventListener('click', () => onCellClick(i));
+
+            polygon.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('visible');
+            });
+
+            if (CAN_EDIT) {
+                polygon.addEventListener('click', () => onCellClick(i));
+            }
 
             svg.appendChild(polygon);
             svg.appendChild(labelEl);
-            cells.push({ el: polygon, labelEl, color: null, labelText: null, index: i });
+
+            cells.push({
+                el: polygon,
+                labelEl: labelEl,
+                color: null,
+                labelText: null,
+                index: i
+            });
         });
+
         loadSaved();
         updateStatus();
     }
 
     function onCellClick(index) {
         const cell = cells[index];
+
         if (mode === 'paint') {
             cell.color = currentColor;
             cell.el.setAttribute('fill', currentColor);
@@ -956,7 +971,11 @@
         const out = [];
         cells.forEach((cell, i) => {
             if (cell.color !== null || cell.labelText !== null) {
-                out.push({ index: i, color: cell.color, label: cell.labelText });
+                out.push({
+                    index: i,
+                    color: cell.color,
+                    label: cell.labelText
+                });
             }
         });
         return out;
@@ -974,19 +993,23 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cells: collectCells() })
             });
+
             const text = await res.text();
             let data;
             try { data = JSON.parse(text); }
-            catch (pe) {
+            catch (parseErr) {
                 console.error('Сервер вернул не JSON:', text.slice(0, 500));
                 status.textContent = '✗ Сервер вернул не JSON (статус ' + res.status + ')';
                 btn.disabled = false;
                 return;
             }
+
             if (data.success) {
                 status.textContent = '✓ Сохранено';
                 setTimeout(() => status.textContent = '', 2000);
-            } else status.textContent = '✗ ' + (data.error || 'Ошибка');
+            } else {
+                status.textContent = '✗ ' + (data.error || 'Ошибка');
+            }
         } catch (err) {
             console.error('Ошибка сети:', err);
             status.textContent = '✗ Ошибка сети: ' + err.message;
@@ -998,16 +1021,18 @@
     if (btnSave) btnSave.addEventListener('click', saveCells);
 
     const btnClear = document.getElementById('btnClear');
-    if (btnClear) btnClear.addEventListener('click', () => {
-        if (!confirm('Очистить все цвета и подписи?')) return;
-        cells.forEach(cell => {
-            cell.color = null;
-            cell.labelText = null;
-            cell.el.setAttribute('fill', DEFAULT_COLOR);
-            cell.labelEl.textContent = '';
+    if (btnClear) {
+        btnClear.addEventListener('click', () => {
+            if (!confirm('Очистить все цвета и подписи?')) return;
+            cells.forEach(cell => {
+                cell.color = null;
+                cell.labelText = null;
+                cell.el.setAttribute('fill', DEFAULT_COLOR);
+                cell.labelEl.textContent = '';
+            });
+            updateStatus();
         });
-        updateStatus();
-    });
+    }
 
     const labelModal = document.getElementById('labelModal');
     const labelInput = document.getElementById('labelInput');
@@ -1025,6 +1050,7 @@
         labelModal.classList.remove('show');
         labelTargetIndex = null;
     });
+
     document.getElementById('labelSave').addEventListener('click', () => {
         if (labelTargetIndex === null) return;
         const text = labelInput.value.trim().slice(0, 20);
@@ -1034,6 +1060,7 @@
         labelModal.classList.remove('show');
         labelTargetIndex = null;
     });
+
     labelInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') document.getElementById('labelSave').click();
         if (e.key === 'Escape') document.getElementById('labelCancel').click();
@@ -1050,8 +1077,8 @@
     function updateStatus() {
         let painted = 0;
         cells.forEach(c => { if (c.color) painted++; });
-        const el = document.getElementById('statusPainted');
-        if (el) el.textContent = painted;
+        const statusEl = document.getElementById('statusPainted');
+        if (statusEl) statusEl.textContent = painted;
     }
 
     const toggleBtn = document.getElementById('theme-toggle');
