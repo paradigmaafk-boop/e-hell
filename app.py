@@ -435,7 +435,6 @@ def rating_view(rating_type):
 @app.route('/associate-player', methods=['POST'])
 @admin_required
 def associate_player_route():
-    """Объединяет выбранные записи дуэли и аркадии в целевой ник."""
     data = request.get_json() or {}
     target = (data.get('target') or '').strip()
     duel_nicks = data.get('duel_nicks') or []
