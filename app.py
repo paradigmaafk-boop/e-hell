@@ -838,6 +838,11 @@ def reservoir_index():
                            game_date_full=game_date_full,
                            registration_opens_str=registration_opens_str)
 
+@app.route('/state')
+def state_view():
+    """Карта штата — интерактивная схема построек."""
+    count_once('visits', 'counted_visit')
+    return render_template('state.html')
 
 @app.route('/reservoir/map')
 def reservoir_map():
