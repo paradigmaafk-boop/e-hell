@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Штат | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ============================================================
+           ОБЩАЯ ОБЁРТКА КАРТЫ
+           ============================================================ */
+        .state-page {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 0 3rem;
+        }
+
+        .state-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .state-header h1 {
+            font-family: 'Forum', serif;
+            font-size: 2rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fireTextFlow 8s linear infinite;
+        }
+        .state-header .sub {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        /* ============================================================
+           ЛЕГЕНДА
+           ============================================================ */
+        .state-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem 1.1rem;
+            justify-content: center;
+            max-width: 900px;
+            margin: 0 auto 2rem;
+            padding: 0.9rem 1.25rem;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(10,5,3,0.6);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text);
+            white-space: nowrap;
+        }
+        .legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            box-shadow: 0 0 4px rgba(0,0,0,0.5);
+        }
+
+        /* ============================================================
+           КАРТА (РОМБ)
+           ============================================================ */
+        .state-map-wrap {
+            position: relative;
+            padding: 1rem;
+            background:
+                radial-gradient(ellipse at center, rgba(255,69,0,0.06), transparent 70%),
+                linear-gradient(180deg, rgba(30,15,8,0.55), rgba(8,4,2,0.75));
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            box-shadow:
+                0 0 60px rgba(255,69,0,0.12),
+                inset 0 0 40px rgba(255,69,0,0.04);
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Сетка-ромб из кубиков */
+        .state-map {
+            display: grid;
+            grid-template-columns: repeat(21, 62px);
+            grid-auto-rows: 36px;
+            justify-content: center;
+            margin: 0 auto;
+            padding: 1rem 0;
+            /* Наклоняем всю сетку в ромб */
+            transform: rotate(45deg);
+            transform-origin: center center;
+        }
+
+        /* «Кубик» — ромбик */
+        .cell {
+            position: relative;
+            width: 62px;
+            height: 62px;
+            margin: 0;
+            transform: rotate(-45deg) scale(0.92);
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.45);
+            cursor: pointer;
+            transition:
+                transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.25s ease,
+                filter 0.25s ease;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -3px 6px rgba(0,0,0,0.35),
+                0 2px 4px rgba(0,0,0,0.5);
+            /* Смещение строк — половина клетки, чтобы получился шахматный ромб */
+            z-index: 1;
+        }
+
+        /* Каждая чётная строка — смещена */
+        .cell.offset {
+            grid-column-start: auto;
+            margin-left: -31px;
+        }
+
+        /* Hover: приподнимаем */
+        .cell:hover {
+            transform: rotate(-45deg) scale(1.08) translateY(-6px);
+            z-index: 10;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.5),
+                inset 0 -3px 6px rgba(0,0,0,0.4),
+                0 12px 24px rgba(0,0,0,0.65),
+                0 0 24px rgba(255,200,80,0.55);
+            filter: brightness(1.15);
+        }
+
+        /* Внутренняя текстура кубика — тонкая сетка */
+        .cell::before {
+            content: "";
+            position: absolute;
+            inset: 2px;
+            border-radius: 2px;
+            background-image:
+                linear-gradient(135deg, rgba(255,255,255,0.08) 25%, transparent 25%),
+                linear-gradient(225deg, rgba(0,0,0,0.08) 25%, transparent 25%);
+            background-size: 6px 6px;
+            pointer-events: none;
+        }
+
+        /* Подпись внутри кубика */
+        .cell-label {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.52rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            color: rgba(0,0,0,0.75);
+            text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+            text-align: center;
+            line-height: 1.05;
+            padding: 2px;
+            overflow: hidden;
+            word-break: break-word;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Подсветка целевых (светлых) ячеек */
+        .cell.empty {
+            background: transparent !important;
+            border: none;
+            box-shadow: none;
+            cursor: default;
+            pointer-events: none;
+        }
+        .cell.empty::before { display: none; }
+
+        /* ============================================================
+           ЦВЕТА КУБИКОВ — как в легенде
+           ============================================================ */
+        .cell.c-arcadia    { background: linear-gradient(135deg, #ffd633, #f5a800); }
+        .cell.c-military   { background: linear-gradient(135deg, #e6392f, #b71c1c); }
+        .cell.c-research   { background: linear-gradient(135deg, #9b5cc9, #6a2ea0); }
+        .cell.c-megapolis  { background: linear-gradient(135deg, #ffa726, #ef6c00); }
+        .cell.c-city       { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
+        .cell.c-factory    { background: linear-gradient(135deg, #26a69a, #00695c); }
+        .cell.c-village    { background: linear-gradient(135deg, #a9b7c6, #77889b); }
+        .cell.c-bastion1   { background: linear-gradient(135deg, #e6d3b3, #c9b18a); }
+        .cell.c-bastion2   { background: linear-gradient(135deg, #d3b98c, #b29566); }
+        .cell.c-bastion3   { background: linear-gradient(135deg, #b89a6b, #96794d); }
+        .cell.c-bastion4   { background: linear-gradient(135deg, #8f7248, #6c522f); }
+        .cell.c-bastion5   { background: linear-gradient(135deg, #6a4f2e, #4a341c); }
+        .cell.c-bastion6   { background: linear-gradient(135deg, #4a341c, #2d1e0e); }
+
+        /* Тёмные кубики — светлый текст */
+        .cell.c-bastion4 .cell-label,
+        .cell.c-bastion5 .cell-label,
+        .cell.c-bastion6 .cell-label,
+        .cell.c-research .cell-label,
+        .cell.c-military .cell-label,
+        .cell.c-factory .cell-label,
+        .cell.c-city .cell-label {
+            color: rgba(255,255,255,0.92);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+        }
+
+        /* ============================================================
+           ПОДПИСЬ «created by»
+           ============================================================ */
+        .state-credit {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            height: 30px;
+            margin-top: 1rem;
+        }
+        .state-credit span {
+            position: absolute;
+            font-family: 'Forum', serif;
+            font-size: 1rem;
+            letter-spacing: 3px;
+            color: var(--dim);
+            opacity: 0.6;
+        }
+        .state-credit .tl { top: 0; left: 0; transform: rotate(-30deg); transform-origin: left; }
+        .state-credit .br { bottom: 0; right: 0; transform: rotate(-30deg); transform-origin: right; }
+
+        /* ============================================================
+           МОБИЛЬНАЯ АДАПТАЦИЯ
+           ============================================================ */
+        @media (max-width: 1000px) {
+            .state-map {
+                grid-template-columns: repeat(21, 46px);
+                grid-auto-rows: 27px;
+            }
+            .cell { width: 46px; height: 46px; }
+            .cell.offset { margin-left: -23px; }
+            .cell-label { font-size: 0.4rem; }
+        }
+        @media (max-width: 700px) {
+            .state-map {
+                grid-template-columns: repeat(21, 34px);
+                grid-auto-rows: 20px;
+            }
+            .cell { width: 34px; height: 34px; }
+            .cell.offset { margin-left: -17px; }
+            .cell-label { font-size: 0.32rem; padding: 1px; }
+            .state-legend { font-size: 0.7rem; padding: 0.75rem 1rem; }
+            .legend-item { font-size: 0.72rem; }
+            .state-header h1 { font-size: 1.4rem; }
+        }
+        @media (max-width: 480px) {
+            .state-map {
+                grid-template-columns: repeat(21, 26px);
+                grid-auto-rows: 15px;
+            }
+            .cell { width: 26px; height: 26px; }
+            .cell.offset { margin-left: -13px; }
+            .cell-label { font-size: 0.26rem; padding: 1px; letter-spacing: 0; }
+            .legend-item { font-size: 0.68rem; }
+            .legend-swatch { width: 10px; height: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/logout" class="link-btn header-link">Выйти</a>
+            {% else %}
+                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
+                <a href="/login" class="link-btn header-link">Войти</a>
+            {% endif %}
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total">
+            <span class="nav-full">Рейтинг</span>
+            <span class="nav-short">Рейтинг</span>
+        </a>
+        <a href="/rating/duel">
+            <span class="nav-full">Рейтинг Дуэли</span>
+            <span class="nav-short">VS</span>
+        </a>
+        <a href="/rating/arcadia">
+            <span class="nav-full">Рейтинг Аркадии</span>
+            <span class="nav-short">Аркадия</span>
+        </a>
+        <a href="/reservoir">
+            <span class="nav-full">Резервуар</span>
+            <span class="nav-short">РР</span>
+        </a>
+        <a href="/state" class="active">
+            <span class="nav-full">Штат</span>
+            <span class="nav-short">Штат</span>
+        </a>
+        <a href="/calculator">
+            <span class="nav-full">Калькулятор</span>
+            <span class="nav-short">Калькулятор</span>
+        </a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
+    </nav>
+
+    <div class="state-page">
+
+        <div class="state-header">
+            <h1>Карта штата</h1>
+            <p class="sub">Расположение построек союза</p>
+        </div>
+
+        <!-- ЛЕГЕНДА -->
+        <div class="state-legend">
+            <div class="legend-item"><span class="legend-swatch c-arcadia"></span>Аркадия (столица)</div>
+            <div class="legend-item"><span class="legend-swatch c-military"></span>Военная база</div>
+            <div class="legend-item"><span class="legend-swatch c-research"></span>Центр исследований</div>
+            <div class="legend-item"><span class="legend-swatch c-megapolis"></span>Мегаполис</div>
+            <div class="legend-item"><span class="legend-swatch c-city"></span>Городок</div>
+            <div class="legend-item"><span class="legend-swatch c-factory"></span>Завод</div>
+            <div class="legend-item"><span class="legend-swatch c-village"></span>Деревня</div>
+            <div class="legend-item"><span class="legend-swatch c-bastion1"></span>Бастион ур.1</div>
+            <div class="legend-item"><span class="legend-swatch c-bastion2"></span>Бастион ур.2</div>
+            <div class="legend-item"><span class="legend-swatch c-bastion3"></span>Бастион ур.3</div>
+            <div class="legend-item"><span class="legend-swatch c-bastion4"></span>Бастион ур.4</div>
+            <div class="legend-item"><span class="legend-swatch c-bastion5"></span>Бастион ур.5</div>
+            <div class="legend-item"><span class="legend-swatch c-bastion6"></span>Бастион ур.6</div>
+        </div>
+
+        <!-- КАРТА -->
+        <div class="state-map-wrap">
+            <div class="state-map" id="stateMap">
+                {# Заполняется через JS, чтобы не писать 441 div вручную #}
+            </div>
+        </div>
+
+        <!-- ПОДПИСЬ -->
+        <div class="state-credit">
+            <span class="tl">created by dutysniper</span>
+            <span class="br">created by dutysniper</span>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    /* ============================================================
+       ГЕНЕРАЦИЯ КАРТЫ
+       Ромб 21×21. Центр — Аркадия. Симметричное распределение
+       секторов: военная база,研究中心, мегаполисы, города, заводы,
+       деревни, затем 6 уровней бастионов по краям.
+       ============================================================ */
+    (function() {
+        const SIZE = 21;               // 21×21 — как на картинке
+        const CENTER = Math.floor(SIZE / 2); // 10
+        const map = document.getElementById('stateMap');
+
+        // Классы по расстоянию от центра (чебышёвское)
+        // 0 — аркадия, 1 — военная база, 2 — research,
+        // 3–4 — мегаполис, 5–6 — город, 7–8 — завод,
+        // 9 — деревня, 10–15 — бастионы 1..6
+        function getClassForDistance(d, x, y) {
+            if (d === 0) return 'c-arcadia';
+            if (d === 1) return 'c-military';
+            if (d === 2) return 'c-research';
+            if (d === 3 || d === 4) return 'c-megapolis';
+            if (d === 5 || d === 6) return 'c-city';
+            if (d === 7 || d === 8) return 'c-factory';
+            if (d === 9) return 'c-village';
+            if (d === 10) return 'c-bastion1';
+            if (d === 11) return 'c-bastion2';
+            if (d === 12) return 'c-bastion3';
+            if (d === 13) return 'c-bastion4';
+            if (d === 14) return 'c-bastion5';
+            if (d >= 15) return 'c-bastion6';
+            return 'c-village';
+        }
+
+        // Короткие подписи для кубиков
+        const labels = {
+            'c-arcadia':   'Аркадия',
+            'c-military':  'Воен.',
+            'c-research':  'Иссл.',
+            'c-megapolis': 'Мегап.',
+            'c-city':      'Город',
+            'c-factory':   'Завод',
+            'c-village':   'Дерев.',
+            'c-bastion1':  'Бст.1',
+            'c-bastion2':  'Бст.2',
+            'c-bastion3':  'Бст.3',
+            'c-bastion4':  'Бст.4',
+            'c-bastion5':  'Бст.5',
+            'c-bastion6':  'Бст.6'
+        };
+
+        // Полные названия для title-подсказки
+        const titles = {
+            'c-arcadia':   'Аркадия (столица)',
+            'c-military':  'Военная база',
+            'c-research':  'Центр исследований',
+            'c-megapolis': 'Мегаполис',
+            'c-city':      'Городок',
+            'c-factory':   'Завод',
+            'c-village':   'Деревня',
+            'c-bastion1':  'Бастион уровня 1',
+            'c-bastion2':  'Бастион уровня 2',
+            'c-bastion3':  'Бастион уровня 3',
+            'c-bastion4':  'Бастион уровня 4',
+            'c-bastion5':  'Бастион уровня 5',
+            'c-bastion6':  'Бастион уровня 6'
+        };
+
+        // Строим ромб: для каждой клетки считаем расстояние Чебышёва
+        // до центра. Внешние углы (где |dx|+|dy| > SIZE-1) — пустые.
+        const fragment = document.createDocumentFragment();
+
+        for (let y = 0; y < SIZE; y++) {
+            for (let x = 0; x < SIZE; x++) {
+                const dx = x - CENTER;
+                const dy = y - CENTER;
+                // Манхэттенское расстояние — задаёт ромб
+                const manhattan = Math.abs(dx) + Math.abs(dy);
+                // Отрезаем всё, что за пределами ромба
+                const maxManhattan = CENTER + 10; // внешний радиус в манхэттенской метрике
+
+                const cell = document.createElement('div');
+
+                if (manhattan > maxManhattan) {
+                    // Пустая клетка-фон (снаружи ромба) — невидимая
+                    cell.className = 'cell empty';
+                    // в шахматном порядке смещаем для сохранения геометрии
+                    if (y % 2 === 1) cell.classList.add('offset');
+                    fragment.appendChild(cell);
+                    continue;
+                }
+
+                // Расстояние от центра (для выбора цвета) — используем чебышёвское,
+                // чтобы сектора шли ромбами, а не квадратами
+                const cheby = Math.max(Math.abs(dx), Math.abs(dy));
+                const cls = getClassForDistance(cheby, dx, dy);
+
+                cell.className = 'cell ' + cls;
+                if (y % 2 === 1) cell.classList.add('offset');
+
+                cell.title = titles[cls] + ' (' + (x + 1) + ':' + (y + 1) + ')';
+
+                const label = document.createElement('span');
+                label.className = 'cell-label';
+                label.textContent = labels[cls];
+                cell.appendChild(label);
+
+                fragment.appendChild(cell);
+            }
+        }
+
+        map.appendChild(fragment);
+    })();
+
+    /* ============================================================
+       ТЕМА
+       ============================================================ */
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+</script>
+
+</body>
+</html>
