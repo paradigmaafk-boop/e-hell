@@ -350,8 +350,9 @@ def get_all_users():
                       CASE role
                           WHEN 'super_admin' THEN 0
                           WHEN 'admin' THEN 1
-                          WHEN 'reservoir' THEN 2
-                          ELSE 3
+                          WHEN 'state_admin' THEN 2
+                          WHEN 'reservoir' THEN 3
+                          ELSE 4
                       END,
                       created_at DESC""")
     data = cursor.fetchall()
@@ -409,7 +410,7 @@ def update_user_password(user_id, new_password):
 
 
 def update_user_role(user_id, new_role):
-    if new_role not in ('player', 'reservoir', 'admin', 'super_admin'):
+    if new_role not in ('player', 'reservoir', 'state_admin', 'admin', 'super_admin'):
         return False
     conn = get_connection()
     cursor = conn.cursor()
