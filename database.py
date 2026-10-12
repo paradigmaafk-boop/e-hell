@@ -173,6 +173,30 @@ def init_db():
         )
     """)
 
+    # ============================================================
+    # КАРТА ШТАТА (создаётся здесь, вместе с остальными таблицами)
+    # ============================================================
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS state_legend (
+            id SERIAL PRIMARY KEY,
+            color TEXT NOT NULL,
+            label TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS state_cells (
+            id SERIAL PRIMARY KEY,
+            row_idx INTEGER NOT NULL,
+            col_idx INTEGER NOT NULL,
+            color TEXT,
+            label TEXT,
+            group_id INTEGER,
+            updated_at TEXT NOT NULL,
+            UNIQUE(row_idx, col_idx)
+        )
+    """)
+
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS apples (
             id SERIAL PRIMARY KEY,
@@ -277,7 +301,6 @@ def init_db():
 
 
 def _has_column(cursor, table_name, column_name):
-    """Проверяет, есть ли колонка в таблице."""
     cursor.execute("""
         SELECT 1 FROM information_schema.columns
         WHERE table_name = %s AND column_name = %s
@@ -768,13 +791,6 @@ def get_all_time_leaders(rating_type, limit=3):
 
 
 def reset_rating(rating_type):
-    """
-    Сбрасывает рейтинг указанного типа:
-    - удаляет всю историю (history_<rating_type>)
-    - обнуляет очки в players_<rating_type>
-
-    Яблоки, аккаунты, привязки ников — НЕ трогаются.
-    """
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -791,29 +807,11 @@ def reset_rating(rating_type):
 
 
 def delete_player(rating_type, nickname):
-    """
-    Мягкое удаление игрока из рейтинга:
-    - удаляет запись из players_<rating_type> (очки больше не показываются в этом рейтинге)
-    - удаляет всю историю из history_<rating_type>
-
-    Аккаунты, привязки (users.linked_nickname), яблоки (apples),
-    алиасы (nickname_aliases) — НЕ трогаются.
-    """
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Удаляем запись игрока из рейтинга
         cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nickname,))
-
-        # Удаляем всю его историю из этого рейтинга
         cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
-
-        # Важно: НЕ трогаем:
-        # - users.linked_nickname (привязка ЛК к нику)
-        # - apples (подаренные яблоки)
-        # - nickname_aliases (алиасы ников)
-        # - players_<другой_тип> и history_<другой_тип> (другой рейтинг)
-
         conn.commit()
         return True
     except Exception as e:
@@ -842,10 +840,6 @@ def get_rating_display_name(rating_type):
 
 
 def get_last_update_date(rating_type):
-    """
-    Возвращает дату последнего обновления рейтинга
-    в формате DD.MM.YYYY, либо None если данных нет.
-    """
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -870,7 +864,6 @@ def get_last_update_date(rating_type):
 # ============================================================
 
 def get_all_duel_players_with_points():
-    """Список всех игроков в players_duel с очками, отсортированный по очкам."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT nickname, points FROM players_duel ORDER BY points DESC, nickname ASC")
@@ -880,7 +873,6 @@ def get_all_duel_players_with_points():
 
 
 def get_all_arcadia_players_with_points():
-    """Список всех игроков в players_arcadia с очками, отсортированный по очкам."""
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT nickname, points FROM players_arcadia ORDER BY points DESC, nickname ASC")
@@ -890,9 +882,6 @@ def get_all_arcadia_players_with_points():
 
 
 def associate_players(target_nickname, duel_nicks, arcadia_nicks):
-    """
-    Объединяет записи из players_duel / players_arcadia в target_nickname.
-    """
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -1289,7 +1278,7 @@ def delete_slide(slide_id):
 
 
 # ============================================================
-# КАРТА БОЯ
+# КАРТА БОЯ (РЕЗЕРВУАР)
 # ============================================================
 
 def get_all_map_values():
@@ -1688,6 +1677,7 @@ def get_user_reservoir_history(user_id, limit=30):
     data = cursor.fetchall()
     conn.close()
     return data
+
 
 # ============================================================
 # КАРТА ШТАТА
