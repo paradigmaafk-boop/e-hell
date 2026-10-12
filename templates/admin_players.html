@@ -110,6 +110,7 @@
         .role-admin { background: rgba(255,184,0,0.15); color: #ffb800; border: 1px solid rgba(255,184,0,0.4); }
         .role-super_admin { background: rgba(255,69,0,0.18); color: #ff4500; border: 1px solid rgba(255,69,0,0.5); }
         .role-reservoir { background: rgba(74, 158, 255, 0.15); color: #4a9eff; border: 1px solid rgba(74, 158, 255, 0.45); }
+        .role-state_admin { background: rgba(140, 200, 120, 0.15); color: #8ce078; border: 1px solid rgba(140, 200, 120, 0.5); }
 
         @media (max-width: 900px) {
             .acc-row { grid-template-columns: 1fr; gap: 0.6rem; }
@@ -194,9 +195,9 @@
             <span class="nav-short">РР</span>
         </a>
         <a href="/state">
-    <span class="nav-full">Штат</span>
-    <span class="nav-short">Штат</span>
-</a>
+            <span class="nav-full">Штат</span>
+            <span class="nav-short">Штат</span>
+        </a>
         <a href="/calculator">
             <span class="nav-full">Калькулятор</span>
             <span class="nav-short">Калькулятор</span>
@@ -249,6 +250,7 @@
                     <span class="role-pill role-{{ p.role }}">
                         {% if p.role == 'super_admin' %}Супер-админ
                         {% elif p.role == 'admin' %}Админ
+                        {% elif p.role == 'state_admin' %}Админ штата
                         {% elif p.role == 'reservoir' %}Резервуар
                         {% else %}Игрок{% endif %}
                     </span>
@@ -316,6 +318,7 @@
                     <select name="new_role">
                         <option value="player" {% if p.role == 'player' %}selected{% endif %}>Игрок</option>
                         <option value="reservoir" {% if p.role == 'reservoir' %}selected{% endif %}>Резервуар</option>
+                        <option value="state_admin" {% if p.role == 'state_admin' %}selected{% endif %}>Админ штата</option>
                         <option value="admin" {% if p.role == 'admin' %}selected{% endif %}>Админ</option>
                     </select>
                     <button type="submit" class="btn btn-small">🛡 Роль</button>
