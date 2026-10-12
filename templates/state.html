@@ -563,7 +563,7 @@
 
 <script>
     /* ============================================================
-       КООРДИНАТЫ ЯЧЕЕК — из вашего исходного кода
+       КООРДИНАТЫ ЯЧЕЕК
        ============================================================ */
     const RAW_COORDS = [
         "489,916,511,896,527,908,538,904,551,919,530,940,521,932,513,940",
@@ -915,27 +915,38 @@
     /* ============================================================
        ЛЕГЕНДА
        ============================================================ */
-    let legend = window.INITIAL_LEGEND.slice();
+    let legend = (window.INITIAL_LEGEND || []).filter(x => x);
     const legendList = document.getElementById('legendList');
 
     function renderLegend() {
         legendList.innerHTML = '';
         legend.forEach(item => {
+            if (!item) return;
+
+            const colorRaw = item.color;
+            const labelRaw = item.label;
+            if (colorRaw === null || colorRaw === undefined) return;
+            if (labelRaw === null || labelRaw === undefined) return;
+
+            const color = String(colorRaw).trim();
+            const labelText = String(labelRaw);
+            if (color === '') return;
+
             const row = document.createElement('div');
             row.className = 'legend-row';
-            row.dataset.color = item.color;
-            if (item.color.toLowerCase() === currentColor.toLowerCase()) {
+            row.dataset.color = color;
+            if (color.toLowerCase() === String(currentColor || '').toLowerCase()) {
                 row.classList.add('active');
             }
 
             const colorBox = document.createElement('div');
             colorBox.className = 'legend-color';
-            colorBox.style.background = item.color;
+            colorBox.style.background = color;
             row.appendChild(colorBox);
 
             const label = document.createElement('span');
             label.className = 'legend-label';
-            label.textContent = item.label;
+            label.textContent = labelText;
             row.appendChild(label);
 
             if (CAN_EDIT) {
@@ -945,7 +956,7 @@
                 del.title = 'Удалить';
                 del.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    if (!confirm('Удалить «' + item.label + '» из легенды?')) return;
+                    if (!confirm('Удалить «' + labelText + '» из легенды?')) return;
                     try {
                         const res = await fetch('/state/legend/delete/' + item.id, { method: 'POST' });
                         const text = await res.text();
@@ -958,7 +969,7 @@
                             return;
                         }
                         if (data.success) {
-                            legend = data.legend;
+                            legend = (data.legend || []).filter(x => x);
                             renderLegend();
                         } else {
                             alert('Ошибка: ' + data.error);
@@ -971,16 +982,20 @@
                 row.appendChild(del);
             }
 
-            row.addEventListener('click', () => setColor(item.color));
+            row.addEventListener('click', () => setColor(color));
             legendList.appendChild(row);
         });
     }
 
     function setColor(color) {
-        currentColor = color;
-        document.getElementById('statusColor').textContent = color;
+        if (color === null || color === undefined) return;
+        const safeColor = String(color).trim();
+        if (safeColor === '') return;
+        currentColor = safeColor;
+        document.getElementById('statusColor').textContent = safeColor;
         document.querySelectorAll('.legend-row').forEach(r => {
-            r.classList.toggle('active', r.dataset.color.toLowerCase() === color.toLowerCase());
+            const rc = String(r.dataset.color || '').toLowerCase();
+            r.classList.toggle('active', rc === safeColor.toLowerCase());
         });
     }
 
@@ -1012,7 +1027,7 @@
                     return;
                 }
                 if (data.success) {
-                    legend = data.legend;
+                    legend = (data.legend || []).filter(x => x);
                     document.getElementById('legendLabel').value = '';
                     renderLegend();
                     setColor(color);
@@ -1121,9 +1136,12 @@
     function loadSaved() {
         const saved = window.INITIAL_CELLS || [];
         saved.forEach(item => {
+            if (!item) return;
             const idx = item.index;
+            if (idx === undefined || idx === null) return;
             if (idx < 0 || idx >= cells.length) return;
             const cell = cells[idx];
+            if (!cell) return;
             if (item.color) {
                 cell.color = item.color;
                 cell.el.setAttribute('fill', item.color);
