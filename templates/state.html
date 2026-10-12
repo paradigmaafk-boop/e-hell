@@ -1,470 +1,292 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Штат | [HEL] Ацкое Пламя</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        .state-page {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 1rem 0 3rem;
-            width: 100%;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Карта штата — центр + 2 слоя</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Forum&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0a0503;
+        --line: #3a1a08;
+        --text: #f8ecdf;
+        --muted: #b88a62;
 
-        .state-header {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        .state-header h1 {
-            font-family: 'Forum', serif;
-            font-size: 2rem;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
-            background-size: 300% 100%;
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: fireTextFlow 8s linear infinite;
-        }
-        .state-header .sub {
-            color: var(--muted);
-            font-size: 0.9rem;
-            margin-top: 0.3rem;
-        }
+        /* Размер одной плитки (ромба) */
+        --tile: 80px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* ============================================================
-           ЛЕГЕНДА
-           ============================================================ */
-        .state-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem 1.1rem;
-            justify-content: center;
-            max-width: 900px;
-            margin: 0 auto 2rem;
-            padding: 0.9rem 1.25rem;
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            background: rgba(10,5,3,0.6);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: var(--text);
-            white-space: nowrap;
-        }
-        .legend-swatch {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            flex-shrink: 0;
-            box-shadow: 0 0 4px rgba(0,0,0,0.5);
-        }
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+        background: #0a0503;
+        color: var(--text);
+        min-height: 100vh;
+        padding: 1.5rem 1rem 3rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-        /* ============================================================
-           КАРТА
-           ============================================================ */
-        .state-map-wrap {
-            position: relative;
-            padding: 2rem 1rem;
-            background:
-                radial-gradient(ellipse at center, rgba(255,69,0,0.06), transparent 70%),
-                linear-gradient(180deg, rgba(30,15,8,0.55), rgba(8,4,2,0.75));
-            border: 1px solid var(--line);
-            border-radius: 20px;
-            box-shadow:
-                0 0 60px rgba(255,69,0,0.12),
-                inset 0 0 40px rgba(255,69,0,0.04);
-            max-width: 100%;
-            overflow-x: auto;
-            overflow-y: visible;
-        }
+    h1 {
+        font-family: 'Forum', serif;
+        font-size: 1.8rem;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #ff4500, #ffb800, #ffec80, #ffb800, #ff4500);
+        background-size: 300% 100%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: fireFlow 8s linear infinite;
+        margin-bottom: 0.4rem;
+    }
+    @keyframes fireFlow {
+        0%   { background-position: 0% 50%; }
+        100% { background-position: 300% 50%; }
+    }
 
-        .state-map {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: max-content;
-            margin: 0 auto;
-            padding: 20px 0;
-        }
+    .sub {
+        color: var(--muted);
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
 
-        .map-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 26px;
-            position: relative;
-        }
-        .map-row.offset {
-            margin-left: 24px;
-        }
+    /* ============================================================
+       ЛЕГЕНДА
+       ============================================================ */
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1.1rem;
+        justify-content: center;
+        max-width: 900px;
+        margin-bottom: 2rem;
+        padding: 0.9rem 1.25rem;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(20,10,5,0.6);
+    }
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    .legend-swatch {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+        border: 1px solid #1a1209;
+        transform: rotate(45deg);
+    }
 
-        .cell {
-            position: relative;
-            width: 48px;
-            height: 48px;
-            margin-left: -12px;
-            margin-top: -14px;
-            flex-shrink: 0;
-            cursor: pointer;
-            transition:
-                transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-                filter 0.28s ease;
-            z-index: 1;
-        }
+    /* ============================================================
+       КАРТА
+       ============================================================ */
+    .map-wrap {
+        padding: 3rem 2rem;
+        background: rgba(20,10,5,0.5);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        max-width: 100%;
+        overflow: auto;
+    }
 
-        .cell::before {
-            content: "";
-            position: absolute;
-            inset: 2px;
-            background: #666;
-            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.25),
-                inset 0 -2px 3px rgba(0,0,0,0.35);
-            transition: box-shadow 0.28s ease;
-        }
+    /* Сетка из ромбов.
+       Ключевая идея: строки идут с шагом в половину плитки по вертикали,
+       а каждая плитка — через отрицательные margin'ы — ставится в шахматку. */
+    .map {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: max-content;
+        margin: 0 auto;
+        padding: 40px 0;
+    }
 
-        .cell::after {
-            content: "";
-            position: absolute;
-            inset: 8px;
-            background: rgba(255,255,255,0.08);
-            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
-            pointer-events: none;
-            transition: background 0.28s ease;
-        }
+    .row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(var(--tile) * 0.5);   /* высота ряда = половина плитки */
+        position: relative;
+    }
 
-        .cell:hover {
-            transform: translateY(-8px) scale(1.14);
-            z-index: 100;
-            filter: brightness(1.2);
-        }
-        .cell:hover::before {
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.6),
-                inset 0 -2px 3px rgba(0,0,0,0.4),
-                0 0 20px 3px rgba(255,200,80,0.85),
-                0 0 40px 8px rgba(255,120,0,0.45);
-        }
-        .cell:hover::after {
-            background: rgba(255,255,255,0.28);
-        }
+    /* Нечётные ряды — сдвиг на полплитки вправо */
+    .row.offset {
+        margin-left: calc(var(--tile) * 0.5);
+    }
 
-        .cell.empty {
-            pointer-events: none;
-            cursor: default;
-        }
-        .cell.empty::before,
-        .cell.empty::after { display: none; }
+    /* ============================================================
+       ПЛИТКА-РОМБ
+       ============================================================ */
+    .cell {
+        position: relative;
+        width: var(--tile);
+        height: var(--tile);
+        margin-left: calc(var(--tile) * -0.25);
+        margin-top: calc(var(--tile) * -0.25);
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 1;
+    }
 
-        .cell-label {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.48rem;
-            font-weight: 700;
-            letter-spacing: 0.2px;
-            color: rgba(0,0,0,0.78);
-            text-shadow: 0 1px 0 rgba(255,255,255,0.28);
-            text-align: center;
-            line-height: 1;
-            padding: 8px;
-            overflow: hidden;
-            pointer-events: none;
-            user-select: none;
-            z-index: 2;
-        }
+    /* Ромб через clip-path */
+    .cell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: #666;
+        clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+        border: 1px solid #1a1209;
+        box-sizing: border-box;
+    }
 
-        /* ============================================================
-           ЦВЕТА (как в легенде)
-           ============================================================ */
-        .cell.c-arcadia::before   { background: radial-gradient(circle at 35% 30%, #ffe066, #f5a800 70%, #b87a00); }
-        .cell.c-military::before  { background: radial-gradient(circle at 35% 30%, #ff5a4a, #d32f2f 70%, #8e0000); }
-        .cell.c-research::before  { background: radial-gradient(circle at 35% 30%, #b47ed6, #7e3fb0 70%, #4a1470); }
-        .cell.c-megapolis::before { background: radial-gradient(circle at 35% 30%, #ffb74d, #f57c00 70%, #b34e00); }
-        .cell.c-city::before      { background: radial-gradient(circle at 35% 30%, #81c784, #43a047 70%, #1b5e20); }
-        .cell.c-factory::before   { background: radial-gradient(circle at 35% 30%, #4db6ac, #00897b 70%, #004d40); }
-        .cell.c-village::before   { background: radial-gradient(circle at 35% 30%, #c4cfdb, #90a0b3 70%, #5a6879); }
+    /* Hover — приподнимаем */
+    .cell:hover {
+        transform: translateY(-8px) scale(1.08);
+        z-index: 100;
+    }
 
-        .cell.c-bastion1::before  { background: radial-gradient(circle at 35% 30%, #f0e0c4, #d3ba94 70%, #a89073); }
-        .cell.c-bastion2::before  { background: radial-gradient(circle at 35% 30%, #dbc39a, #b89a6b 70%, #8a6f47); }
-        .cell.c-bastion3::before  { background: radial-gradient(circle at 35% 30%, #c2a273, #9c7c4d 70%, #6d5230); }
-        .cell.c-bastion4::before  { background: radial-gradient(circle at 35% 30%, #96794f, #74582e 70%, #4d3818); }
-        .cell.c-bastion5::before  { background: radial-gradient(circle at 35% 30%, #6a5233, #4d3a20 70%, #2c1e0d); }
-        .cell.c-bastion6::before  { background: radial-gradient(circle at 35% 30%, #46331b, #2d1f10 70%, #150c04); }
+    .cell.empty {
+        pointer-events: none;
+        cursor: default;
+    }
+    .cell.empty::before { display: none; }
 
-        .cell.c-bastion4 .cell-label,
-        .cell.c-bastion5 .cell-label,
-        .cell.c-bastion6 .cell-label,
-        .cell.c-research .cell-label,
-        .cell.c-military .cell-label,
-        .cell.c-city .cell-label,
-        .cell.c-factory .cell-label {
-            color: rgba(255,255,255,0.95);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.85);
-        }
+    /* Подпись внутри ромба */
+    .cell-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.6rem;
+        font-weight: 700;
+        color: rgba(0,0,0,0.85);
+        text-align: center;
+        line-height: 1.05;
+        padding: 10px;
+        overflow: hidden;
+        pointer-events: none;
+        user-select: none;
+        z-index: 2;
+    }
 
-        /* ============================================================
-           АДАПТИВ
-           ============================================================ */
-        @media (max-width: 1200px) {
-            .cell { width: 34px; height: 34px; margin-left: -8.5px; margin-top: -10px; }
-            .map-row { height: 18px; }
-            .map-row.offset { margin-left: 17px; }
-            .cell-label { font-size: 0.4rem; padding: 5px; }
-        }
-        @media (max-width: 900px) {
-            .cell { width: 24px; height: 24px; margin-left: -6px; margin-top: -7px; }
-            .map-row { height: 13px; }
-            .map-row.offset { margin-left: 12px; }
-            .cell-label { font-size: 0.3rem; padding: 3px; }
-        }
-        @media (max-width: 700px) {
-            .state-map-wrap { padding: 1.5rem 0.5rem; }
-            .cell { width: 18px; height: 18px; margin-left: -4.5px; margin-top: -5.5px; }
-            .map-row { height: 10px; }
-            .map-row.offset { margin-left: 9px; }
-            .cell-label { display: none; }
-            .state-legend { font-size: 0.72rem; padding: 0.7rem 1rem; }
-            .state-header h1 { font-size: 1.3rem; letter-spacing: 2px; }
-        }
-    </style>
+    /* ============================================================
+       ЦВЕТА — плоские
+       ============================================================ */
+    .cell.c-arcadia::before   { background: #ffc933; }
+    .cell.c-military::before  { background: #e6392f; }
+    .cell.c-research::before  { background: #9b5cc9; }
+    .cell.c-megapolis::before { background: #ffa726; }
+    .cell.c-city::before      { background: #66bb6a; }
+    .cell.c-factory::before   { background: #26a69a; }
+    .cell.c-village::before   { background: #a9b7c6; }
+
+    .cell.c-bastion1::before  { background: #d3b98a; }
+    .cell.c-bastion2::before  { background: #b89a6b; }
+    .cell.c-bastion3::before  { background: #91764c; }
+    .cell.c-bastion4::before  { background: #6f5833; }
+    .cell.c-bastion5::before  { background: #4a3a20; }
+    .cell.c-bastion6::before  { background: #2a1d0d; }
+
+    .cell.c-trade::before {
+        background: #e8e2d6;
+        border-width: 2px;
+    }
+
+    /* Светлый текст на тёмных плитках */
+    .cell.c-bastion4 .cell-label,
+    .cell.c-bastion5 .cell-label,
+    .cell.c-bastion6 .cell-label,
+    .cell.c-research .cell-label,
+    .cell.c-military .cell-label,
+    .cell.c-city .cell-label,
+    .cell.c-factory .cell-label {
+        color: rgba(255,255,255,0.95);
+    }
+
+    /* ============================================================
+       АДАПТИВ
+       ============================================================ */
+    @media (max-width: 900px) {
+        :root { --tile: 60px; }
+        .cell-label { font-size: 0.5rem; padding: 6px; }
+    }
+    @media (max-width: 600px) {
+        :root { --tile: 42px; }
+        .cell-label { font-size: 0.36rem; padding: 4px; }
+    }
+    @media (max-width: 420px) {
+        :root { --tile: 32px; }
+        .cell-label { display: none; }
+    }
+</style>
 </head>
 <body>
 
-<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
-    <defs>
-        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%"   stop-color="#ff2200"/>
-            <stop offset="40%"  stop-color="#ff8800"/>
-            <stop offset="70%"  stop-color="#ffcc00"/>
-            <stop offset="100%" stop-color="#ff6600"/>
-        </linearGradient>
-        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stop-color="#ffcc00"/>
-            <stop offset="50%"  stop-color="#ff6600"/>
-            <stop offset="100%" stop-color="#ff2200"/>
-        </linearGradient>
-        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%"   stop-color="#ffec80"/>
-            <stop offset="40%"  stop-color="#ffb800"/>
-            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
-        </radialGradient>
-    </defs>
-</svg>
+<h1>Карта штата</h1>
+<p class="sub">Центр + 2 слоя вокруг Аркадии</p>
 
-<div class="wrap">
+<div class="legend" id="legend"></div>
 
-    <header class="header">
-        <a href="/" class="brand">
-            <div class="brand-emblem">
-                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-                    <circle class="ring-outer" cx="30" cy="30" r="24" />
-                    <circle class="ring-inner" cx="30" cy="30" r="18" />
-                    <g class="rotating-group">
-                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
-                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
-                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
-                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
-                    </g>
-                    <g class="rotating-group-reverse">
-                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
-                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
-                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
-                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
-                    </g>
-                    <circle class="axis-glow" cx="30" cy="30" r="7" />
-                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
-                </svg>
-            </div>
-            <div class="brand-text">
-                <span class="brand-name">[HEL] Ацкое Пламя</span>
-            </div>
-        </a>
-        <div class="header-right">
-            {% if session.get('user_id') %}
-                <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
-                <a href="/logout" class="link-btn header-link">Выйти</a>
-            {% else %}
-                <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>
-                <a href="/login" class="link-btn header-link">Войти</a>
-            {% endif %}
-            <button class="moon" id="theme-toggle">🌙</button>
-        </div>
-    </header>
-
-    <nav class="nav">
-        <a href="/rating/total">
-            <span class="nav-full">Рейтинг</span>
-            <span class="nav-short">Рейтинг</span>
-        </a>
-        <a href="/rating/duel">
-            <span class="nav-full">Рейтинг Дуэли</span>
-            <span class="nav-short">VS</span>
-        </a>
-        <a href="/rating/arcadia">
-            <span class="nav-full">Рейтинг Аркадии</span>
-            <span class="nav-short">Аркадия</span>
-        </a>
-        <a href="/reservoir">
-            <span class="nav-full">Резервуар</span>
-            <span class="nav-short">РР</span>
-        </a>
-        <a href="/state" class="active">
-            <span class="nav-full">Штат</span>
-            <span class="nav-short">Штат</span>
-        </a>
-        <a href="/calculator">
-            <span class="nav-full">Калькулятор</span>
-            <span class="nav-short">Калькулятор</span>
-        </a>
-        {% if session.get('role') in ['admin', 'super_admin'] %}
-        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
-        {% endif %}
-    </nav>
-
-    <div class="state-page">
-
-        <div class="state-header">
-            <h1>Карта штата</h1>
-            <p class="sub">Расположение построек союза</p>
-        </div>
-
-        <div class="state-legend">
-            <div class="legend-item"><span class="legend-swatch c-arcadia"></span>Аркадия (столица)</div>
-            <div class="legend-item"><span class="legend-swatch c-military"></span>Военная база</div>
-            <div class="legend-item"><span class="legend-swatch c-research"></span>Центр исследований</div>
-            <div class="legend-item"><span class="legend-swatch c-megapolis"></span>Мегаполис</div>
-            <div class="legend-item"><span class="legend-swatch c-city"></span>Городок</div>
-            <div class="legend-item"><span class="legend-swatch c-factory"></span>Завод</div>
-            <div class="legend-item"><span class="legend-swatch c-village"></span>Деревня</div>
-            <div class="legend-item"><span class="legend-swatch c-bastion1"></span>Бастион ур.1</div>
-            <div class="legend-item"><span class="legend-swatch c-bastion2"></span>Бастион ур.2</div>
-            <div class="legend-item"><span class="legend-swatch c-bastion3"></span>Бастион ур.3</div>
-            <div class="legend-item"><span class="legend-swatch c-bastion4"></span>Бастион ур.4</div>
-            <div class="legend-item"><span class="legend-swatch c-bastion5"></span>Бастион ур.5</div>
-            <div class="legend-item"><span class="legend-swatch c-bastion6"></span>Бастион ур.6</div>
-        </div>
-
-        <div class="state-map-wrap">
-            <div class="state-map" id="stateMap"></div>
-        </div>
-
-    </div>
-
+<div class="map-wrap">
+    <div class="map" id="map"></div>
 </div>
 
 <style>
-    .legend-swatch.c-arcadia   { background: radial-gradient(circle at 35% 30%, #ffe066, #f5a800 70%, #b87a00); }
-    .legend-swatch.c-military  { background: radial-gradient(circle at 35% 30%, #ff5a4a, #d32f2f 70%, #8e0000); }
-    .legend-swatch.c-research  { background: radial-gradient(circle at 35% 30%, #b47ed6, #7e3fb0 70%, #4a1470); }
-    .legend-swatch.c-megapolis { background: radial-gradient(circle at 35% 30%, #ffb74d, #f57c00 70%, #b34e00); }
-    .legend-swatch.c-city      { background: radial-gradient(circle at 35% 30%, #81c784, #43a047 70%, #1b5e20); }
-    .legend-swatch.c-factory   { background: radial-gradient(circle at 35% 30%, #4db6ac, #00897b 70%, #004d40); }
-    .legend-swatch.c-village   { background: radial-gradient(circle at 35% 30%, #c4cfdb, #90a0b3 70%, #5a6879); }
-    .legend-swatch.c-bastion1  { background: radial-gradient(circle at 35% 30%, #f0e0c4, #d3ba94 70%, #a89073); }
-    .legend-swatch.c-bastion2  { background: radial-gradient(circle at 35% 30%, #dbc39a, #b89a6b 70%, #8a6f47); }
-    .legend-swatch.c-bastion3  { background: radial-gradient(circle at 35% 30%, #c2a273, #9c7c4d 70%, #6d5230); }
-    .legend-swatch.c-bastion4  { background: radial-gradient(circle at 35% 30%, #96794f, #74582e 70%, #4d3818); }
-    .legend-swatch.c-bastion5  { background: radial-gradient(circle at 35% 30%, #6a5233, #4d3a20 70%, #2c1e0d); }
-    .legend-swatch.c-bastion6  { background: radial-gradient(circle at 35% 30%, #46331b, #2d1f10 70%, #150c04); }
+    .legend-swatch.c-arcadia   { background: #ffc933; }
+    .legend-swatch.c-military  { background: #e6392f; }
+    .legend-swatch.c-research  { background: #9b5cc9; }
+    .legend-swatch.c-megapolis { background: #ffa726; }
+    .legend-swatch.c-city      { background: #66bb6a; }
+    .legend-swatch.c-factory   { background: #26a69a; }
+    .legend-swatch.c-village   { background: #a9b7c6; }
+    .legend-swatch.c-trade     { background: #e8e2d6; }
+    .legend-swatch.c-bastion1  { background: #d3b98a; }
+    .legend-swatch.c-bastion2  { background: #b89a6b; }
+    .legend-swatch.c-bastion3  { background: #91764c; }
+    .legend-swatch.c-bastion4  { background: #6f5833; }
+    .legend-swatch.c-bastion5  { background: #4a3a20; }
+    .legend-swatch.c-bastion6  { background: #2a1d0d; }
 </style>
 
 <script>
     /* ============================================================
-       ГЕНЕРАЦИЯ КАРТЫ ШТАТА
-       ------------------------------------------------------------
-       Радиус (манхэттенское расстояние от центра) = 12.
-       Значит: диагональ = 25 клеток, всего внутри ромба — 313.
-       Слои от центра:
-         0        — Аркадия
-         1        — Военная база
-         2        — Бастион ур.6
-         3        — Центр исследований
-         4        — Бастион ур.5
-         5        — Мегаполис
-         6        — Бастион ур.4
-         7        — Городок
-         8        — Бастион ур.3
-         9        — Завод
-         10       — Бастион ур.2
-         11       — Деревня
-         12       — Бастион ур.1 (внешний контур)
+       ТОЛЬКО ЦЕНТР + 2 СЛОЯ
+       Слои от Аркадии:
+         0 — Аркадия
+         1 — Военная база
+         2 — Бастион 6
+         3 — Центр исследований
+         4 — Бастион 5
+       Максимальный радиус = 4.
        ============================================================ */
     (function() {
-        const RADIUS = 12;
-        const SIZE = RADIUS * 2 + 1;        // = 25
-        const CENTER = RADIUS;              // = 12
-        const map = document.getElementById('stateMap');
+        const RADIUS = 4;
+        const SIZE = RADIUS * 2 + 1;         // 9
+        const CENTER = RADIUS;               // 4
 
-        function getClass(dx, dy) {
-            const dist = Math.abs(dx) + Math.abs(dy);
+        const map = document.getElementById('map');
 
-            if (dist === 0)  return 'c-arcadia';
-            if (dist === 1)  return 'c-military';
-            if (dist === 2)  return 'c-bastion6';
-            if (dist === 3)  return 'c-research';
-            if (dist === 4)  return 'c-bastion5';
-            if (dist === 5)  return 'c-megapolis';
-            if (dist === 6)  return 'c-bastion4';
-            if (dist === 7)  return 'c-city';
-            if (dist === 8)  return 'c-bastion3';
-            if (dist === 9)  return 'c-factory';
-            if (dist === 10) return 'c-bastion2';
-            if (dist === 11) return 'c-village';
-            return 'c-bastion1';                // 12
-        }
-
-        const labels = {
-            'c-arcadia':   'Аркадия',
-            'c-military':  'Воен.',
-            'c-research':  'Иссл.',
-            'c-megapolis': 'Мегап.',
-            'c-city':      'Город',
-            'c-factory':   'Завод',
-            'c-village':   'Дерев.',
-            'c-bastion1':  'Бст.1',
-            'c-bastion2':  'Бст.2',
-            'c-bastion3':  'Бст.3',
-            'c-bastion4':  'Бст.4',
-            'c-bastion5':  'Бст.5',
-            'c-bastion6':  'Бст.6'
-        };
-
-        const titles = {
-            'c-arcadia':   'Аркадия (столица)',
-            'c-military':  'Военная база',
-            'c-research':  'Центр исследований',
-            'c-megapolis': 'Мегаполис',
-            'c-city':      'Городок',
-            'c-factory':   'Завод',
-            'c-village':   'Деревня',
-            'c-bastion1':  'Бастион ур.1',
-            'c-bastion2':  'Бастион ур.2',
-            'c-bastion3':  'Бастион ур.3',
-            'c-bastion4':  'Бастион ур.4',
-            'c-bastion5':  'Бастион ур.5',
-            'c-bastion6':  'Бастион ур.6'
+        const layers = {
+            0:  { cls: 'c-arcadia',   label: 'Аркадия', title: 'Аркадия (столица)' },
+            1:  { cls: 'c-military',  label: 'Воен.',   title: 'Военная база' },
+            2:  { cls: 'c-bastion6',  label: 'Бст.6',   title: 'Бастион ур.6' },
+            3:  { cls: 'c-research',  label: 'Иссл.',   title: 'Центр исследований' },
+            4:  { cls: 'c-bastion5',  label: 'Бст.5',   title: 'Бастион ур.5' },
         };
 
         for (let y = 0; y < SIZE; y++) {
             const row = document.createElement('div');
-            row.className = 'map-row' + (y % 2 === 1 ? ' offset' : '');
+            row.className = 'row' + (y % 2 === 1 ? ' offset' : '');
 
             for (let x = 0; x < SIZE; x++) {
                 const dx = x - CENTER;
@@ -475,37 +297,49 @@
 
                 if (manhattan > RADIUS) {
                     cell.className = 'cell empty';
-                } else {
-                    const cls = getClass(dx, dy);
-                    cell.className = 'cell ' + cls;
-                    cell.title = titles[cls] + ' · ' + (x + 1) + ':' + (y + 1);
-
-                    const label = document.createElement('span');
-                    label.className = 'cell-label';
-                    label.textContent = labels[cls];
-                    cell.appendChild(label);
+                    row.appendChild(cell);
+                    continue;
                 }
+
+                const layer = layers[manhattan];
+                const cls = layer ? layer.cls : 'c-bastion5';
+                const label = layer ? layer.label : 'Бст.5';
+                const title = layer ? layer.title : 'Бастион ур.5';
+
+                cell.className = 'cell ' + cls;
+                cell.title = title;
+
+                const span = document.createElement('span');
+                span.className = 'cell-label';
+                span.textContent = label;
+                cell.appendChild(span);
 
                 row.appendChild(cell);
             }
 
             map.appendChild(row);
         }
-    })();
 
-    const toggleBtn = document.getElementById('theme-toggle');
-    const body = document.body;
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', () => {
-            body.classList.toggle('light-theme');
-            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
-            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        /* Легенда */
+        const legendData = [
+            { cls: 'c-arcadia',   label: 'Аркадия (столица)' },
+            { cls: 'c-military',  label: 'Военная база' },
+            { cls: 'c-research',  label: 'Центр исследований' },
+            { cls: 'c-bastion5',  label: 'Бастион ур.5' },
+            { cls: 'c-bastion6',  label: 'Бастион ур.6' },
+        ];
+
+        const legend = document.getElementById('legend');
+        legendData.forEach(item => {
+            const el = document.createElement('div');
+            el.className = 'legend-item';
+            const sw = document.createElement('span');
+            sw.className = 'legend-swatch ' + item.cls;
+            el.appendChild(sw);
+            el.appendChild(document.createTextNode(item.label));
+            legend.appendChild(el);
         });
-        if (localStorage.getItem('theme') === 'light') {
-            body.classList.add('light-theme');
-            toggleBtn.textContent = '☀️';
-        }
-    }
+    })();
 </script>
 
 </body>
