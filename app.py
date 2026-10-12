@@ -169,6 +169,15 @@ def can_edit_state():
     return session.get('role') in ('admin', 'super_admin', 'state_admin')
 
 
+def _state_legend_to_json():
+    """Возвращает легенду в виде списка словарей {id, color, label}."""
+    rows = get_state_legend()
+    return [
+        {'id': row[0], 'color': row[1], 'label': row[2]}
+        for row in rows
+    ]
+
+
 # ============================================================
 # УТИЛИТЫ
 # ============================================================
@@ -1673,7 +1682,7 @@ def state_legend_add():
     new_id = add_state_legend(color, label)
     if new_id:
         increment_counter('admin_actions')
-        return jsonify({'success': True, 'legend': get_state_legend()})
+        return jsonify({'success': True, 'legend': _state_legend_to_json()})
     return jsonify({'success': False, 'error': 'Ошибка добавления'}), 500
 
 
@@ -1682,7 +1691,7 @@ def state_legend_add():
 def state_legend_delete(legend_id):
     if delete_state_legend(legend_id):
         increment_counter('admin_actions')
-        return jsonify({'success': True, 'legend': get_state_legend()})
+        return jsonify({'success': True, 'legend': _state_legend_to_json()})
     return jsonify({'success': False, 'error': 'Ошибка удаления'}), 500
 
 
