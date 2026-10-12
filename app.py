@@ -38,6 +38,9 @@ from database import (
     associate_players,
     get_all_duel_players_with_points,
     get_all_arcadia_players_with_points,
+    # Карта штата:
+    get_state_legend, add_state_legend, delete_state_legend,
+    get_state_cells, save_state_cells,
 )
 from werkzeug.utils import secure_filename
 
@@ -838,11 +841,6 @@ def reservoir_index():
                            game_date_full=game_date_full,
                            registration_opens_str=registration_opens_str)
 
-@app.route('/state')
-def state_view():
-    """Карта штата — интерактивная схема построек."""
-    count_once('visits', 'counted_visit')
-    return render_template('state.html')
 
 @app.route('/reservoir/map')
 def reservoir_map():
@@ -1584,6 +1582,57 @@ def reset_reservoir_map():
         return jsonify({'success': True})
     else:
         return jsonify({'success': False, 'error': 'Ошибка сброса'}), 500
+
+
+# ============================================================
+# КАРТА ШТАТА
+# ============================================================
+
+@app.route('/state')
+def state_view():
+    count_once('visits', 'counted_visit')
+    legend = get_state_legend()
+    cells = get_state_cells()
+    can_edit = is_admin()
+    return render_template('state.html',
+                           legend=legend,
+                           cells=cells,
+                           can_edit_state=can_edit)
+
+
+@app.route('/state/legend/add', methods=['POST'])
+@admin_required
+def state_legend_add():
+    data = request.get_json() or {}
+    color = (data.get('color') or '').strip()
+    label = (data.get('label') or '').strip()
+    if not color or not label:
+        return jsonify({'success': False, 'error': 'Цвет и название обязательны'}), 400
+    new_id = add_state_legend(color, label)
+    if new_id:
+        increment_counter('admin_actions')
+        return jsonify({'success': True, 'legend': get_state_legend()})
+    return jsonify({'success': False, 'error': 'Ошибка добавления'}), 500
+
+
+@app.route('/state/legend/delete/<int:legend_id>', methods=['POST'])
+@admin_required
+def state_legend_delete(legend_id):
+    if delete_state_legend(legend_id):
+        increment_counter('admin_actions')
+        return jsonify({'success': True, 'legend': get_state_legend()})
+    return jsonify({'success': False, 'error': 'Ошибка удаления'}), 500
+
+
+@app.route('/state/save', methods=['POST'])
+@admin_required
+def state_save():
+    data = request.get_json() or {}
+    cells = data.get('cells') or []
+    if save_state_cells(cells):
+        increment_counter('admin_actions')
+        return jsonify({'success': True})
+    return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
 
 
 # ============================================================
