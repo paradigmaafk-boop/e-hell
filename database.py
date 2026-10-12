@@ -174,7 +174,7 @@ def init_db():
     """)
 
     # ============================================================
-    # КАРТА ШТАТА (создаётся здесь, вместе с остальными таблицами)
+    # КАРТА ШТАТА
     # ============================================================
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS state_legend (
@@ -187,13 +187,10 @@ def init_db():
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS state_cells (
             id SERIAL PRIMARY KEY,
-            row_idx INTEGER NOT NULL,
-            col_idx INTEGER NOT NULL,
+            cell_index INTEGER NOT NULL UNIQUE,
             color TEXT,
             label TEXT,
-            group_id INTEGER,
-            updated_at TEXT NOT NULL,
-            UNIQUE(row_idx, col_idx)
+            updated_at TEXT NOT NULL
         )
     """)
 
@@ -1683,34 +1680,6 @@ def get_user_reservoir_history(user_id, limit=30):
 # КАРТА ШТАТА
 # ============================================================
 
-def init_state_tables():
-    """Создаёт таблицы для карты штата, если их нет."""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS state_legend (
-            id SERIAL PRIMARY KEY,
-            color TEXT NOT NULL,
-            label TEXT NOT NULL,
-            created_at TEXT NOT NULL
-        )
-    """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS state_cells (
-            id SERIAL PRIMARY KEY,
-            row_idx INTEGER NOT NULL,
-            col_idx INTEGER NOT NULL,
-            color TEXT,
-            label TEXT,
-            group_id INTEGER,
-            updated_at TEXT NOT NULL,
-            UNIQUE(row_idx, col_idx)
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-
 def get_state_legend():
     conn = get_connection()
     cursor = conn.cursor()
@@ -1756,31 +1725,33 @@ def delete_state_legend(legend_id):
 
 
 def get_state_cells():
+    """Возвращает список (cell_index, color, label)."""
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT row_idx, col_idx, color, label, group_id FROM state_cells")
+    cursor.execute("SELECT cell_index, color, label FROM state_cells ORDER BY cell_index ASC")
     data = cursor.fetchall()
     conn.close()
     return data
 
 
 def save_state_cells(cells_list):
-    """cells_list: список dict {r, c, color, label, group_id}."""
+    """
+    cells_list: список dict {index, color, label}.
+    Полностью перезаписывает таблицу.
+    """
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
         cursor.execute("DELETE FROM state_cells")
         for cell in cells_list:
-            r = int(cell.get('r', 0))
-            c = int(cell.get('c', 0))
+            idx = int(cell.get('index', 0))
             color = cell.get('color')
             label = cell.get('label')
-            group_id = cell.get('group_id')
             cursor.execute("""
-                INSERT INTO state_cells (row_idx, col_idx, color, label, group_id, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s)
-            """, (r, c, color, label, group_id, now))
+                INSERT INTO state_cells (cell_index, color, label, updated_at)
+                VALUES (%s, %s, %s, %s)
+            """, (idx, color, label, now))
         conn.commit()
         return True
     except Exception as e:
