@@ -15,15 +15,17 @@
         .state-page {
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 220px);
-            min-height: 700px;
+            min-height: calc(100vh - 220px);
             margin-top: 0.75rem;
         }
-        @media (max-width: 1000px) { .state-page { height: auto; min-height: 0; } }
 
         .state-header {
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
         }
         .state-header h1 {
             font-family: 'Forum', serif; font-size: 1.4rem;
@@ -37,18 +39,31 @@
         .state-header .sub { color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem; }
 
         .state-main {
-            display: grid; grid-template-columns: 320px 1fr;
-            gap: 1rem; flex: 1; min-height: 0;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
         }
-        @media (max-width: 1000px) { .state-main { grid-template-columns: 1fr; gap: 0.75rem; } }
+        @media (max-width: 1000px) {
+            .state-main { grid-template-columns: 1fr; gap: 0.75rem; }
+        }
 
+        /* ============================================================
+           ЛЕГЕНДА
+           ============================================================ */
         .legend-panel {
             display: flex; flex-direction: column;
             background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(15,8,3,0.95));
             border: 1px solid var(--line); border-radius: 12px;
-            padding: 1rem; overflow-y: auto; max-height: 100%;
+            padding: 1rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 220px);
         }
-        @media (max-width: 1000px) { .legend-panel { max-height: 40vh; } }
+        @media (max-width: 1000px) {
+            .legend-panel { max-height: 40vh; }
+        }
 
         .legend-panel h2 {
             font-size: 0.72rem; letter-spacing: 3px;
@@ -105,7 +120,15 @@
         }
         .legend-add button:hover { background: var(--accent); color: #fff; }
 
-        .map-column { display: flex; flex-direction: column; min-height: 0; }
+        /* ============================================================
+           ПРАВАЯ ЧАСТЬ: панель + карта
+           ============================================================ */
+        .map-column {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            min-width: 0;
+        }
 
         .toolbar {
             display: flex; align-items: center; gap: 0.5rem;
@@ -113,6 +136,7 @@
             background: linear-gradient(180deg, rgba(30,15,8,0.9), rgba(15,8,3,0.95));
             border: 1px solid var(--line); border-radius: 10px;
             flex-wrap: wrap; margin-bottom: 0.5rem;
+            flex-shrink: 0;
         }
         .toolbar-group {
             display: flex; align-items: center; gap: 0.3rem;
@@ -134,23 +158,59 @@
         .tool-btn:hover { border-color: var(--accent); color: var(--accent-warm); }
         .tool-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
 
+        /* ============================================================
+           КОНТЕЙНЕР КАРТЫ
+           Главная правка: карта сама подстраивается под доступную
+           площадь, без огромных пустых полей по бокам.
+           ============================================================ */
         .map-wrap {
-            flex: 1; display: flex; justify-content: center; align-items: center;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 0.5rem;
             background: linear-gradient(180deg, rgba(20,10,5,0.5), rgba(8,4,2,0.7));
-            border: 1px solid var(--line); border-radius: 12px;
-            overflow: auto; min-height: 0;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+            min-height: 0;
+            min-width: 0;
         }
-        @media (max-width: 1000px) { .map-wrap { height: 60vh; max-height: 500px; padding: 0.25rem; } }
 
         #map-svg {
-            width: 100%; height: 100%;
-            max-width: 100%; max-height: 100%;
-            display: block; background: #2a2a2a; border-radius: 8px;
+            /* Квадратная карта: занимает столько места, сколько может,
+               но не выходит за пределы контейнера ни по ширине, ни по высоте. */
+            display: block;
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            background: #2a2a2a;
+            border-radius: 8px;
             box-shadow: 0 0 40px rgba(0,0,0,0.6);
+            /* Гарантируем квадратную форму: */
+            aspect-ratio: 1 / 1;
+            /* preserveAspectRatio внутри SVG уже = xMidYMid meet */
         }
-        @media (max-width: 1000px) { #map-svg { width: auto; max-width: 100%; height: 100%; max-height: 100%; } }
 
+        /* На мобильных чуть поменьше */
+        @media (max-width: 1000px) {
+            .map-wrap {
+                height: 70vh;
+                max-height: 600px;
+                padding: 0.25rem;
+            }
+            #map-svg {
+                width: auto;
+                max-width: 100%;
+                height: 100%;
+                max-height: 100%;
+            }
+        }
+
+        /* ============================================================
+           ЯЧЕЙКИ КАРТЫ
+           ============================================================ */
         .cell {
             stroke: #000; stroke-width: 1px; cursor: pointer;
             transition: fill 0.15s, stroke 0.15s, filter 0.15s;
@@ -162,9 +222,17 @@
         }
         .cell .cell-label {
             fill: rgba(0,0,0,0.85);
-            font-family: 'Inter', sans-serif; font-weight: 700; font-size: 9px;
-            text-anchor: middle; dominant-baseline: middle;
-            pointer-events: none; user-select: none;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            /* шрифт крупнее, чем был (9px -> 11px) */
+            font-size: 11px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            pointer-events: none;
+            user-select: none;
+        }
+        @media (max-width: 1000px) {
+            .cell .cell-label { font-size: 9px; }
         }
 
         #tooltip {
@@ -189,6 +257,7 @@
             font-size: 0.75rem; color: var(--muted);
             display: flex; justify-content: space-between; align-items: center;
             flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem;
+            flex-shrink: 0;
         }
         .status-bar b { color: var(--accent-warm); }
 
@@ -725,15 +794,14 @@
     let legend = (window.INITIAL_LEGEND || []).filter(x => x);
     const legendList = document.getElementById('legendList');
 
-    // Приводит элемент легенды к объекту {id, color, label}
+    // ============================================================
+    // ЛЕГЕНДА
+    // ============================================================
     function normalizeLegendItem(item) {
         if (!item) return null;
         let id, color, label;
-        if (Array.isArray(item)) {
-            id = item[0]; color = item[1]; label = item[2];
-        } else {
-            id = item.id; color = item.color; label = item.label;
-        }
+        if (Array.isArray(item)) { id = item[0]; color = item[1]; label = item[2]; }
+        else { id = item.id; color = item.color; label = item.label; }
         if (id === undefined || id === null) return null;
         if (color === undefined || color === null) return null;
         if (label === undefined || label === null) return null;
@@ -741,11 +809,8 @@
         if (c === '') return null;
         return { id, color: c, label: String(label) };
     }
-
     function normalizeLegendArray(arr) {
-        return (arr || [])
-            .map(normalizeLegendItem)
-            .filter(x => x);
+        return (arr || []).map(normalizeLegendItem).filter(x => x);
     }
 
     function renderLegend() {
@@ -829,10 +894,7 @@
         legendAddBtn.addEventListener('click', async () => {
             const color = document.getElementById('legendColor').value;
             const label = document.getElementById('legendLabel').value.trim();
-            if (!label) {
-                alert('Введите название');
-                return;
-            }
+            if (!label) { alert('Введите название'); return; }
             try {
                 const res = await fetch('/state/legend/add', {
                     method: 'POST',
@@ -862,22 +924,55 @@
         });
     }
 
-    function polygonCentroid(pointsStr) {
+    // ============================================================
+    // ЦЕНТР БЛОКА — по bounding box, а не по среднему
+    // ============================================================
+    function polygonBBoxCenter(pointsStr) {
         const nums = pointsStr.split(',').map(Number);
-        const pts = [];
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
         for (let i = 0; i < nums.length; i += 2) {
-            pts.push({ x: nums[i], y: nums[i + 1] });
+            const x = nums[i], y = nums[i + 1];
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
         }
-        let sx = 0, sy = 0;
-        pts.forEach(p => { sx += p.x; sy += p.y; });
-        return { x: sx / pts.length, y: sy / pts.length };
+        return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
     }
 
+    // Оценка максимальной длины одной строки в блоке (для автоуменьшения шрифта)
+    // Чем меньше блок, тем меньше шрифт. Считаем «ширину» как min(bboxW, bboxH).
+    function chooseFontSize(bbox) {
+        const size = Math.min(bbox.w, bbox.h);
+        if (size >= 26) return 12;
+        if (size >= 20) return 11;
+        if (size >= 16) return 10;
+        if (size >= 12) return 9;
+        return 8;
+    }
+
+    function polygonBBox(pointsStr) {
+        const nums = pointsStr.split(',').map(Number);
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (let i = 0; i < nums.length; i += 2) {
+            const x = nums[i], y = nums[i + 1];
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
+        }
+        return { x: minX, y: minY, w: maxX - minX, h: maxY - minY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+    }
+
+    // ============================================================
+    // РЕНДЕР КАРТЫ
+    // ============================================================
     function renderMap() {
         svg.innerHTML = '';
 
         RAW_COORDS.forEach((coordStr, i) => {
             const pointsStr = coordStr.split(',').join(' ');
+            const bbox = polygonBBox(coordStr);
 
             const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
             polygon.setAttribute('points', pointsStr);
@@ -887,11 +982,12 @@
             polygon.setAttribute('stroke-width', '1');
             polygon.setAttribute('data-index', i);
 
-            const c = polygonCentroid(coordStr);
             const labelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             labelEl.setAttribute('class', 'cell-label');
-            labelEl.setAttribute('x', c.x);
-            labelEl.setAttribute('y', c.y);
+            // Размещаем ровно в центре bounding box — это визуальный центр блока
+            labelEl.setAttribute('x', bbox.cx);
+            labelEl.setAttribute('y', bbox.cy);
+            labelEl.setAttribute('font-size', chooseFontSize(bbox));
             labelEl.textContent = '';
 
             polygon.addEventListener('mouseenter', () => {
@@ -923,7 +1019,8 @@
                 labelEl: labelEl,
                 color: null,
                 labelText: null,
-                index: i
+                index: i,
+                bbox: bbox
             });
         });
 
@@ -933,7 +1030,6 @@
 
     function onCellClick(index) {
         const cell = cells[index];
-
         if (mode === 'paint') {
             cell.color = currentColor;
             cell.el.setAttribute('fill', currentColor);
@@ -971,11 +1067,7 @@
         const out = [];
         cells.forEach((cell, i) => {
             if (cell.color !== null || cell.labelText !== null) {
-                out.push({
-                    index: i,
-                    color: cell.color,
-                    label: cell.labelText
-                });
+                out.push({ index: i, color: cell.color, label: cell.labelText });
             }
         });
         return out;
@@ -993,7 +1085,6 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ cells: collectCells() })
             });
-
             const text = await res.text();
             let data;
             try { data = JSON.parse(text); }
@@ -1003,7 +1094,6 @@
                 btn.disabled = false;
                 return;
             }
-
             if (data.success) {
                 status.textContent = '✓ Сохранено';
                 setTimeout(() => status.textContent = '', 2000);
@@ -1034,6 +1124,9 @@
         });
     }
 
+    // ============================================================
+    // МОДАЛКА ПОДПИСИ
+    // ============================================================
     const labelModal = document.getElementById('labelModal');
     const labelInput = document.getElementById('labelInput');
     let labelTargetIndex = null;
