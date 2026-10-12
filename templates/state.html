@@ -222,22 +222,22 @@
            АДАПТИВ
            ============================================================ */
         @media (max-width: 1200px) {
-            .cell { width: 38px; height: 38px; margin-left: -9.5px; margin-top: -11px; }
-            .map-row { height: 20px; }
-            .map-row.offset { margin-left: 19px; }
-            .cell-label { font-size: 0.42rem; padding: 6px; }
+            .cell { width: 34px; height: 34px; margin-left: -8.5px; margin-top: -10px; }
+            .map-row { height: 18px; }
+            .map-row.offset { margin-left: 17px; }
+            .cell-label { font-size: 0.4rem; padding: 5px; }
         }
         @media (max-width: 900px) {
-            .cell { width: 28px; height: 28px; margin-left: -7px; margin-top: -8px; }
-            .map-row { height: 15px; }
-            .map-row.offset { margin-left: 14px; }
-            .cell-label { font-size: 0.34rem; padding: 4px; }
+            .cell { width: 24px; height: 24px; margin-left: -6px; margin-top: -7px; }
+            .map-row { height: 13px; }
+            .map-row.offset { margin-left: 12px; }
+            .cell-label { font-size: 0.3rem; padding: 3px; }
         }
         @media (max-width: 700px) {
             .state-map-wrap { padding: 1.5rem 0.5rem; }
-            .cell { width: 20px; height: 20px; margin-left: -5px; margin-top: -6px; }
-            .map-row { height: 11px; }
-            .map-row.offset { margin-left: 10px; }
+            .cell { width: 18px; height: 18px; margin-left: -4.5px; margin-top: -5.5px; }
+            .map-row { height: 10px; }
+            .map-row.offset { margin-left: 9px; }
             .cell-label { display: none; }
             .state-legend { font-size: 0.72rem; padding: 0.7rem 1rem; }
             .state-header h1 { font-size: 1.3rem; letter-spacing: 2px; }
@@ -389,45 +389,45 @@
     /* ============================================================
        ГЕНЕРАЦИЯ КАРТЫ ШТАТА
        ------------------------------------------------------------
-       Форма: изометрический ромб. Радиус (манхэттенское расстояние
-       от центра) = 16. Значит, диагональ = 33 клетки.
+       Радиус (манхэттенское расстояние от центра) = 12.
+       Значит: диагональ = 25 клеток, всего внутри ромба — 313.
        Слои от центра:
          0        — Аркадия
          1        — Военная база
-         2-3      — Центр исследований
-         4-5      — Мегаполис
-         6-7      — Городок
-         8-9      — Завод
-         10       — Деревня
-         11-12    — Бастион ур.6
-         13       — Бастион ур.5
-         14       — Бастион ур.4
-         15       — Бастион ур.3
-         16       — Бастион ур.2
-         17       — Бастион ур.1
+         2        — Бастион ур.6
+         3        — Центр исследований
+         4        — Бастион ур.5
+         5        — Мегаполис
+         6        — Бастион ур.4
+         7        — Городок
+         8        — Бастион ур.3
+         9        — Завод
+         10       — Бастион ур.2
+         11       — Деревня
+         12       — Бастион ур.1 (внешний контур)
        ============================================================ */
     (function() {
-        const RADIUS = 16;                  // расстояние от центра
-        const SIZE = RADIUS * 2 + 1;        // = 33 строки и колонки
-        const CENTER = RADIUS;              // = 16
+        const RADIUS = 12;
+        const SIZE = RADIUS * 2 + 1;        // = 25
+        const CENTER = RADIUS;              // = 12
         const map = document.getElementById('stateMap');
 
         function getClass(dx, dy) {
-            const manhattan = Math.abs(dx) + Math.abs(dy);
+            const dist = Math.abs(dx) + Math.abs(dy);
 
-            if (manhattan === 0) return 'c-arcadia';
-            if (manhattan === 1) return 'c-military';
-            if (manhattan === 2 || manhattan === 3) return 'c-research';
-            if (manhattan === 4 || manhattan === 5) return 'c-megapolis';
-            if (manhattan === 6 || manhattan === 7) return 'c-city';
-            if (manhattan === 8 || manhattan === 9) return 'c-factory';
-            if (manhattan === 10) return 'c-village';
-            if (manhattan === 11 || manhattan === 12) return 'c-bastion6';
-            if (manhattan === 13) return 'c-bastion5';
-            if (manhattan === 14) return 'c-bastion4';
-            if (manhattan === 15) return 'c-bastion3';
-            if (manhattan === 16) return 'c-bastion2';
-            return 'c-bastion1';                // 17
+            if (dist === 0)  return 'c-arcadia';
+            if (dist === 1)  return 'c-military';
+            if (dist === 2)  return 'c-bastion6';
+            if (dist === 3)  return 'c-research';
+            if (dist === 4)  return 'c-bastion5';
+            if (dist === 5)  return 'c-megapolis';
+            if (dist === 6)  return 'c-bastion4';
+            if (dist === 7)  return 'c-city';
+            if (dist === 8)  return 'c-bastion3';
+            if (dist === 9)  return 'c-factory';
+            if (dist === 10) return 'c-bastion2';
+            if (dist === 11) return 'c-village';
+            return 'c-bastion1';                // 12
         }
 
         const labels = {
