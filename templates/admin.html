@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
-        /* === Управление ролями === */
         .roles-block {
             margin-top: 2rem;
             padding: 1.5rem;
@@ -75,10 +74,10 @@
         .role-admin { background: rgba(255,184,0,0.15); color: #ffb800; border: 1px solid rgba(255,184,0,0.4); }
         .role-super_admin { background: rgba(255,69,0,0.18); color: #ff4500; border: 1px solid rgba(255,69,0,0.5); }
         .role-reservoir { background: rgba(74, 158, 255, 0.15); color: #4a9eff; border: 1px solid rgba(74, 158, 255, 0.45); }
+        .role-state_admin { background: rgba(140, 200, 120, 0.15); color: #8ce078; border: 1px solid rgba(140, 200, 120, 0.5); }
         body.light-theme .roles-block { background: #fff8ec; }
         body.light-theme .role-row { background: #fff5e6; }
 
-        /* === Тултип === */
         .tooltip-admin-block {
             margin-top: 2rem;
             padding: 1.5rem;
@@ -102,9 +101,6 @@
         }
         body.light-theme .tooltip-admin-block { background: #fff8ec; }
 
-        /* ============================================================
-           БЛОК «СБРОСЫ» — рейтинги + яблоки + карта штата
-           ============================================================ */
         .reset-block {
             margin-top: 2rem;
             padding: 1.75rem;
@@ -159,9 +155,7 @@
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 0.6rem;
         }
-        .reset-buttons form {
-            display: block;
-        }
+        .reset-buttons form { display: block; }
         .reset-buttons .btn {
             width: 100%;
             text-align: center;
@@ -209,9 +203,7 @@
 
         @media (max-width: 780px) {
             .role-row { grid-template-columns: 1fr; }
-            .reset-buttons {
-                grid-template-columns: 1fr;
-            }
+            .reset-buttons { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -275,30 +267,12 @@
     </header>
 
     <nav class="nav">
-        <a href="/rating/total">
-            <span class="nav-full">Рейтинг</span>
-            <span class="nav-short">Рейтинг</span>
-        </a>
-        <a href="/rating/duel">
-            <span class="nav-full">Рейтинг Дуэли</span>
-            <span class="nav-short">VS</span>
-        </a>
-        <a href="/rating/arcadia">
-            <span class="nav-full">Рейтинг Аркадии</span>
-            <span class="nav-short">Аркадия</span>
-        </a>
-        <a href="/reservoir">
-            <span class="nav-full">Резервуар</span>
-            <span class="nav-short">РР</span>
-        </a>
-        <a href="/state">
-    <span class="nav-full">Штат</span>
-    <span class="nav-short">Штат</span>
-</a>
-        <a href="/calculator">
-            <span class="nav-full">Калькулятор</span>
-            <span class="nav-short">Калькулятор</span>
-        </a>
+        <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
+        <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
+        <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
+        <a href="/reservoir"><span class="nav-full">Резервуар</span><span class="nav-short">РР</span></a>
+        <a href="/state"><span class="nav-full">Штат</span><span class="nav-short">Штат</span></a>
+        <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
         {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin active" title="Админ-панель">⚙</a>
         {% endif %}
@@ -354,9 +328,7 @@
     {% if is_super_admin %}
     <section class="tooltip-admin-block">
         <h3>ℹ Тултип в рейтинге</h3>
-        <p>
-            Настройте текст, который появится при нажатии на значок «?» рядом с заголовком «Общий рейтинг».
-        </p>
+        <p>Настройте текст, который появится при нажатии на значок «?» рядом с заголовком «Общий рейтинг».</p>
         <a href="/admin/rating-tooltip" class="btn btn-primary">✏ Установить текст для тултипа в рейтинге</a>
     </section>
     {% endif %}
@@ -381,6 +353,7 @@
                     <span class="role-pill role-{{ urole }}">
                         {% if urole == 'super_admin' %}Супер-админ
                         {% elif urole == 'admin' %}Админ
+                        {% elif urole == 'state_admin' %}Админ штата
                         {% elif urole == 'reservoir' %}Резервуар
                         {% else %}Игрок{% endif %}
                     </span>
@@ -390,6 +363,7 @@
                     <select name="new_role">
                         <option value="player" {% if urole == 'player' %}selected{% endif %}>Игрок</option>
                         <option value="reservoir" {% if urole == 'reservoir' %}selected{% endif %}>Резервуар</option>
+                        <option value="state_admin" {% if urole == 'state_admin' %}selected{% endif %}>Админ штата</option>
                         <option value="admin" {% if urole == 'admin' %}selected{% endif %}>Админ</option>
                         <option value="super_admin" {% if urole == 'super_admin' %}selected{% endif %}>Супер-админ</option>
                     </select>
@@ -404,87 +378,54 @@
     </section>
     {% endif %}
 
-    <!-- ============================================================
-         ЕДИНЫЙ БЛОК «СБРОСЫ» — рейтинги + яблоки + карта штата
-         ============================================================ -->
     {% if is_super_admin %}
     <section class="reset-block">
         <h3>⚠️ Сбросы</h3>
-        <p>
-            Внимание! Эти действия необратимы. Перед использованием убедитесь, что понимаете последствия.
-        </p>
+        <p>Внимание! Эти действия необратимы.</p>
 
-        <!-- === СБРОС РЕЙТИНГОВ === -->
         <div class="reset-group">
             <div class="reset-group-title">
                 <span class="ico">📊</span>
                 <span>Сброс рейтингов</span>
             </div>
-            <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 0.85rem;">
-                Удаляет всю историю очков указанного рейтинга и обнуляет текущие очки.
-                Аккаунты игроков, привязки ников и <b>яблоки</b> — <b>остаются нетронутыми</b>.
-            </p>
             <div class="reset-buttons">
                 <form action="/reset-rating/duel" method="POST"
-                      onsubmit="return confirm('⚠️ Сбросить рейтинг Дуэли?\n\nБудет удалено:\n— вся история очков Дуэли\n— текущие очки обнулятся\n\nОстанутся:\n— аккаунты игроков\n— привязки ников\n— яблоки за сезон\n\nПродолжить?');">
-                    <button type="submit" class="btn btn-danger">
-                        🗑️ Сбросить рейтинг Дуэли
-                    </button>
+                      onsubmit="return confirm('⚠️ Сбросить рейтинг Дуэли?');">
+                    <button type="submit" class="btn btn-danger">🗑️ Сбросить рейтинг Дуэли</button>
                 </form>
 
                 <form action="/reset-rating/arcadia" method="POST"
-                      onsubmit="return confirm('⚠️ Сбросить рейтинг Аркадии?\n\nБудет удалено:\n— вся история очков Аркадии\n— текущие очки обнулятся\n\nОстанутся:\n— аккаунты игроков\n— привязки ников\n— яблоки за сезон\n\nПродолжить?');">
-                    <button type="submit" class="btn btn-danger">
-                        🗑️ Сбросить рейтинг Аркадии
-                    </button>
+                      onsubmit="return confirm('⚠️ Сбросить рейтинг Аркадии?');">
+                    <button type="submit" class="btn btn-danger">🗑️ Сбросить рейтинг Аркадии</button>
                 </form>
             </div>
         </div>
 
-        <!-- === СБРОС ЯБЛОК === -->
         <div class="reset-group">
             <div class="reset-group-title">
                 <span class="ico">🍎</span>
                 <span>Сброс яблок</span>
             </div>
-            <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 0.85rem;">
-                «Мои отданные» — обнуляет только ваш личный счётчик отданных яблок на этой неделе.
-                «Все у всех» — удаляет <b>все подарки за сезон</b> без возможности восстановления.
-            </p>
             <div class="reset-buttons">
-                <form method="POST" action="/admin/reset-my-apples"
-                      onsubmit="return confirm('Обнулить ВАШ счётчик отданных яблок?\n\nВы сможете снова подарить 5 яблок на этой неделе. Яблоки других игроков не тронутся.');">
-                    <button type="submit" class="btn btn-primary">
-                        🍎 Обнулить мои отданные яблоки
-                    </button>
+                <form method="POST" action="/admin/reset-my-apples">
+                    <button type="submit" class="btn btn-primary">🍎 Обнулить мои отданные яблоки</button>
                 </form>
 
-                <form method="POST" action="/admin/reset-apples"
-                      onsubmit="return confirm('⚠️ Сбросить ВСЕ яблоки у ВСЕХ игроков?\n\nЭто удалит все подарки за сезон. Действие необратимо.');">
-                    <button type="submit" class="btn btn-critical">
-                        🍎 Сбросить все яблоки у всех
-                    </button>
+                <form method="POST" action="/admin/reset-apples">
+                    <button type="submit" class="btn btn-critical">🍎 Сбросить все яблоки у всех</button>
                 </form>
             </div>
         </div>
 
-        <!-- === СБРОС КАРТЫ ШТАТА === -->
         <div class="reset-group">
             <div class="reset-group-title">
                 <span class="ico">🗺️</span>
                 <span>Карта штата</span>
             </div>
-            <p style="color: var(--muted); font-size: 0.82rem; margin-bottom: 0.85rem;">
-                Удаляет <b>все покраски и подписи</b> на карте штата, а также <b>всю легенду</b>.
-                Сами таблицы будут пересозданы в актуальной схеме. Используйте, если карта сломалась
-                или нужно начать с чистого листа.
-            </p>
             <div class="reset-buttons">
                 <form method="POST" action="/admin/reset-state-tables"
-                      onsubmit="return confirm('⚠️ Сбросить карту штата?\n\nБудет удалено:\n— все покраски блоков\n— все подписи на блоках\n— вся легенда (цвета + названия)\n\nТаблицы будут пересозданы заново.\n\nПродолжить?');">
-                    <button type="submit" class="btn btn-critical">
-                        🗑️ Сбросить карту штата
-                    </button>
+                      onsubmit="return confirm('⚠️ Сбросить карту штата?');">
+                    <button type="submit" class="btn btn-critical">🗑️ Сбросить карту штата</button>
                 </form>
             </div>
         </div>
