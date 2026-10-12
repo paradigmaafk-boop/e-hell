@@ -1688,3 +1688,114 @@ def get_user_reservoir_history(user_id, limit=30):
     data = cursor.fetchall()
     conn.close()
     return data
+
+# ============================================================
+# КАРТА ШТАТА
+# ============================================================
+
+def init_state_tables():
+    """Создаёт таблицы для карты штата, если их нет."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS state_legend (
+            id SERIAL PRIMARY KEY,
+            color TEXT NOT NULL,
+            label TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS state_cells (
+            id SERIAL PRIMARY KEY,
+            row_idx INTEGER NOT NULL,
+            col_idx INTEGER NOT NULL,
+            color TEXT,
+            label TEXT,
+            group_id INTEGER,
+            updated_at TEXT NOT NULL,
+            UNIQUE(row_idx, col_idx)
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+
+def get_state_legend():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, color, label FROM state_legend ORDER BY id ASC")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def add_state_legend(color, label):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute(
+            "INSERT INTO state_legend (color, label, created_at) VALUES (%s, %s, %s) RETURNING id",
+            (color, label, now)
+        )
+        new_id = cursor.fetchone()[0]
+        conn.commit()
+        return new_id
+    except Exception as e:
+        print(f"add_state_legend error: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
+def delete_state_legend(legend_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM state_legend WHERE id = %s", (legend_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"delete_state_legend error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_state_cells():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT row_idx, col_idx, color, label, group_id FROM state_cells")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def save_state_cells(cells_list):
+    """cells_list: список dict {r, c, color, label, group_id}."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("DELETE FROM state_cells")
+        for cell in cells_list:
+            r = int(cell.get('r', 0))
+            c = int(cell.get('c', 0))
+            color = cell.get('color')
+            label = cell.get('label')
+            group_id = cell.get('group_id')
+            cursor.execute("""
+                INSERT INTO state_cells (row_idx, col_idx, color, label, group_id, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (r, c, color, label, group_id, now))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"save_state_cells error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
