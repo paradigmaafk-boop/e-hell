@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <style>
         /* ============================================================
-           ОБЩАЯ ОБЁРТКА КАРТЫ
+           ОБЩАЯ ОБЁРТКА
            ============================================================ */
         .state-page {
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 1rem 0 3rem;
+            width: 100%;
         }
 
         .state-header {
@@ -73,11 +74,13 @@
         }
 
         /* ============================================================
-           КАРТА (РОМБ)
+           КАРТА
+           Ромбовидная сетка из ромбиков. Без rotate() всего контейнера.
+           Каждая клетка — отдельный ромб через clip-path.
            ============================================================ */
         .state-map-wrap {
             position: relative;
-            padding: 1rem;
+            padding: 2.5rem 1rem;
             background:
                 radial-gradient(ellipse at center, rgba(255,69,0,0.06), transparent 70%),
                 linear-gradient(180deg, rgba(30,15,8,0.55), rgba(8,4,2,0.75));
@@ -88,75 +91,104 @@
                 inset 0 0 40px rgba(255,69,0,0.04);
             max-width: 100%;
             overflow-x: auto;
+            overflow-y: visible;
         }
 
-        /* Сетка-ромб из кубиков */
+        /* Внутренняя сетка */
         .state-map {
-            display: grid;
-            grid-template-columns: repeat(21, 62px);
-            grid-auto-rows: 36px;
-            justify-content: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+            width: max-content;
             margin: 0 auto;
-            padding: 1rem 0;
-            /* Наклоняем всю сетку в ромб */
-            transform: rotate(45deg);
-            transform-origin: center center;
+            /* Оставляем место снизу и сверху для «приподнимания» */
+            padding: 20px 0;
         }
 
-        /* «Кубик» — ромбик */
+        /* Одна строка ромбов */
+        .map-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 26px;         /* половина клетки по вертикали */
+            position: relative;
+        }
+        /* Чётные строки смещены влево/вправо на полклетки */
+        .map-row.offset {
+            margin-left: 24px;    /* сдвиг на половину ширины клетки */
+        }
+
+        /* ============================================================
+           КУБИК-РОМБ
+           ============================================================ */
         .cell {
             position: relative;
-            width: 62px;
-            height: 62px;
-            margin: 0;
-            transform: rotate(-45deg) scale(0.92);
-            border-radius: 3px;
-            border: 1px solid rgba(0,0,0,0.45);
+            width: 48px;
+            height: 48px;
+            margin-left: -12px;   /* отрицательный margin = «сплющивание» по горизонтали */
+            margin-top: -14px;    /* отрицательный margin = «сплющивание» по вертикали */
+            flex-shrink: 0;
             cursor: pointer;
             transition:
-                transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.25s ease,
-                filter 0.25s ease;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.25),
-                inset 0 -3px 6px rgba(0,0,0,0.35),
-                0 2px 4px rgba(0,0,0,0.5);
-            /* Смещение строк — половина клетки, чтобы получился шахматный ромб */
+                transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+                filter 0.28s ease,
+                z-index 0s;
             z-index: 1;
         }
 
-        /* Каждая чётная строка — смещена */
-        .cell.offset {
-            grid-column-start: auto;
-            margin-left: -31px;
-        }
-
-        /* Hover: приподнимаем */
-        .cell:hover {
-            transform: rotate(-45deg) scale(1.08) translateY(-6px);
-            z-index: 10;
-            box-shadow:
-                inset 0 1px 0 rgba(255,255,255,0.5),
-                inset 0 -3px 6px rgba(0,0,0,0.4),
-                0 12px 24px rgba(0,0,0,0.65),
-                0 0 24px rgba(255,200,80,0.55);
-            filter: brightness(1.15);
-        }
-
-        /* Внутренняя текстура кубика — тонкая сетка */
+        /* Сам ромбик — рисуется через clip-path и заливается цветом */
         .cell::before {
             content: "";
             position: absolute;
             inset: 2px;
-            border-radius: 2px;
-            background-image:
-                linear-gradient(135deg, rgba(255,255,255,0.08) 25%, transparent 25%),
-                linear-gradient(225deg, rgba(0,0,0,0.08) 25%, transparent 25%);
-            background-size: 6px 6px;
-            pointer-events: none;
+            background: #666;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -2px 3px rgba(0,0,0,0.35);
+            transition: box-shadow 0.28s ease, filter 0.28s ease;
         }
 
-        /* Подпись внутри кубика */
+        /* Внутренняя «грань» для 3D-эффекта */
+        .cell::after {
+            content: "";
+            position: absolute;
+            inset: 8px;
+            background: rgba(255,255,255,0.08);
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+            pointer-events: none;
+            transition: background 0.28s ease;
+        }
+
+        /* Hover: приподнимаем и подсвечиваем */
+        .cell:hover {
+            transform: translateY(-8px) scale(1.14);
+            z-index: 100;
+            filter: brightness(1.2);
+        }
+        .cell:hover::before {
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.6),
+                inset 0 -2px 3px rgba(0,0,0,0.4),
+                0 0 20px 3px rgba(255,200,80,0.85),
+                0 0 40px 8px rgba(255,120,0,0.45);
+        }
+        .cell:hover::after {
+            background: rgba(255,255,255,0.28);
+        }
+
+        /* Пустая клетка (вне ромба) — невидимая, но занимает место */
+        .cell.empty {
+            pointer-events: none;
+            cursor: default;
+        }
+        .cell.empty::before,
+        .cell.empty::after {
+            display: none;
+        }
+
+        /* Подпись внутри ромба */
         .cell-label {
             position: absolute;
             inset: 0;
@@ -164,68 +196,59 @@
             align-items: center;
             justify-content: center;
             font-family: 'Inter', sans-serif;
-            font-size: 0.52rem;
-            font-weight: 600;
+            font-size: 0.5rem;
+            font-weight: 700;
             letter-spacing: 0.2px;
-            color: rgba(0,0,0,0.75);
-            text-shadow: 0 1px 0 rgba(255,255,255,0.25);
+            color: rgba(0,0,0,0.78);
+            text-shadow: 0 1px 0 rgba(255,255,255,0.28);
             text-align: center;
-            line-height: 1.05;
-            padding: 2px;
+            line-height: 1;
+            padding: 8px;
             overflow: hidden;
-            word-break: break-word;
             pointer-events: none;
             user-select: none;
+            z-index: 2;
         }
-
-        /* Подсветка целевых (светлых) ячеек */
-        .cell.empty {
-            background: transparent !important;
-            border: none;
-            box-shadow: none;
-            cursor: default;
-            pointer-events: none;
-        }
-        .cell.empty::before { display: none; }
 
         /* ============================================================
-           ЦВЕТА КУБИКОВ — как в легенде
+           ЦВЕТА — как в легенде
            ============================================================ */
-        .cell.c-arcadia    { background: linear-gradient(135deg, #ffd633, #f5a800); }
-        .cell.c-military   { background: linear-gradient(135deg, #e6392f, #b71c1c); }
-        .cell.c-research   { background: linear-gradient(135deg, #9b5cc9, #6a2ea0); }
-        .cell.c-megapolis  { background: linear-gradient(135deg, #ffa726, #ef6c00); }
-        .cell.c-city       { background: linear-gradient(135deg, #66bb6a, #2e7d32); }
-        .cell.c-factory    { background: linear-gradient(135deg, #26a69a, #00695c); }
-        .cell.c-village    { background: linear-gradient(135deg, #a9b7c6, #77889b); }
-        .cell.c-bastion1   { background: linear-gradient(135deg, #e6d3b3, #c9b18a); }
-        .cell.c-bastion2   { background: linear-gradient(135deg, #d3b98c, #b29566); }
-        .cell.c-bastion3   { background: linear-gradient(135deg, #b89a6b, #96794d); }
-        .cell.c-bastion4   { background: linear-gradient(135deg, #8f7248, #6c522f); }
-        .cell.c-bastion5   { background: linear-gradient(135deg, #6a4f2e, #4a341c); }
-        .cell.c-bastion6   { background: linear-gradient(135deg, #4a341c, #2d1e0e); }
+        .cell.c-arcadia::before   { background: radial-gradient(circle at 35% 30%, #ffe066, #f5a800 70%, #b87a00); }
+        .cell.c-military::before  { background: radial-gradient(circle at 35% 30%, #ff5a4a, #d32f2f 70%, #8e0000); }
+        .cell.c-research::before  { background: radial-gradient(circle at 35% 30%, #b47ed6, #7e3fb0 70%, #4a1470); }
+        .cell.c-megapolis::before { background: radial-gradient(circle at 35% 30%, #ffb74d, #f57c00 70%, #b34e00); }
+        .cell.c-city::before      { background: radial-gradient(circle at 35% 30%, #81c784, #43a047 70%, #1b5e20); }
+        .cell.c-factory::before   { background: radial-gradient(circle at 35% 30%, #4db6ac, #00897b 70%, #004d40); }
+        .cell.c-village::before   { background: radial-gradient(circle at 35% 30%, #c4cfdb, #90a0b3 70%, #5a6879); }
 
-        /* Тёмные кубики — светлый текст */
+        .cell.c-bastion1::before  { background: radial-gradient(circle at 35% 30%, #f0e0c4, #d3ba94 70%, #a89073); }
+        .cell.c-bastion2::before  { background: radial-gradient(circle at 35% 30%, #dbc39a, #b89a6b 70%, #8a6f47); }
+        .cell.c-bastion3::before  { background: radial-gradient(circle at 35% 30%, #c2a273, #9c7c4d 70%, #6d5230); }
+        .cell.c-bastion4::before  { background: radial-gradient(circle at 35% 30%, #96794f, #74582e 70%, #4d3818); }
+        .cell.c-bastion5::before  { background: radial-gradient(circle at 35% 30%, #6a5233, #4d3a20 70%, #2c1e0d); }
+        .cell.c-bastion6::before  { background: radial-gradient(circle at 35% 30%, #46331b, #2d1f10 70%, #150c04); }
+
+        /* Тёмные ячейки — светлый текст */
         .cell.c-bastion4 .cell-label,
         .cell.c-bastion5 .cell-label,
         .cell.c-bastion6 .cell-label,
         .cell.c-research .cell-label,
         .cell.c-military .cell-label,
-        .cell.c-factory .cell-label,
-        .cell.c-city .cell-label {
-            color: rgba(255,255,255,0.92);
-            text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+        .cell.c-city .cell-label,
+        .cell.c-factory .cell-label {
+            color: rgba(255,255,255,0.95);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.85);
         }
 
         /* ============================================================
-           ПОДПИСЬ «created by»
+           ПОДПИСЬ «created by dutysniper»
            ============================================================ */
         .state-credit {
             position: relative;
             width: 100%;
             max-width: 900px;
-            height: 30px;
-            margin-top: 1rem;
+            height: 40px;
+            margin-top: 1.5rem;
         }
         .state-credit span {
             position: absolute;
@@ -233,45 +256,46 @@
             font-size: 1rem;
             letter-spacing: 3px;
             color: var(--dim);
-            opacity: 0.6;
+            opacity: 0.65;
+            white-space: nowrap;
         }
-        .state-credit .tl { top: 0; left: 0; transform: rotate(-30deg); transform-origin: left; }
-        .state-credit .br { bottom: 0; right: 0; transform: rotate(-30deg); transform-origin: right; }
+        .state-credit .tl {
+            top: 0;
+            left: 1rem;
+            transform: rotate(-28deg);
+            transform-origin: left top;
+        }
+        .state-credit .br {
+            bottom: 0;
+            right: 1rem;
+            transform: rotate(-28deg);
+            transform-origin: right bottom;
+        }
 
         /* ============================================================
-           МОБИЛЬНАЯ АДАПТАЦИЯ
+           АДАПТИВ
            ============================================================ */
         @media (max-width: 1000px) {
-            .state-map {
-                grid-template-columns: repeat(21, 46px);
-                grid-auto-rows: 27px;
-            }
-            .cell { width: 46px; height: 46px; }
-            .cell.offset { margin-left: -23px; }
-            .cell-label { font-size: 0.4rem; }
+            .cell { width: 34px; height: 34px; margin-left: -8.5px; margin-top: -10px; }
+            .map-row { height: 18px; }
+            .map-row.offset { margin-left: 17px; }
+            .cell-label { font-size: 0.4rem; padding: 5px; }
         }
         @media (max-width: 700px) {
-            .state-map {
-                grid-template-columns: repeat(21, 34px);
-                grid-auto-rows: 20px;
-            }
-            .cell { width: 34px; height: 34px; }
-            .cell.offset { margin-left: -17px; }
-            .cell-label { font-size: 0.32rem; padding: 1px; }
-            .state-legend { font-size: 0.7rem; padding: 0.75rem 1rem; }
-            .legend-item { font-size: 0.72rem; }
-            .state-header h1 { font-size: 1.4rem; }
+            .state-map-wrap { padding: 1.5rem 0.5rem; }
+            .cell { width: 24px; height: 24px; margin-left: -6px; margin-top: -7px; }
+            .map-row { height: 13px; }
+            .map-row.offset { margin-left: 12px; }
+            .cell-label { font-size: 0.3rem; padding: 3px; }
+            .state-legend { font-size: 0.72rem; padding: 0.7rem 1rem; }
+            .state-header h1 { font-size: 1.3rem; letter-spacing: 2px; }
+            .state-credit span { font-size: 0.75rem; letter-spacing: 2px; }
         }
         @media (max-width: 480px) {
-            .state-map {
-                grid-template-columns: repeat(21, 26px);
-                grid-auto-rows: 15px;
-            }
-            .cell { width: 26px; height: 26px; }
-            .cell.offset { margin-left: -13px; }
-            .cell-label { font-size: 0.26rem; padding: 1px; letter-spacing: 0; }
-            .legend-item { font-size: 0.68rem; }
-            .legend-swatch { width: 10px; height: 10px; }
+            .cell { width: 18px; height: 18px; margin-left: -4.5px; margin-top: -5.5px; }
+            .map-row { height: 10px; }
+            .map-row.offset { margin-left: 9px; }
+            .cell-label { display: none; } /* на самых маленьких экранах подписи не помещаются */
         }
     </style>
 </head>
@@ -395,9 +419,7 @@
 
         <!-- КАРТА -->
         <div class="state-map-wrap">
-            <div class="state-map" id="stateMap">
-                {# Заполняется через JS, чтобы не писать 441 div вручную #}
-            </div>
+            <div class="state-map" id="stateMap"></div>
         </div>
 
         <!-- ПОДПИСЬ -->
@@ -410,40 +432,64 @@
 
 </div>
 
+<style>
+    /* Легенда — те же цвета, что и кубики */
+    .legend-swatch.c-arcadia   { background: radial-gradient(circle at 35% 30%, #ffe066, #f5a800 70%, #b87a00); }
+    .legend-swatch.c-military  { background: radial-gradient(circle at 35% 30%, #ff5a4a, #d32f2f 70%, #8e0000); }
+    .legend-swatch.c-research  { background: radial-gradient(circle at 35% 30%, #b47ed6, #7e3fb0 70%, #4a1470); }
+    .legend-swatch.c-megapolis { background: radial-gradient(circle at 35% 30%, #ffb74d, #f57c00 70%, #b34e00); }
+    .legend-swatch.c-city      { background: radial-gradient(circle at 35% 30%, #81c784, #43a047 70%, #1b5e20); }
+    .legend-swatch.c-factory   { background: radial-gradient(circle at 35% 30%, #4db6ac, #00897b 70%, #004d40); }
+    .legend-swatch.c-village   { background: radial-gradient(circle at 35% 30%, #c4cfdb, #90a0b3 70%, #5a6879); }
+    .legend-swatch.c-bastion1  { background: radial-gradient(circle at 35% 30%, #f0e0c4, #d3ba94 70%, #a89073); }
+    .legend-swatch.c-bastion2  { background: radial-gradient(circle at 35% 30%, #dbc39a, #b89a6b 70%, #8a6f47); }
+    .legend-swatch.c-bastion3  { background: radial-gradient(circle at 35% 30%, #c2a273, #9c7c4d 70%, #6d5230); }
+    .legend-swatch.c-bastion4  { background: radial-gradient(circle at 35% 30%, #96794f, #74582e 70%, #4d3818); }
+    .legend-swatch.c-bastion5  { background: radial-gradient(circle at 35% 30%, #6a5233, #4d3a20 70%, #2c1e0d); }
+    .legend-swatch.c-bastion6  { background: radial-gradient(circle at 35% 30%, #46331b, #2d1f10 70%, #150c04); }
+</style>
+
 <script>
     /* ============================================================
        ГЕНЕРАЦИЯ КАРТЫ
-       Ромб 21×21. Центр — Аркадия. Симметричное распределение
-       секторов: военная база,研究中心, мегаполисы, города, заводы,
-       деревни, затем 6 уровней бастионов по краям.
+       ------------------------------------------------------------
+       Ромбовидная сетка. Строк — 41 (нечётное число), чтобы центр
+       был посередине. Каждая строка состоит из N ромбиков.
+       Чётные строки смещены вправо на полклетки — это даёт
+       правильную «шахматку» ромбов.
+       ------------------------------------------------------------
+       Форма ромба: клетка рисуется, если манхэттенское расстояние
+       от центра <= радиус.
        ============================================================ */
     (function() {
-        const SIZE = 21;               // 21×21 — как на картинке
-        const CENTER = Math.floor(SIZE / 2); // 10
+        const ROWS = 41;                              // 41 строка
+        const CENTER_ROW = Math.floor(ROWS / 2);      // = 20
+        const CENTER_COL = Math.floor(ROWS / 2);      // = 20
+
+        // Максимальный радиус ромба (в ромбиках от центра).
+        // На картинке от центра до угла примерно 20 ромбиков.
+        const MAX_RADIUS = 19;
+
         const map = document.getElementById('stateMap');
 
-        // Классы по расстоянию от центра (чебышёвское)
-        // 0 — аркадия, 1 — военная база, 2 — research,
-        // 3–4 — мегаполис, 5–6 — город, 7–8 — завод,
-        // 9 — деревня, 10–15 — бастионы 1..6
-        function getClassForDistance(d, x, y) {
-            if (d === 0) return 'c-arcadia';
-            if (d === 1) return 'c-military';
-            if (d === 2) return 'c-research';
-            if (d === 3 || d === 4) return 'c-megapolis';
-            if (d === 5 || d === 6) return 'c-city';
-            if (d === 7 || d === 8) return 'c-factory';
-            if (d === 9) return 'c-village';
-            if (d === 10) return 'c-bastion1';
-            if (d === 11) return 'c-bastion2';
-            if (d === 12) return 'c-bastion3';
-            if (d === 13) return 'c-bastion4';
-            if (d === 14) return 'c-bastion5';
-            if (d >= 15) return 'c-bastion6';
-            return 'c-village';
+        // Класс в зависимости от расстояния Чебышёва
+        function getClass(dist) {
+            if (dist === 0)                 return 'c-arcadia';
+            if (dist === 1)                 return 'c-military';
+            if (dist === 2)                 return 'c-research';
+            if (dist <= 4)                  return 'c-megapolis';
+            if (dist <= 6)                  return 'c-city';
+            if (dist <= 8)                  return 'c-factory';
+            if (dist === 9)                 return 'c-village';
+            if (dist === 10)                return 'c-bastion1';
+            if (dist === 11)                return 'c-bastion2';
+            if (dist === 12)                return 'c-bastion3';
+            if (dist === 13)                return 'c-bastion4';
+            if (dist === 14)                return 'c-bastion5';
+            return 'c-bastion6';            // 15+
         }
 
-        // Короткие подписи для кубиков
+        // Короткие подписи внутри ромба
         const labels = {
             'c-arcadia':   'Аркадия',
             'c-military':  'Воен.',
@@ -460,7 +506,6 @@
             'c-bastion6':  'Бст.6'
         };
 
-        // Полные названия для title-подсказки
         const titles = {
             'c-arcadia':   'Аркадия (столица)',
             'c-military':  'Военная база',
@@ -469,63 +514,54 @@
             'c-city':      'Городок',
             'c-factory':   'Завод',
             'c-village':   'Деревня',
-            'c-bastion1':  'Бастион уровня 1',
-            'c-bastion2':  'Бастион уровня 2',
-            'c-bastion3':  'Бастион уровня 3',
-            'c-bastion4':  'Бастион уровня 4',
-            'c-bastion5':  'Бастион уровня 5',
-            'c-bastion6':  'Бастион уровня 6'
+            'c-bastion1':  'Бастион ур.1',
+            'c-bastion2':  'Бастион ур.2',
+            'c-bastion3':  'Бастион ур.3',
+            'c-bastion4':  'Бастион ур.4',
+            'c-bastion5':  'Бастион ур.5',
+            'c-bastion6':  'Бастион ур.6'
         };
 
-        // Строим ромб: для каждой клетки считаем расстояние Чебышёва
-        // до центра. Внешние углы (где |dx|+|dy| > SIZE-1) — пустые.
-        const fragment = document.createDocumentFragment();
+        for (let y = 0; y < ROWS; y++) {
+            const row = document.createElement('div');
+            row.className = 'map-row' + (y % 2 === 1 ? ' offset' : '');
 
-        for (let y = 0; y < SIZE; y++) {
-            for (let x = 0; x < SIZE; x++) {
-                const dx = x - CENTER;
-                const dy = y - CENTER;
-                // Манхэттенское расстояние — задаёт ромб
+            // В каждой строке — ширина, равная полной ширине ромба
+            // на этой высоте. Т.к. клетки смещены, используем
+            // нечётную «карту» из ROWS клеток, но оставляем только
+            // те, что внутри ромба.
+            for (let x = 0; x < ROWS; x++) {
+                // Сдвиг по диагонали: превращаем квадратную сетку в ромб
+                // через манхэттенское расстояние.
+                const dx = x - CENTER_COL;
+                const dy = y - CENTER_ROW;
                 const manhattan = Math.abs(dx) + Math.abs(dy);
-                // Отрезаем всё, что за пределами ромба
-                const maxManhattan = CENTER + 10; // внешний радиус в манхэттенской метрике
 
                 const cell = document.createElement('div');
 
-                if (manhattan > maxManhattan) {
-                    // Пустая клетка-фон (снаружи ромба) — невидимая
+                if (manhattan > MAX_RADIUS) {
+                    // Пустая клетка — сохраняет геометрию
                     cell.className = 'cell empty';
-                    // в шахматном порядке смещаем для сохранения геометрии
-                    if (y % 2 === 1) cell.classList.add('offset');
-                    fragment.appendChild(cell);
-                    continue;
+                } else {
+                    const cheby = Math.max(Math.abs(dx), Math.abs(dy));
+                    const cls = getClass(cheby);
+                    cell.className = 'cell ' + cls;
+                    cell.title = titles[cls] + ' · колонка ' + (x + 1) + ', ряд ' + (y + 1);
+
+                    const label = document.createElement('span');
+                    label.className = 'cell-label';
+                    label.textContent = labels[cls];
+                    cell.appendChild(label);
                 }
 
-                // Расстояние от центра (для выбора цвета) — используем чебышёвское,
-                // чтобы сектора шли ромбами, а не квадратами
-                const cheby = Math.max(Math.abs(dx), Math.abs(dy));
-                const cls = getClassForDistance(cheby, dx, dy);
-
-                cell.className = 'cell ' + cls;
-                if (y % 2 === 1) cell.classList.add('offset');
-
-                cell.title = titles[cls] + ' (' + (x + 1) + ':' + (y + 1) + ')';
-
-                const label = document.createElement('span');
-                label.className = 'cell-label';
-                label.textContent = labels[cls];
-                cell.appendChild(label);
-
-                fragment.appendChild(cell);
+                row.appendChild(cell);
             }
-        }
 
-        map.appendChild(fragment);
+            map.appendChild(row);
+        }
     })();
 
-    /* ============================================================
-       ТЕМА
-       ============================================================ */
+    /* Тема */
     const toggleBtn = document.getElementById('theme-toggle');
     const body = document.body;
     if (toggleBtn) {
