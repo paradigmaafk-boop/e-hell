@@ -29,7 +29,7 @@ from database import (
     get_setting, set_setting,
     update_user_squads, get_squads_by_nickname_map,
     get_last_update_date,
-    associate_players,
+    associate_players, get_all_merge_records,
     get_all_duel_players_with_points,
     get_all_arcadia_players_with_points,
     # Карта штата:
@@ -424,9 +424,10 @@ def rating_view(rating_type):
                            all_arcadia_players=all_arcadia_players)
 
 
-@app.route('/associate-player', methods=['POST'])
+@app.route('/merge-player', methods=['POST'])
+@app.route('/associate-player', methods=['POST'])  # старый адрес для совместимости
 @admin_required
-def associate_player_route():
+def merge_player_route():
     data = request.get_json() or {}
     target = (data.get('target') or '').strip()
     duel_nicks = data.get('duel_nicks') or []
@@ -435,7 +436,7 @@ def associate_player_route():
     if not target:
         return jsonify({'success': False, 'error': 'Не указан игрок.'}), 400
 
-    ok, msg = associate_players(target, duel_nicks, arcadia_nicks)
+    ok, msg = associate_players(target, duel_nicks, arcadia_nicks, session.get('username', ''))
     if ok:
         increment_counter('admin_actions')
         return jsonify({'success': True, 'message': msg})
@@ -1410,6 +1411,12 @@ def calculator():
 # ============================================================
 # ЖУРНАЛ ОТПУСКОВ
 # ============================================================
+
+@app.route('/admin/merges')
+@admin_required
+def admin_merges():
+    return render_template('admin_merges.html', records=get_all_merge_records())
+
 
 @app.route('/admin/vacations', methods=['GET', 'POST'])
 @admin_required

@@ -134,6 +134,18 @@ def init_db():
     """)
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS merge_log (
+            id SERIAL PRIMARY KEY,
+            target_nickname TEXT NOT NULL,
+            merged_nickname TEXT NOT NULL,
+            rating_type TEXT NOT NULL,
+            points NUMERIC NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL,
+            created_by TEXT NOT NULL
+        )
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS counters (
             id SERIAL PRIMARY KEY,
             name TEXT UNIQUE NOT NULL,
@@ -968,7 +980,7 @@ def get_last_update_date(rating_type):
 
 
 # ============================================================
-# АССОЦИАЦИЯ ЗАПИСЕЙ РЕЙТИНГА
+# ОБЪЕДИНЕНИЕ СТРОК РЕЙТИНГА
 # ============================================================
 
 def get_all_duel_players_with_points():
@@ -989,7 +1001,13 @@ def get_all_arcadia_players_with_points():
     return data
 
 
-def associate_players(target_nickname, duel_nicks, arcadia_nicks):
+def associate_players(target_nickname, duel_nicks, arcadia_nicks, created_by=''):
+    """Объединение строк рейтинга.
+
+    Очки и история выбранных строк переносятся в целевую строку.
+    Связи никнеймов (nickname_aliases) НЕ создаются: объединение
+    не является переименованием игрока.
+    """
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -998,78 +1016,42 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
         duel_nicks = [n.strip() for n in (duel_nicks or []) if n and n.strip()]
         arcadia_nicks = [n.strip() for n in (arcadia_nicks or []) if n and n.strip()]
 
-        duel_nicks = [n for n in duel_nicks if n != target_nickname]
-        arcadia_nicks = [n for n in arcadia_nicks if n != target_nickname]
+        # Убираем целевой ник и дубли.
+        duel_nicks = list(dict.fromkeys(n for n in duel_nicks if n != target_nickname))
+        arcadia_nicks = list(dict.fromkeys(n for n in arcadia_nicks if n != target_nickname))
 
         if not duel_nicks and not arcadia_nicks:
-            return False, 'Ничего не выбрано для ассоциации.'
+            return False, 'Ничего не выбрано для объединения.'
 
-        has_rating_type = _has_column(cursor, 'nickname_aliases', 'rating_type')
+        def merge_group(rating_type, nicks):
+            added = 0
+            merged = 0
+            for nick in nicks:
+                cursor.execute(f"SELECT points FROM players_{rating_type} WHERE nickname = %s", (nick,))
+                row = cursor.fetchone()
+                if not row:
+                    continue
+                points = row[0] or 0
+                added += points
+                merged += 1
 
-        def upsert_alias(old_nick):
-            cursor.execute("SELECT id FROM nickname_aliases WHERE old_nickname = %s", (old_nick,))
-            if cursor.fetchone():
-                if has_rating_type:
-                    cursor.execute("""UPDATE nickname_aliases
-                                      SET current_nickname = %s, created_at = %s, rating_type = %s
-                                      WHERE old_nickname = %s""",
-                                   (target_nickname, now, 'any', old_nick))
-                else:
-                    cursor.execute("""UPDATE nickname_aliases
-                                      SET current_nickname = %s, created_at = %s
-                                      WHERE old_nickname = %s""",
-                                   (target_nickname, now, old_nick))
-            else:
-                if has_rating_type:
-                    cursor.execute("""INSERT INTO nickname_aliases
-                                      (current_nickname, old_nickname, created_at, rating_type)
-                                      VALUES (%s, %s, %s, %s)""",
-                                   (target_nickname, old_nick, now, 'any'))
-                else:
-                    cursor.execute("""INSERT INTO nickname_aliases
-                                      (current_nickname, old_nickname, created_at)
-                                      VALUES (%s, %s, %s)""",
-                                   (target_nickname, old_nick, now))
+                cursor.execute(f"UPDATE history_{rating_type} SET nickname = %s WHERE nickname = %s",
+                               (target_nickname, nick))
+                cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nick,))
 
-        duel_added = 0
-        for nick in duel_nicks:
-            cursor.execute("SELECT points FROM players_duel WHERE nickname = %s", (nick,))
-            row = cursor.fetchone()
-            if not row:
-                continue
-            duel_added += row[0]
+                cursor.execute("""INSERT INTO merge_log
+                                  (target_nickname, merged_nickname, rating_type, points, created_at, created_by)
+                                  VALUES (%s, %s, %s, %s, %s, %s)""",
+                               (target_nickname, nick, rating_type, points, now, created_by or ''))
 
-            cursor.execute("UPDATE history_duel SET nickname = %s WHERE nickname = %s",
-                           (target_nickname, nick))
-            cursor.execute("DELETE FROM players_duel WHERE nickname = %s", (nick,))
+                # Объединение — это только перенос очков и истории.
+                # Аккаунты и подарки не перепривязываем: это не переименование.
+            return added, merged
 
-            upsert_alias(nick)
+        duel_added, duel_merged = merge_group('duel', duel_nicks)
+        arcadia_added, arcadia_merged = merge_group('arcadia', arcadia_nicks)
 
-            cursor.execute("UPDATE users SET linked_nickname = %s WHERE linked_nickname = %s",
-                           (target_nickname, nick))
-            cursor.execute("UPDATE apples SET to_nickname = %s WHERE to_nickname = %s",
-                           (target_nickname, nick))
-
-        arcadia_added = 0
-        for nick in arcadia_nicks:
-            cursor.execute("SELECT points FROM players_arcadia WHERE nickname = %s", (nick,))
-            row = cursor.fetchone()
-            if not row:
-                continue
-            arcadia_added += row[0]
-
-            cursor.execute("UPDATE history_arcadia SET nickname = %s WHERE nickname = %s",
-                           (target_nickname, nick))
-            cursor.execute("DELETE FROM players_arcadia WHERE nickname = %s", (nick,))
-
-            upsert_alias(nick)
-
-            cursor.execute("UPDATE users SET linked_nickname = %s WHERE linked_nickname = %s",
-                           (target_nickname, nick))
-            cursor.execute("UPDATE apples SET to_nickname = %s WHERE to_nickname = %s",
-                           (target_nickname, nick))
-
-        if duel_added > 0:
+        if duel_merged:
             cursor.execute("SELECT points FROM players_duel WHERE nickname = %s", (target_nickname,))
             row = cursor.fetchone()
             if row:
@@ -1084,7 +1066,7 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
                     (target_nickname, duel_added, now)
                 )
 
-        if arcadia_added > 0:
+        if arcadia_merged:
             cursor.execute("SELECT points FROM players_arcadia WHERE nickname = %s", (target_nickname,))
             row = cursor.fetchone()
             if row:
@@ -1101,20 +1083,36 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks):
 
         conn.commit()
 
-        total = len(duel_nicks) + len(arcadia_nicks)
-        msg = f'Объединено записей: {total}'
-        if duel_added:
-            msg += f' (+{duel_added} к Дуэли)'
-        if arcadia_added:
-            msg += f' (+{arcadia_added} к Аркадии)'
+        merged_total = duel_merged + arcadia_merged
+        if not merged_total:
+            return False, 'Выбранные строки не найдены.'
+
+        msg = f'Объединено строк: {merged_total}.'
+        if duel_merged:
+            msg += f' Перенесено в Дуэль: {duel_added}.'
+        if arcadia_merged:
+            msg += f' Перенесено в Аркадию: {arcadia_added}.'
         return True, msg
 
     except Exception as e:
         print(f"associate_players error: {e}")
         conn.rollback()
-        return False, f'Ошибка при ассоциации: {e}'
+        return False, f'Ошибка при объединении: {e}'
     finally:
         conn.close()
+
+
+def get_all_merge_records(limit=200):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, target_nickname, merged_nickname, rating_type,
+                             points, created_at, created_by
+                      FROM merge_log
+                      ORDER BY created_at DESC, id DESC
+                      LIMIT %s""", (limit,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
 
 
 # ============================================================

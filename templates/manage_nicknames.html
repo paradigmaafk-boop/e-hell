@@ -98,14 +98,21 @@
     </nav>
 
     <div class="page-head">
-        <h1 class="page-title">Управление никнеймами</h1>
-        <p class="page-sub">Связи применяются ко всем рейтингам</p>
+        <h1 class="page-title">Переименования ников</h1>
+        <p class="page-sub">Старый ник → новый ник, когда игрок сменил имя</p>
     </div>
+
+    <p style="max-width: 900px; margin: 0 auto 1.5rem; color: var(--muted); font-size: 0.85rem; line-height: 1.55;">
+        Здесь создаются только <b>связи переименования</b>. Для объединения строк
+        с переносом очков используйте кнопку объединения в рейтинге — это не создаёт
+        связь ников и фиксируется в <a href="/admin/merges" style="color: var(--accent-warm);">журнале объединений</a>.
+        Если ниже остались записи от прежних объединений, их можно удалить — на новые объединения это не влияет.
+    </p>
 
     <section class="stats-grid">
         <div class="stat-card">
             <div class="number">{{ aliases|length }}</div>
-            <div class="label">Всего связей</div>
+            <div class="label">Переименований</div>
         </div>
         <div class="stat-card">
             <div class="number">{{ players|length }}</div>
@@ -122,7 +129,7 @@
     {% endwith %}
 
     <section class="section">
-        <div class="section-title">Добавить связь</div>
+        <div class="section-title">Добавить переименование</div>
         <form method="POST" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end;">
             <input type="hidden" name="action" value="add">
             <div class="calc-field">
@@ -136,12 +143,12 @@
             <button type="submit" class="btn btn-primary">Добавить</button>
         </form>
         <p style="color: var(--dim); font-size: 0.85rem; margin-top: 1rem;">
-            При загрузке таблички оба варианта будут распознаваться как один игрок — и в дуэли, и в аркадии.
+            При загрузке таблички старый ник будет распознаваться как новый — и в дуэли, и в аркадии.
         </p>
     </section>
 
     <section class="section">
-        <div class="section-title">Существующие связи</div>
+        <div class="section-title">Существующие переименования</div>
 
         {% if aliases %}
         <div class="table-wrap">
@@ -162,7 +169,7 @@
                         <td style="color: var(--muted); font-size: 0.85rem;">{{ alias[2][:16] }}</td>
                         <td>
                             <form method="POST" style="display: inline;"
-                                  onsubmit='return confirm({{ ("Удалить связь " ~ alias[1] ~ " → " ~ alias[0] ~ "?")|tojson }});'>
+                                  onsubmit='return confirm({{ ("Удалить переименование " ~ alias[1] ~ " → " ~ alias[0] ~ "?")|tojson }});'>
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="old_nickname" value="{{ alias[1] }}">
                                 <button type="submit" class="btn btn-small btn-danger">Удалить</button>
@@ -175,7 +182,7 @@
         </div>
         {% else %}
         <div style="text-align: center; padding: 3rem; color: var(--muted);">
-            <p>Нет добавленных связей</p>
+            <p>Нет добавленных переименований</p>
         </div>
         {% endif %}
     </section>
