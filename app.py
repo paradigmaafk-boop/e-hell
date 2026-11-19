@@ -1,39 +1,32 @@
 import os
 import base64
+import json
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import (Flask, render_template, request, redirect, url_for,
+                   session, flash, jsonify, Response)
 import pandas as pd
-import psycopg2
 from database import (
     init_db, check_user, save_rating, get_latest_rating, get_total_rating,
     get_player_history, get_all_players, get_average_history,
+    get_nicknames_with_history,
     get_underperforming, get_consistently_underperforming,
-    get_total_weeks, get_all_time_leaders, get_all_rating_types,
+    get_total_weeks, get_all_rating_types,
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
     delete_nickname_alias, reset_rating, delete_player,
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
-    get_all_map_values, save_map_values, reset_map_values,
     get_connection,
-    get_user_by_id, get_user_by_username, get_all_users,
+    get_user_by_id, get_all_users,
     register_user, update_user_username, update_user_password,
     update_user_role, link_user_nickname, unlink_user_nickname,
     delete_user, get_linked_nicknames, count_super_admins,
     give_apple, get_apples_given_this_week, get_apples_received_map,
-    get_apples_received_for, reset_apples, get_week_key,
+    get_apples_received_for, reset_apples,
     reset_apples_given_by_user,
     get_setting, set_setting,
-    update_user_squads, get_user_squads, get_squads_by_nickname_map,
-    _iso_week_key, get_or_create_reservoir_week,
-    set_reservoir_session_time, set_reservoir_published,
-    get_reservoir_week_history,
-    get_reservoir_registrations, get_reservoir_registration_for_user,
-    add_reservoir_registration, cancel_reservoir_registration,
-    get_reservoir_roster, save_reservoir_roster, set_reservoir_attendance,
-    get_blacklist_for_week, is_user_blacklisted, remove_from_blacklist,
-    get_user_reservoir_history,
+    update_user_squads, get_squads_by_nickname_map,
     get_last_update_date,
     associate_players,
     get_all_duel_players_with_points,
@@ -46,7 +39,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
-app.secret_key = 'your_secret_key_here_change_it_to_something_secret'
+app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here_change_it_to_something_secret')
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
@@ -91,6 +84,7 @@ def linked_required(f):
         if not user[3]:
             flash('Сначала привяжите себя к нику в рейтинге.')
             return redirect(url_for('register_link'))
+        session['linked_nickname'] = user[3]
         return f(*args, **kwargs)
     return wrapper
 
@@ -122,15 +116,22 @@ def super_admin_required(f):
     return wrapper
 
 
-def reservoir_or_admin_required(f):
+def state_access_required(f):
+    """Раздел «Штат» доступен только авторизованным пользователям
+    с привязанным к аккаунту ником."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not session.get('user_id'):
-            flash('Войдите, чтобы продолжить.')
+            flash('Войдите, чтобы открыть раздел «Штат».')
             return redirect(url_for('login'))
-        if session.get('role') not in ('admin', 'super_admin', 'reservoir'):
-            flash('Доступ только для администратора резервуара!')
-            return redirect(url_for('index'))
+        user = get_user_by_id(session['user_id'])
+        if not user:
+            session.clear()
+            return redirect(url_for('login'))
+        if not user[3]:
+            flash('Раздел «Штат» доступен только участникам с привязанным ником.')
+            return redirect(url_for('register_link'))
+        session['linked_nickname'] = user[3]
         return f(*args, **kwargs)
     return wrapper
 
@@ -144,6 +145,10 @@ def state_editor_required(f):
             return redirect(url_for('login'))
         if session.get('role') not in ('admin', 'super_admin', 'state_admin'):
             flash('Доступ только для администратора штата!')
+            return redirect(url_for('index'))
+        user = get_user_by_id(session['user_id'])
+        if not user or not user[3]:
+            flash('Редактировать карту штата могут только пользователи с привязанным ником.')
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return wrapper
@@ -159,10 +164,6 @@ def is_super_admin():
 
 def is_state_admin():
     return session.get('role') == 'state_admin'
-
-
-def can_edit_reservoir():
-    return session.get('role') in ('admin', 'super_admin', 'reservoir')
 
 
 def can_edit_state():
@@ -305,90 +306,34 @@ def get_player_rank_data(linked_nickname):
     return None
 
 
-def _registration_status(now=None):
-    now = now or datetime.now()
-    weekday = now.weekday()
+@app.context_processor
+def inject_navigation_state():
+    """Даёт шаблонам единый признак доступа к разделу «Штат».
 
-    is_open = False
-    status = 'closed'
-    message = ''
-    time_left = None
-
-    if weekday == 0:
-        is_open = True
-        status = 'open'
-        end_dt = now.replace(hour=15, minute=0, second=0, microsecond=0) + timedelta(days=3)
-        delta = end_dt - now
-        time_left = _human_delta(delta)
-        message = f'Регистрация открыта. Осталось: {time_left}'
-    elif weekday in (1, 2):
-        is_open = True
-        status = 'open'
-        days_to_thu = 3 - weekday
-        end_dt = now.replace(hour=15, minute=0, second=0, microsecond=0) + timedelta(days=days_to_thu)
-        delta = end_dt - now
-        time_left = _human_delta(delta)
-        message = f'Регистрация открыта. Осталось: {time_left}'
-    elif weekday == 3:
-        if now.hour < 15:
-            is_open = True
-            status = 'open'
-            end_dt = now.replace(hour=15, minute=0, second=0, microsecond=0)
-            delta = end_dt - now
-            time_left = _human_delta(delta)
-            message = f'Регистрация открыта. Осталось: {time_left}'
-        else:
-            is_open = False
-            status = 'closed'
-            message = 'Регистрация закрыта (четверг 15:00)'
-    else:
-        is_open = False
-        status = 'closed'
-        days_to_mon = (7 - weekday) % 7
-        if days_to_mon == 0:
-            days_to_mon = 7
-        next_mon = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=days_to_mon)
-        delta = next_mon - now
-        time_left = _human_delta(delta)
-        message = f'Регистрация закрыта. Откроется через: {time_left}'
-
+    Ссылка на раздел показывается только авторизованным пользователям,
+    у которых аккаунт привязан к нику в рейтинге.
+    """
+    user_id = session.get('user_id')
+    linked = session.get('linked_nickname')
+    if user_id and linked is None:
+        user = get_user_by_id(user_id)
+        linked = user[3] if user else None
+        session['linked_nickname'] = linked or ''
     return {
-        'is_open': is_open,
-        'status': status,
-        'message': message,
-        'time_left': time_left,
+        'state_available': bool(user_id and linked),
+        'current_linked_nickname': linked or '',
     }
-
-
-def _human_delta(delta):
-    if delta.total_seconds() < 0:
-        return '0 мин'
-    days = delta.days
-    hours = delta.seconds // 3600
-    minutes = (delta.seconds % 3600) // 60
-    parts = []
-    if days:
-        parts.append(f'{days} д')
-    if hours:
-        parts.append(f'{hours} ч')
-    if minutes and not days:
-        parts.append(f'{minutes} мин')
-    return ' '.join(parts) if parts else 'меньше минуты'
-
-
-def _next_monday_00(now=None):
-    now = now or datetime.now()
-    wd = now.weekday()
-    base = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    if wd == 0:
-        return base + timedelta(days=7)
-    days = 7 - wd
-    return base + timedelta(days=days)
 
 
 # ============================================================
 # ГЛАВНАЯ
 # ============================================================
+
+@app.route('/favicon.ico')
+def favicon_ico():
+    # Старые страницы/браузеры всё ещё спрашивают /favicon.ico.
+    return app.send_static_file('favicon.svg')
+
 
 @app.route('/')
 def index():
@@ -416,6 +361,19 @@ def rating_view(rating_type):
         rating_data = get_total_rating()
     else:
         rating_data = get_latest_rating(rating_type)
+
+    # Для общего рейтинга подсказываем, в каком разделе у игрока есть история:
+    # иначе ссылка на график вела в «пустой» раздел и выдавала «Игрок не найден».
+    chart_types = {}
+    if rating_type == 'total':
+        duel_nicks = get_nicknames_with_history('duel')
+        arcadia_nicks = get_nicknames_with_history('arcadia')
+        for row in rating_data:
+            nick = row[0]
+            if nick in duel_nicks:
+                chart_types[nick] = 'duel'
+            elif nick in arcadia_nicks:
+                chart_types[nick] = 'arcadia'
 
     apples_map = {}
     squads_map = {}
@@ -460,6 +418,7 @@ def rating_view(rating_type):
                            tooltip_text=tooltip_text,
                            apples_per_week=APPLES_PER_WEEK,
                            last_update_date=last_update_date,
+                           chart_types=chart_types,
                            all_duel_players=all_duel_players,
                            all_arcadia_players=all_arcadia_players)
 
@@ -520,7 +479,7 @@ def player_profile(rating_type, nickname):
 
     history = get_player_history(rating_type, nickname)
     if not history:
-        flash('Игрок не найден')
+        flash('У этого игрока пока нет истории замеров.')
         return redirect(url_for('rating_view', rating_type=rating_type))
 
     count_once('chart_views', f'chart_viewed_{rating_type}_{nickname}')
@@ -528,8 +487,10 @@ def player_profile(rating_type, nickname):
     dates = [row[0] for row in history]
     points = [row[1] for row in history]
     avg_data = get_average_history(rating_type)
-    avg_dates = [row[0] for row in avg_data]
-    avg_points = [round(row[1], 1) for row in avg_data]
+    avg_by_date = {str(row[0]): round(row[1], 1) for row in avg_data}
+    # Выравниваем среднее по датам игрока, иначе линии на графике
+    # рисовались по разным неделям и не совпадали.
+    avg_points = [avg_by_date.get(str(d)) for d in dates]
 
     display_name = get_rating_display_name(rating_type)
 
@@ -538,7 +499,8 @@ def player_profile(rating_type, nickname):
                            rating_type=rating_type,
                            display_name=display_name,
                            dates=dates, points=points,
-                           avg_dates=avg_dates, avg_points=avg_points)
+                           avg_dates=[row[0] for row in avg_data],
+                           avg_points=avg_points)
 
 
 # ============================================================
@@ -548,8 +510,8 @@ def player_profile(rating_type, nickname):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        login_ = request.form['login']
-        password = request.form['password']
+        login_ = request.form.get('login', '').strip()
+        password = request.form.get('password', '')
         if not login_ or not password:
             flash('Заполните все поля!')
             return redirect(url_for('login'))
@@ -559,6 +521,7 @@ def login():
             session['username'] = row[1]
             session['role'] = row[2]
             user = get_user_by_id(row[0])
+            session['linked_nickname'] = (user[3] if user and user[3] else '')
             if user and not user[3] and row[2] not in ('super_admin', 'state_admin'):
                 flash('Сначала привяжите себя к нику в рейтинге.')
                 return redirect(url_for('register_link'))
@@ -586,8 +549,8 @@ def register():
 
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
-        password = request.form.get('password', '').strip()
-        password2 = request.form.get('password2', '').strip()
+        password = request.form.get('password', '')
+        password2 = request.form.get('password2', '')
 
         if not username or not password:
             flash('Заполните все поля!')
@@ -610,6 +573,7 @@ def register():
         session['user_id'] = new_id
         session['username'] = username
         session['role'] = 'player'
+        session['linked_nickname'] = ''
         flash('Аккаунт создан! Теперь обязательно выберите себя в списке рейтинга.')
         return redirect(url_for('register_link'))
 
@@ -630,12 +594,6 @@ def register_link():
         return redirect(url_for('cabinet'))
 
     if request.method == 'POST':
-        if request.form.get('action') == 'cancel':
-            delete_user(session['user_id'])
-            session.clear()
-            flash('Регистрация отменена. Вы можете зарегистрироваться заново.')
-            return redirect(url_for('register'))
-
         nickname = request.form.get('nickname', '').strip()
         if not nickname:
             flash('Выберите себя в списке!')
@@ -647,6 +605,7 @@ def register_link():
             return redirect(url_for('register_link'))
 
         if link_user_nickname(session['user_id'], nickname):
+            session['linked_nickname'] = nickname
             flash(f'Отлично! Вы привязаны к нику «{nickname}».')
             return redirect(url_for('cabinet'))
         else:
@@ -679,6 +638,12 @@ def cabinet():
 
     preview = request.args.get('preview', '').strip()
     rank_data = get_player_rank_data(linked_nickname) if linked_nickname else None
+    session['linked_nickname'] = linked_nickname or ''
+
+    # Ссылки на графики показываем только там, где у игрока есть история,
+    # иначе переход выдавал «Игрок не найден».
+    has_duel_history = bool(linked_nickname and get_player_history('duel', linked_nickname))
+    has_arcadia_history = bool(linked_nickname and get_player_history('arcadia', linked_nickname))
 
     preview_options = [
         {'key': 'current', 'label': 'Текущий рейтинг'},
@@ -740,6 +705,8 @@ def cabinet():
                            squads=squads,
                            display_name=display_name,
                            rank_data=rank_data,
+                           has_duel_history=has_duel_history,
+                           has_arcadia_history=has_arcadia_history,
                            is_admin=is_admin(),
                            is_super_admin=is_super_admin(),
                            preview_options=preview_options,
@@ -779,354 +746,16 @@ def cabinet_save_squads():
 
 
 # ============================================================
-# РЕЗЕРВУАР — ОСНОВНАЯ СТРАНИЦА
+# РЕЗЕРВУАР — РАЗДЕЛ УДАЛЁН
 # ============================================================
+# Страница убрана с сайта. Данные резервуара (таблицы reservoir_*),
+# заявки, состав и чёрные метки остаются в базе без изменений.
+# Старые ссылки и закладки мягко возвращают на главную.
 
 @app.route('/reservoir')
-def reservoir_index():
-    count_once('visits', 'counted_visit')
-
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-
-    reg_status = _registration_status()
-
-    registrations = get_reservoir_registrations(week_key)
-    roster = get_reservoir_roster(week_key)
-    blacklist = get_blacklist_for_week(week_key)
-
-    roster_ids = [r[1] for r in roster]
-
-    my_registration = None
-    my_blacklist = None
-    my_can_register = False
-    my_cannot_reason = ''
-    my_squad1 = None
-
-    if session.get('user_id'):
-        my_registration = get_reservoir_registration_for_user(week_key, session['user_id'])
-        my_blacklist = is_user_blacklisted(week_key, session['user_id'])
-
-        user = get_user_by_id(session['user_id'])
-        if user:
-            my_squad1 = user[6] if len(user) >= 7 else None
-            if not user[3]:
-                my_cannot_reason = 'Сначала привяжите ник к аккаунту'
-            elif not my_squad1:
-                my_cannot_reason = 'Сначала заполните мощь 1-го отряда в кабинете'
-            elif my_blacklist:
-                my_cannot_reason = f'⛔ Чёрная метка — пропуск этой недели ({my_blacklist[1] or "неявка"})'
-            elif not reg_status['is_open']:
-                my_cannot_reason = reg_status['message']
-            elif my_registration:
-                my_cannot_reason = 'Вы уже подали заявку'
-            else:
-                my_can_register = True
-
-    history_weeks = get_reservoir_week_history(limit=30)
-
-    history_data = []
-    for hw in history_weeks:
-        hw_key = hw[0]
-        hw_roster = get_reservoir_roster(hw_key)
-        hw_regs = get_reservoir_registrations(hw_key)
-        history_data.append({
-            'week_key': hw_key,
-            'session_time': hw[1],
-            'roster_published': hw[2],
-            'created_at': hw[3],
-            'roster': hw_roster,
-            'registrations': hw_regs,
-        })
-
-    now = datetime.now()
-    iso_weekday = now.isoweekday()
-    days_until_sunday = 7 - iso_weekday
-    game_date = (now + timedelta(days=days_until_sunday)).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-
-    MONTHS_RU = [
-        '', 'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-    ]
-    game_date_full = f"{game_date.day} {MONTHS_RU[game_date.month]}"
-
-    next_monday = _next_monday_00(now)
-    registration_opens_str = next_monday.strftime('%d.%m.%Y в %H:%M')
-
-    return render_template('reservoir.html',
-                           week=week,
-                           reg_status=reg_status,
-                           registrations=registrations,
-                           roster=roster,
-                           roster_ids=roster_ids,
-                           blacklist=blacklist,
-                           my_registration=my_registration,
-                           my_blacklist=my_blacklist,
-                           my_can_register=my_can_register,
-                           my_cannot_reason=my_cannot_reason,
-                           my_squad1=my_squad1,
-                           history_data=history_data,
-                           can_edit=can_edit_reservoir(),
-                           game_date_full=game_date_full,
-                           registration_opens_str=registration_opens_str)
-
-
-@app.route('/reservoir/map')
-def reservoir_map():
-    count_once('visits', 'counted_visit')
-    map_values = get_all_map_values()
-    can_edit = can_edit_reservoir()
-    return render_template('reservoir_map.html',
-                           map_values=map_values,
-                           can_edit_reservoir=can_edit)
-
-
-# ============================================================
-# РЕЗЕРВУАР — ДЕЙСТВИЯ ИГРОКА
-# ============================================================
-
-@app.route('/reservoir/register', methods=['POST'])
-@linked_required
-def reservoir_register():
-    user_id = session['user_id']
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-
-    reg_status = _registration_status()
-    if not reg_status['is_open']:
-        flash(reg_status['message'])
-        return redirect(url_for('reservoir_index'))
-
-    user = get_user_by_id(user_id)
-    if not user or not user[3]:
-        flash('Сначала привяжите ник к аккаунту.')
-        return redirect(url_for('reservoir_index'))
-
-    squad1 = user[6] if len(user) >= 7 else None
-    if not squad1:
-        flash('Сначала заполните мощь 1-го отряда в личном кабинете.')
-        return redirect(url_for('reservoir_index'))
-
-    blacklisted = is_user_blacklisted(week_key, user_id)
-    if blacklisted:
-        flash(f'⛔ У вас чёрная метка на эту неделю: {blacklisted[1] or "неявка"}')
-        return redirect(url_for('reservoir_index'))
-
-    existing = get_reservoir_registration_for_user(week_key, user_id)
-    if existing:
-        flash('Вы уже подали заявку на эту неделю.')
-        return redirect(url_for('reservoir_index'))
-
-    preferred = request.form.get('preferred_session', 'any').strip()
-    if preferred not in ('14', '22', 'any'):
-        preferred = 'any'
-
-    if add_reservoir_registration(week_key, user_id, preferred):
-        flash('✅ Заявка принята!')
-    else:
-        flash('Ошибка при подаче заявки.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/unregister', methods=['POST'])
-@linked_required
-def reservoir_unregister():
-    user_id = session['user_id']
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-
-    reg_status = _registration_status()
-    if not reg_status['is_open']:
-        flash('Регистрация закрыта — отменить заявку уже нельзя.')
-        return redirect(url_for('reservoir_index'))
-
-    if cancel_reservoir_registration(week_key, user_id):
-        flash('Заявка отменена.')
-    else:
-        flash('Ошибка при отмене заявки.')
-    return redirect(url_for('reservoir_index'))
-
-
-# ============================================================
-# РЕЗЕРВУАР — ДЕЙСТВИЯ УПРАВЛЯЮЩЕГО
-# ============================================================
-
-@app.route('/reservoir/admin/set-session', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_set_session():
-    session_time = request.form.get('session_time', '').strip()
-    if session_time not in ('14', '22'):
-        flash('Неверное время сессии.')
-        return redirect(url_for('reservoir_index'))
-
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-
-    if set_reservoir_session_time(week_key, session_time):
-        flash(f'Время сессии изменено на {session_time}:00')
-    else:
-        flash('Ошибка при смене времени.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/admin/save-roster', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_save_roster():
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-
-    core_ids = request.form.getlist('core_ids')
-    rotation_ids = request.form.getlist('rotation_ids')
-
-    roster_items = []
-    try:
-        for uid in core_ids:
-            roster_items.append({'user_id': int(uid), 'role': 'core'})
-        for uid in rotation_ids:
-            roster_items.append({'user_id': int(uid), 'role': 'rotation'})
-    except Exception as e:
-        flash(f'Ошибка в данных формы: {e}')
-        return redirect(url_for('reservoir_index'))
-
-    if len(roster_items) > 30:
-        flash(f'Слишком много игроков: {len(roster_items)} из 30 максимум.')
-        return redirect(url_for('reservoir_index'))
-
-    if save_reservoir_roster(week_key, roster_items):
-        flash(f'Состав сохранён ({len(roster_items)} чел.).')
-    else:
-        flash('Ошибка при сохранении состава.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/admin/publish', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_publish():
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-    if set_reservoir_published(week_key, True):
-        flash('Состав опубликован!')
-    else:
-        flash('Ошибка при публикации.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/admin/unpublish', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_unpublish():
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-    if set_reservoir_published(week_key, False):
-        flash('Состав снят с публикации.')
-    else:
-        flash('Ошибка.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/admin/attendance', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_attendance():
-    week_key = request.form.get('week_key', '').strip()
-    if not week_key:
-        week = get_or_create_reservoir_week()
-        week_key = week['week_key']
-
-    user_id = request.form.get('user_id', type=int)
-    if not user_id:
-        flash('Не указан игрок.')
-        return redirect(url_for('reservoir_index'))
-
-    attended_raw = request.form.get('attended', '').strip()
-    if attended_raw == '1':
-        attended = 1
-    elif attended_raw == '0':
-        attended = 0
-    else:
-        attended = None
-
-    if set_reservoir_attendance(week_key, user_id, attended):
-        if attended == 0:
-            flash('❌ Отмечено: не пришёл. Чёрная метка на следующую неделю.')
-        elif attended == 1:
-            flash('✅ Отмечено: пришёл.')
-        else:
-            flash('Отметка снята.')
-    else:
-        flash('Ошибка при сохранении отметки.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/admin/cancel-registration', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_cancel_registration():
-    user_id = request.form.get('user_id', type=int)
-    if not user_id:
-        flash('Не указан игрок.')
-        return redirect(url_for('reservoir_index'))
-
-    week = get_or_create_reservoir_week()
-    week_key = week['week_key']
-
-    if cancel_reservoir_registration(week_key, user_id):
-        flash('Заявка отменена управляющим.')
-    else:
-        flash('Ошибка при отмене заявки.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/admin/blacklist-remove', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_blacklist_remove():
-    user_id = request.form.get('user_id', type=int)
-    week_key = request.form.get('week_key', '').strip()
-    if not user_id or not week_key:
-        flash('Не указаны данные.')
-        return redirect(url_for('reservoir_index'))
-
-    if remove_from_blacklist(week_key, user_id):
-        flash('Чёрная метка снята.')
-    else:
-        flash('Ошибка при снятии метки.')
-    return redirect(url_for('reservoir_index'))
-
-
-@app.route('/reservoir/admin/blacklist-add', methods=['POST'])
-@reservoir_or_admin_required
-def reservoir_admin_blacklist_add():
-    user_id = request.form.get('user_id', type=int)
-    week_key = request.form.get('week_key', '').strip()
-    reason = request.form.get('reason', '').strip()
-
-    if not user_id:
-        flash('Не указан игрок.')
-        return redirect(url_for('reservoir_index'))
-
-    if not week_key:
-        week = get_or_create_reservoir_week()
-        week_key = week['week_key']
-
-    conn = get_connection()
-    cursor = conn.cursor()
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    try:
-        cursor.execute("""INSERT INTO reservoir_blacklist
-                          (user_id, week_key, reason, created_at)
-                          VALUES (%s, %s, %s, %s)
-                          ON CONFLICT (user_id, week_key) DO UPDATE
-                          SET reason = %s""",
-                       (user_id, week_key, reason or 'Вручную', now, reason or 'Вручную'))
-        conn.commit()
-        flash('Чёрная метка поставлена.')
-    except Exception as e:
-        print(f"blacklist-add error: {e}")
-        conn.rollback()
-        flash('Ошибка при постановке метки.')
-    finally:
-        conn.close()
-
-    return redirect(url_for('reservoir_index'))
+@app.route('/reservoir/<path:subpath>')
+def reservoir_removed(subpath=None):
+    return redirect(url_for('index'), code=301)
 
 
 # ============================================================
@@ -1291,6 +920,8 @@ def admin_players():
 @admin_required
 def admin_players_unlink(user_id):
     if unlink_user_nickname(user_id):
+        if user_id == session.get('user_id'):
+            session['linked_nickname'] = ''
         increment_counter('admin_actions')
         flash('Связь с ником удалена.')
     else:
@@ -1310,6 +941,8 @@ def admin_players_link(user_id):
         flash('Этот ник уже привязан к другому аккаунту.')
         return redirect(url_for('admin_players'))
     if link_user_nickname(user_id, nickname):
+        if user_id == session.get('user_id'):
+            session['linked_nickname'] = nickname
         increment_counter('admin_actions')
         flash(f'Привязано: {nickname}')
     else:
@@ -1464,7 +1097,10 @@ def upload_file(rating_type):
                 flash('Не удалось найти данные в колонках A и D.')
                 return redirect(url_for('rating_view', rating_type=rating_type))
 
-            save_rating(rating_type, rating_list)
+            if not save_rating(rating_type, rating_list):
+                flash('Не удалось сохранить рейтинг. Изменения отменены.')
+                return redirect(url_for('rating_view', rating_type=rating_type))
+
             all_players = get_all_players(rating_type)
             increment_counter('admin_actions')
             flash(f'Рейтинг обновлен! Добавлено {len(rating_list)} записей. Всего: {len(all_players)} игроков.')
@@ -1568,7 +1204,6 @@ def rating_stats():
     count_once('visits', 'counted_visit')
     visit_count = get_counter_value('visits')
     home_count = get_counter_value('home')
-    reservoir_count = get_counter_value('reservoir')
     turtle_count = get_counter_value('turtle_calculator')
     hero_count = get_counter_value('hero_calculator')
     chart_count = get_counter_value('chart_views')
@@ -1577,7 +1212,6 @@ def rating_stats():
     return render_template('rating_stats.html',
                            visit_count=visit_count,
                            home_count=home_count,
-                           reservoir_count=reservoir_count,
                            turtle_count=turtle_count,
                            hero_count=hero_count,
                            chart_count=chart_count,
@@ -1625,41 +1259,11 @@ def consistently_underperforming(rating_type):
 
 
 # ============================================================
-# КАРТА РЕЗЕРВУАРА — API
-# ============================================================
-
-@app.route('/api/reservoir-map/save', methods=['POST'])
-@reservoir_or_admin_required
-def save_reservoir_map():
-    try:
-        data = request.get_json()
-        if not data or not isinstance(data, dict):
-            return jsonify({'success': False, 'error': 'Неверные данные'}), 400
-        if save_map_values(data):
-            increment_counter('admin_actions')
-            return jsonify({'success': True})
-        else:
-            return jsonify({'success': False, 'error': 'Ошибка сохранения'}), 500
-    except Exception as e:
-        print(f"Error saving map: {e}")
-        return jsonify({'success': False, 'error': str(e)}), 500
-
-
-@app.route('/api/reservoir-map/reset', methods=['POST'])
-@reservoir_or_admin_required
-def reset_reservoir_map():
-    if reset_map_values():
-        increment_counter('admin_actions')
-        return jsonify({'success': True})
-    else:
-        return jsonify({'success': False, 'error': 'Ошибка сброса'}), 500
-
-
-# ============================================================
 # КАРТА ШТАТА
 # ============================================================
 
 @app.route('/state')
+@state_access_required
 def state_view():
     count_once('visits', 'counted_visit')
     legend = get_state_legend()
@@ -1669,6 +1273,27 @@ def state_view():
                            legend=legend,
                            cells=cells,
                            can_edit_state=can_edit)
+
+
+@app.route('/state/export')
+@state_editor_required
+def state_export():
+    """Резервная копия карты штата (легенда + ячейки) без изменения данных."""
+    backup = {
+        'exported_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'legend': _state_legend_to_json(),
+        'cells': [
+            {'index': row[0], 'color': row[1], 'label': row[2]}
+            for row in get_state_cells()
+        ],
+    }
+    return Response(
+        json.dumps(backup, ensure_ascii=False, indent=2),
+        mimetype='application/json',
+        headers={
+            'Content-Disposition': 'attachment; filename=state-map-backup.json'
+        },
+    )
 
 
 @app.route('/state/legend/add', methods=['POST'])

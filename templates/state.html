@@ -2,15 +2,17 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1400, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Штат | [HEL] Ацкое Пламя</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
     <style>
-        html, body { min-width: 1400px; height: 100%; }
-        @media (max-width: 1000px) { html, body { min-width: 0; } }
+        html, body { height: 100%; }
+        /* Карта масштабируется под ширину экрана; фиксированная
+           min-width раньше давала горизонтальную прокрутку на 1024–1400px. */
 
         .state-page {
             display: flex;
@@ -220,7 +222,10 @@
             filter: brightness(1.25) drop-shadow(0 0 6px rgba(255,200,80,0.7));
             z-index: 10;
         }
-        .cell .cell-label {
+        /* Подпись — соседний с polygon элемент, поэтому селектор
+           не должен быть вложенным (.cell .cell-label): иначе
+           pointer-events не срабатывал и подпись перехватывала клики. */
+        .cell-label {
             fill: rgba(0,0,0,0.85);
             font-family: 'Inter', sans-serif;
             font-weight: 700;
@@ -232,7 +237,7 @@
             user-select: none;
         }
         @media (max-width: 1000px) {
-            .cell .cell-label { font-size: 9px; }
+            .cell-label { font-size: 9px; }
         }
 
         #tooltip {
@@ -301,8 +306,42 @@
         body.read-only .toolbar,
         body.read-only .legend-add,
         body.read-only .legend-delete { display: none; }
+        body.read-only .status-bar span:last-child { display: none; }
         body.read-only .cell { cursor: default; }
         body.read-only .cell:hover { stroke: #000; stroke-width: 1px; filter: none; }
+
+        /* На тач-устройствах нет hover — кнопку удаления легенды
+           нужно показывать всегда, иначе её невозможно нажать. */
+        @media (hover: none) {
+            .legend-delete { display: flex; align-items: center; justify-content: center; }
+        }
+
+        /* Светлая тема: панели карты раньше оставались тёмными,
+           и текст var(--text) на них становился нечитаемым. */
+        body.light-theme .legend-panel,
+        body.light-theme .toolbar,
+        body.light-theme .map-wrap,
+        body.light-theme .status-bar,
+        body.light-theme .label-modal-box {
+            background: #fffaf2;
+            border-color: var(--line);
+        }
+        body.light-theme .legend-row {
+            background: #fff5e6;
+            border-color: var(--line-soft);
+        }
+        body.light-theme .legend-row:hover,
+        body.light-theme .legend-row.active {
+            background: rgba(179, 48, 0, 0.08);
+        }
+        body.light-theme .legend-add input[type="text"],
+        body.light-theme .label-modal-box input[type="text"] {
+            background: #fff;
+            color: var(--text);
+        }
+        body.light-theme #map-svg {
+            background: #ded4c4;
+        }
     </style>
 </head>
 <body class="{% if not can_edit_state %}read-only{% endif %}">
@@ -372,8 +411,9 @@
         <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
         <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
         <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
-        <a href="/reservoir"><span class="nav-full">Резервуар</span><span class="nav-short">РР</span></a>
+        {% if state_available %}
         <a href="/state" class="active"><span class="nav-full">Штат</span><span class="nav-short">Штат</span></a>
+        {% endif %}
         <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
         {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
@@ -420,6 +460,8 @@
                     <div class="toolbar-group">
                         <button class="tool-btn" id="btnSave">💾 Сохранить</button>
                         <button class="tool-btn" id="btnClear">🗑 Очистить</button>
+                        <a class="tool-btn" href="/state/export" title="Скачать резервную копию карты"
+                           style="text-decoration: none; display: inline-flex; align-items: center;">⬇ Копия</a>
                     </div>
                     <span id="saveStatus" style="font-size:0.75rem;color:var(--dim);font-style:italic;margin-left:auto;"></span>
                 </div>
@@ -994,7 +1036,14 @@
                 const idx = +polygon.getAttribute('data-index');
                 const cell = cells[idx];
                 const lbl = cell && cell.labelText ? cell.labelText : `Блок №${idx + 1}`;
-                tooltip.innerHTML = `<b>${lbl}</b><small>ID: ${idx + 1}</small>`;
+                // textContent, а не innerHTML: подпись вводит пользователь.
+                tooltip.textContent = '';
+                const strong = document.createElement('b');
+                strong.textContent = lbl;
+                const small = document.createElement('small');
+                small.textContent = `ID: ${idx + 1}`;
+                tooltip.appendChild(strong);
+                tooltip.appendChild(small);
                 tooltip.classList.add('visible');
             });
 

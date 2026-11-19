@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=400">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
     <style>
         .x2-badge {
             display: inline-block;
@@ -107,14 +108,12 @@
             <span class="nav-full">Рейтинг Аркадии</span>
             <span class="nav-short">Аркадия</span>
         </a>
-        <a href="/reservoir">
-            <span class="nav-full">Резервуар</span>
-            <span class="nav-short">РР</span>
-        </a>
+        {% if state_available %}
         <a href="/state">
     <span class="nav-full">Штат</span>
     <span class="nav-short">Штат</span>
 </a>
+        {% endif %}
         <a href="/calculator" class="active">
             <span class="nav-full">Калькулятор</span>
             <span class="nav-short">Калькулятор</span>

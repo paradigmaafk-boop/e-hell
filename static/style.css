@@ -861,6 +861,8 @@ td.points-cell {
     transition: color 0.2s ease;
 }
 .rating-name:hover { color: var(--accent-warm); }
+.rating-name-static { cursor: default; }
+.rating-name-static:hover { color: var(--text); }
 
 .rating-tier {
     font-size: 0.62rem;
@@ -1746,6 +1748,9 @@ body.light-theme .rating-name {
 body.light-theme .rating-name:hover {
     color: #b33000;
 }
+body.light-theme .rating-name-static:hover {
+    color: #1f1206;
+}
 body.light-theme .rating-tier {
     color: #8a6a3c;
 }
@@ -2050,8 +2055,8 @@ body.light-theme textarea::placeholder {
     }
     .header-right { gap: 0.75rem; }
     .user { display: none; }
-    .link-btn { font-size: 0.8rem; }
-    .moon, .theme-toggle { font-size: 1rem; }
+    .link-btn { font-size: 0.8rem; padding: 0.5rem 0; }
+    .moon, .theme-toggle { font-size: 1rem; padding: 0.4rem; }
 
     /* Меню — равномерное, компактное, как на главной */
     .nav {
@@ -2061,7 +2066,7 @@ body.light-theme textarea::placeholder {
     }
     .nav a {
         font-size: 0.78rem;
-        padding-bottom: 0.2rem;
+        padding: 0.5rem 0.25rem;
         border-bottom-width: 1px;
     }
     .nav a.active::after {
@@ -2071,7 +2076,7 @@ body.light-theme textarea::placeholder {
     /* Круглая шестерёнка админа — компактная */
     .nav a.nav-admin {
         font-size: 0.95rem;
-        padding: 0.3rem 0.45rem;
+        padding: 0.45rem 0.55rem;
         margin-left: 0;
     }
 

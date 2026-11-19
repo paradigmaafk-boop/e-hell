@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
     <style>
         .tooltip-trigger {
             display: inline-flex;
@@ -122,6 +123,19 @@
         .apples-badge.apple-btn-disabled {
             opacity: 0.45;
             cursor: not-allowed;
+        }
+        /* Остаток яблок на неделю рядом с заголовком рейтинга */
+        .apples-badge.apples-balance {
+            cursor: default;
+            background: rgba(255, 184, 0, 0.08);
+            border-color: rgba(255, 184, 0, 0.35);
+            color: var(--accent-warm);
+            font-size: 0.8rem;
+        }
+        body.light-theme .apples-badge.apples-balance {
+            background: rgba(184, 119, 0, 0.08);
+            border-color: rgba(184, 119, 0, 0.4);
+            color: #8a5a00;
         }
         .apples-badge.clicked {
             animation: appleClick 0.4s ease;
@@ -301,6 +315,16 @@
             box-shadow: 0 30px 80px rgba(0,0,0,0.8), 0 0 40px rgba(255,69,0,0.2);
             animation: modalPop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
             overflow: hidden;
+        }
+        body.light-theme .assoc-modal-box {
+            background: #fffaf2;
+            box-shadow: 0 30px 80px rgba(70, 40, 20, 0.35), 0 0 40px rgba(179, 48, 0, 0.12);
+        }
+        body.light-theme .assoc-col-title {
+            background: #fffaf2;
+        }
+        body.light-theme .assoc-search {
+            background: #fff;
         }
         .assoc-header {
             padding: 1.25rem 1.5rem 1rem;
@@ -637,14 +661,12 @@
             <span class="nav-full">Рейтинг Аркадии</span>
             <span class="nav-short">Аркадия</span>
         </a>
-        <a href="/reservoir">
-            <span class="nav-full">Резервуар</span>
-            <span class="nav-short">РР</span>
-        </a>
+        {% if state_available %}
         <a href="/state">
     <span class="nav-full">Штат</span>
     <span class="nav-short">Штат</span>
 </a>
+        {% endif %}
         <a href="/calculator">
             <span class="nav-full">Калькулятор</span>
             <span class="nav-short">Калькулятор</span>
@@ -660,7 +682,7 @@
     </div>
     {% endif %}
 
-    {% if session.get('username') == 'admin' and rating_type != 'total' %}
+    {% if session.get('role') in ['admin', 'super_admin'] and rating_type != 'total' %}
     <section class="section section-tight">
         <div class="section-title">Загрузка рейтинга</div>
         <form action="/upload/{{ rating_type }}" method="POST" enctype="multipart/form-data" class="upload-form"
@@ -688,13 +710,19 @@
                     {% elif rating_type == 'duel' %}
                         Рейтинг дуэли
                     {% elif rating_type == 'arcadia' %}
-                        Рейтинг урона
+                        Рейтинг Аркадии
                     {% else %}
                         Рейтинг
                     {% endif %}
                 </span>
                 {% if rating_type == 'total' and tooltip_text %}
                 <button class="tooltip-trigger" id="tooltipTrigger" title="Что это?">?</button>
+                {% endif %}
+                {% if rating_type == 'total' and is_logged_player %}
+                <span class="apples-badge apples-balance" id="applesLeftBadge"
+                      title="Сколько яблок можно подарить на этой неделе">
+                    🍎 <span id="applesLeftNum">{{ my_apples_left }}</span> / {{ apples_per_week }}
+                </span>
                 {% endif %}
             </div>
             {% if rating_type != 'total' and last_update_date %}
@@ -729,13 +757,18 @@
                 {% set nick = row[0] %}
                 {% set apples = apples_map.get(nick, 0) %}
                 {% set squad1 = squads_map.get(nick) %}
+                {% set chart_type = chart_types.get(nick) %}
 
                 <div class="rating-row {{ css_class }}" data-nick="{{ nick }}">
                     <div class="rating-circle">{{ place }}</div>
 
                     <div class="rating-info">
-                        <a href="/player/duel/{{ row[0] }}" class="rating-name">
-                            {{ row[0] }}
+                        {% if chart_type %}
+                        <a href="{{ url_for('player_profile', rating_type=chart_type, nickname=nick) }}" class="rating-name">
+                        {% else %}
+                        <span class="rating-name rating-name-static" title="Нет истории в рейтингах">
+                        {% endif %}
+                            {{ nick }}
                             {% if session.get('user_id') is none %}
                                 <span class="apples-badge apple-btn-disabled" title="Войдите, чтобы дарить яблоки">
                                     🍎 <span class="apples-num">{{ apples }}</span>
@@ -760,7 +793,7 @@
                                     🍎 <span class="apples-num">{{ apples }}</span>
                                 </span>
                             {% endif %}
-                        </a>
+                        {% if chart_type %}</a>{% else %}</span>{% endif %}
 
                         <div class="rating-tier">
                             {% if place == 1 %}💎 Алмаз
@@ -794,8 +827,7 @@
                         {% if session.get('role') in ['admin', 'super_admin'] %}
                         <button type="button" class="assoc-btn"
                                 title="Ассоциировать с другими записями"
-                                data-target="{{ nick|e }}"
-                                onclick="openAssocModal('{{ nick|e }}')">
+                                data-target="{{ nick }}">
                             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
                             </svg>
@@ -808,7 +840,7 @@
                     <div class="rating-circle">{{ place }}</div>
 
                     <div class="rating-info">
-                        <a href="/player/{{ rating_type }}/{{ row[0] }}" class="rating-name">{{ row[0] }}</a>
+                        <a href="{{ url_for('player_profile', rating_type=rating_type, nickname=row[0]) }}" class="rating-name">{{ row[0] }}</a>
                         <div class="rating-tier">
                             {% if place == 1 %}💎 Алмаз
                             {% elif place <= 3 %}🥇 Золото
@@ -822,12 +854,12 @@
                     <div class="rating-points">{{ row[1] }}<small>★</small></div>
 
                     <div class="rating-actions">
-                        <a href="/player/{{ rating_type }}/{{ row[0] }}" class="rating-btn" title="График">
+                        <a href="{{ url_for('player_profile', rating_type=rating_type, nickname=row[0]) }}" class="rating-btn" title="График">
                             📈 <span class="rating-btn-text">График</span>
                         </a>
-                        {% if session.get('username') == 'admin' %}
-                        <form action="/delete-player/{{ rating_type }}/{{ row[0] }}" method="POST" style="display: inline; margin: 0;"
-                              onsubmit="return confirm('Удалить игрока {{ row[0] }} и всю его историю?');">
+                        {% if session.get('role') in ['admin', 'super_admin'] %}
+                        <form action="{{ url_for('delete_player_route', rating_type=rating_type, nickname=row[0]) }}" method="POST" style="display: inline; margin: 0;"
+                              onsubmit='return confirm({{ ("Удалить игрока " ~ row[0] ~ " и всю его историю?")|tojson }});'>
                             <button type="submit" class="rating-btn rating-btn-danger" title="Удалить">
                                 🗑 <span class="rating-btn-text">Удалить</span>
                             </button>
@@ -997,6 +1029,7 @@
             b.classList.add('apple-btn-disabled');
             b.classList.remove('give-apple-btn');
             b.title = 'Лимит яблок на эту неделю исчерпан';
+            b.style.pointerEvents = 'none';
         });
     }
 
@@ -1021,8 +1054,16 @@
                 if (data.success) {
                     showAppleToast('🍎 ' + data.message, true);
                     const numEl = btn.querySelector('.apples-num');
-                    animateFlyingApple(btn, btn, () => {
+                    const leftBadge = document.getElementById('applesLeftBadge');
+                    const leftNum = document.getElementById('applesLeftNum');
+                    animateFlyingApple(btn, leftBadge || btn, () => {
                         if (numEl) numEl.textContent = data.received;
+                        if (leftNum) leftNum.textContent = data.remaining;
+                        if (leftBadge) {
+                            leftBadge.classList.remove('bump');
+                            void leftBadge.offsetWidth;
+                            leftBadge.classList.add('bump');
+                        }
                         btn.classList.remove('bump');
                         void btn.offsetWidth;
                         btn.classList.add('bump');
@@ -1109,7 +1150,11 @@
             input.addEventListener('input', () => {
                 const q = input.value.trim().toLowerCase();
                 list.querySelectorAll('.assoc-item').forEach(item => {
-                    if (item.style.display === 'none') return;
+                    // Сам целевой игрок скрыт всегда, остальные — по поиску.
+                    if (item.dataset.nick === currentTarget) {
+                        item.style.display = 'none';
+                        return;
+                    }
                     const nick = (item.dataset.nick || '').toLowerCase();
                     item.style.display = nick.includes(q) ? '' : 'none';
                 });
@@ -1127,6 +1172,7 @@
             });
             document.querySelectorAll('.assoc-item').forEach(item => {
                 item.classList.remove('checked');
+                item.style.display = '';
             });
             document.getElementById('duelSearch').value = '';
             document.getElementById('arcadiaSearch').value = '';
@@ -1135,6 +1181,10 @@
             updateCounts();
             modal.classList.add('show');
         };
+
+        document.querySelectorAll('.assoc-btn').forEach(btn => {
+            btn.addEventListener('click', () => window.openAssocModal(btn.dataset.target));
+        });
 
         window.closeAssocModal = function() {
             modal.classList.remove('show');

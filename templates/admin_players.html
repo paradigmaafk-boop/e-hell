@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
     <style>
         .acc-row {
             display: grid;
@@ -190,14 +191,12 @@
             <span class="nav-full">Рейтинг Аркадии</span>
             <span class="nav-short">Аркадия</span>
         </a>
-        <a href="/reservoir">
-            <span class="nav-full">Резервуар</span>
-            <span class="nav-short">РР</span>
-        </a>
+        {% if state_available %}
         <a href="/state">
             <span class="nav-full">Штат</span>
             <span class="nav-short">Штат</span>
         </a>
+        {% endif %}
         <a href="/calculator">
             <span class="nav-full">Калькулятор</span>
             <span class="nav-short">Калькулятор</span>
@@ -284,7 +283,7 @@
 
                 {% if p.linked_nickname %}
                 <form method="POST" action="/admin/players/unlink/{{ p.id }}" class="inline-form"
-                      onsubmit="return confirm('Отвязать ник {{ p.linked_nickname }} от {{ p.username }}?');">
+                      onsubmit='return confirm({{ ("Отвязать ник " ~ p.linked_nickname ~ " от " ~ p.username ~ "?")|tojson }});'>
                     <button type="submit" class="btn btn-danger">🔓 Отвязать</button>
                 </form>
                 {% else %}
@@ -302,13 +301,13 @@
                 {% endif %}
 
                 <form method="POST" action="/admin/players/change-username/{{ p.id }}" class="inline-form"
-                      onsubmit="return confirm('Сменить логин {{ p.username }}?');">
+                      onsubmit='return confirm({{ ("Сменить логин " ~ p.username ~ "?")|tojson }});'>
                     <input type="text" name="new_username" placeholder="новый логин" required minlength="2">
                     <button type="submit" class="btn btn-small">✎ Логин</button>
                 </form>
 
                 <form method="POST" action="/admin/players/change-password/{{ p.id }}" class="inline-form"
-                      onsubmit="return confirm('Сменить пароль {{ p.username }}?');">
+                      onsubmit='return confirm({{ ("Сменить пароль " ~ p.username ~ "?")|tojson }});'>
                     <input type="text" name="new_password" placeholder="новый пароль" required minlength="4">
                     <button type="submit" class="btn btn-small">🔑 Пароль</button>
                 </form>
@@ -328,7 +327,7 @@
                 {% if p.id != current_user_id and p.role != 'super_admin' %}
                     {% if is_super_admin or (p.role == 'player') %}
                     <form method="POST" action="/admin/players/delete/{{ p.id }}" class="inline-form"
-                          onsubmit="return confirm('Удалить аккаунт {{ p.username }}? Действие необратимо.');">
+                          onsubmit='return confirm({{ ("Удалить аккаунт " ~ p.username ~ "? Действие необратимо.")|tojson }});'>
                         <button type="submit" class="btn btn-danger btn-small">🗑 Удалить</button>
                     </form>
                     {% endif %}

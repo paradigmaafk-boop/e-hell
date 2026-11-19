@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
     <style>
         .link-page { max-width: 720px; margin: 0 auto; padding: 2rem 1.25rem 3rem; position: relative; z-index: 1; }
         .link-card {
@@ -139,7 +140,7 @@
             </div>
             <input type="hidden" name="nickname" id="selected-nick" value="">
             <div class="actions">
-                <a href="/logout" class="btn">Отмена</a>
+                <a href="/logout" class="btn">Выйти</a>
                 <button type="submit" class="btn btn-primary" id="confirm-btn" disabled>Подтвердить</button>
             </div>
         </form>

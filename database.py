@@ -645,21 +645,28 @@ def save_rating(rating_type, data_list):
     conn = get_connection()
     cursor = conn.cursor()
     today = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    for nickname, points in data_list:
-        resolved_nickname = resolve_nickname(nickname)
-        cursor.execute(f"SELECT id, points FROM players_{rating_type} WHERE nickname = %s", (resolved_nickname,))
-        existing = cursor.fetchone()
-        if existing:
-            new_total = existing[1] + points
-            cursor.execute(f"""UPDATE players_{rating_type} SET points = %s, last_updated = %s
-                               WHERE nickname = %s""", (new_total, today, resolved_nickname))
-        else:
-            cursor.execute(f"""INSERT INTO players_{rating_type} (nickname, points, last_updated)
+    try:
+        for nickname, points in data_list:
+            resolved_nickname = resolve_nickname(nickname)
+            cursor.execute(f"SELECT id, points FROM players_{rating_type} WHERE nickname = %s", (resolved_nickname,))
+            existing = cursor.fetchone()
+            if existing:
+                new_total = existing[1] + points
+                cursor.execute(f"""UPDATE players_{rating_type} SET points = %s, last_updated = %s
+                                   WHERE nickname = %s""", (new_total, today, resolved_nickname))
+            else:
+                cursor.execute(f"""INSERT INTO players_{rating_type} (nickname, points, last_updated)
+                                   VALUES (%s, %s, %s)""", (resolved_nickname, points, today))
+            cursor.execute(f"""INSERT INTO history_{rating_type} (nickname, points, date)
                                VALUES (%s, %s, %s)""", (resolved_nickname, points, today))
-        cursor.execute(f"""INSERT INTO history_{rating_type} (nickname, points, date)
-                           VALUES (%s, %s, %s)""", (resolved_nickname, points, today))
-    conn.commit()
-    conn.close()
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"save_rating error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
 
 
 def get_latest_rating(rating_type):
@@ -714,6 +721,16 @@ def get_all_players(rating_type):
     data = cursor.fetchall()
     conn.close()
     return [row[0] for row in data]
+
+
+def get_nicknames_with_history(rating_type):
+    """Ники, у которых реально есть точки на графике."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT DISTINCT nickname FROM history_{rating_type}")
+    data = cursor.fetchall()
+    conn.close()
+    return {row[0] for row in data}
 
 
 def get_average_history(rating_type):

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
     <style>
         .roles-block {
             margin-top: 2rem;
@@ -270,8 +271,9 @@
         <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
         <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
         <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
-        <a href="/reservoir"><span class="nav-full">Резервуар</span><span class="nav-short">РР</span></a>
+        {% if state_available %}
         <a href="/state"><span class="nav-full">Штат</span><span class="nav-short">Штат</span></a>
+        {% endif %}
         <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
         {% if session.get('role') in ['admin', 'super_admin'] %}
         <a href="/admin" class="nav-admin active" title="Админ-панель">⚙</a>
@@ -368,7 +370,7 @@
                         <option value="super_admin" {% if urole == 'super_admin' %}selected{% endif %}>Супер-админ</option>
                     </select>
                     <button type="submit" class="btn btn-small"
-                            onclick="return confirm('Изменить роль пользователя {{ uname }}?');">
+                            onclick='return confirm({{ ("Изменить роль пользователя " ~ uname ~ "?")|tojson }});'>
                         Применить
                     </button>
                 </form>
@@ -381,7 +383,7 @@
     {% if is_super_admin %}
     <section class="reset-block">
         <h3>⚠️ Сбросы</h3>
-        <p>Внимание! Эти действия необратимы.</p>
+        <p>Внимание! Эти действия необратимы. Карту штата можно сохранить заранее: раздел «Штат» → кнопка «⬇ Копия».</p>
 
         <div class="reset-group">
             <div class="reset-group-title">
