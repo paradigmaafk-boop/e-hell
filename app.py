@@ -14,6 +14,7 @@ from database import (
     get_underperforming, get_consistently_underperforming,
     get_total_weeks, get_all_rating_types,
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
+    get_alias_resolutions,
     delete_nickname_alias, reset_rating, delete_player, delete_player_from_all_ratings,
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
@@ -1089,11 +1090,31 @@ def upload_file(rating_type):
         file.save(filepath)
 
         try:
+            hidden_rows = set()
+            try:
+                if filepath.lower().endswith('.xlsx'):
+                    from openpyxl import load_workbook
+                    wb = load_workbook(filepath, data_only=True, read_only=False)
+                    ws = wb.active
+                    # Скрытые строки Excel не должны попадать в рейтинг:
+                    # пользователь их не видит, а pandas их читает.
+                    hidden_rows = {
+                        idx for idx, dim in ws.row_dimensions.items() if dim.hidden
+                    }
+                    wb.close()
+            except Exception as e:
+                print(f"hidden rows check skipped: {e}")
+
             df = pd.read_excel(filepath, header=None)
             df_clean = df[[0, 3]].dropna()
 
             rating_list = []
+            skipped_hidden = 0
             for index, row in df_clean.iterrows():
+                excel_row = index + 1
+                if excel_row in hidden_rows:
+                    skipped_hidden += 1
+                    continue
                 nickname = str(row[0]).strip()
                 try:
                     points = float(row[3])
@@ -1107,6 +1128,10 @@ def upload_file(rating_type):
                 flash('Не удалось найти данные в колонках A и D.')
                 return redirect(url_for('rating_view', rating_type=rating_type))
 
+            uploaded_names = {nickname for nickname, _ in rating_list}
+            alias_pairs = get_alias_resolutions(uploaded_names)
+            missing_targets = sorted({new for _, new in alias_pairs if new not in uploaded_names})
+
             if not save_rating(rating_type, rating_list):
                 flash('Не удалось сохранить рейтинг. Изменения отменены.')
                 return redirect(url_for('rating_view', rating_type=rating_type))
@@ -1114,6 +1139,25 @@ def upload_file(rating_type):
             all_players = get_all_players(rating_type)
             increment_counter('admin_actions')
             flash(f'Рейтинг обновлен! Добавлено {len(rating_list)} записей. Всего: {len(all_players)} игроков.')
+
+            if skipped_hidden:
+                flash(f'Пропущено скрытых строк Excel: {skipped_hidden}.')
+
+            if alias_pairs:
+                shown = ', '.join(f'{old} → {new}' for old, new in alias_pairs[:6])
+                if len(alias_pairs) > 6:
+                    shown += f' и ещё {len(alias_pairs) - 6}'
+                flash(f'Применены связи ников: {shown}.')
+
+            if missing_targets:
+                shown = ', '.join(missing_targets[:6])
+                if len(missing_targets) > 6:
+                    shown += f' и ещё {len(missing_targets) - 6}'
+                flash(
+                    f'Внимание: в таблице нет ников «{shown}», но очки по связям ушли на них. '
+                    'Если это ошибка, удалите лишнюю связь в «Управлении никнеймами» '
+                    'или удалите эту строку из рейтинга — связь удалится вместе с ней.'
+                )
         except Exception as e:
             flash(f'Ошибка: {e}')
         finally:

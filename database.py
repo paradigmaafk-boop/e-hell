@@ -619,6 +619,20 @@ def get_nickname_aliases():
     return data
 
 
+def get_alias_resolutions(nicknames):
+    """Пары (старый ник → новый ник) для ников из загружаемой таблицы."""
+    nicknames = [n for n in set(nicknames or []) if n]
+    if not nicknames:
+        return []
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT old_nickname, current_nickname FROM nickname_aliases
+                      WHERE old_nickname = ANY(%s)""", (nicknames,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
 def delete_nickname_alias(old_nickname):
     conn = get_connection()
     cursor = conn.cursor()
@@ -877,6 +891,15 @@ def delete_player(rating_type, nickname):
     try:
         cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nickname,))
         cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
+
+        # Если игрок удалён из обоих рейтингов, убираем и связи,
+        # которые вели на этот ник. Иначе при следующей загрузке
+        # старый ник снова «оживит» удалённую строку.
+        other_type = 'arcadia' if rating_type == 'duel' else 'duel'
+        cursor.execute(f"SELECT 1 FROM players_{other_type} WHERE nickname = %s LIMIT 1", (nickname,))
+        if not cursor.fetchone():
+            cursor.execute("DELETE FROM nickname_aliases WHERE current_nickname = %s", (nickname,))
+
         conn.commit()
         return True
     except Exception as e:

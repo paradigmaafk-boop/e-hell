@@ -695,7 +695,9 @@
 
         {% with messages = get_flashed_messages() %}
             {% if messages %}
-                <div class="flash-message" style="margin-top: 1rem;">{{ messages[0] }}</div>
+                {% for message in messages %}
+                <div class="flash-message" style="margin-top: 1rem;">{{ message }}</div>
+                {% endfor %}
             {% endif %}
         {% endwith %}
     </section>
