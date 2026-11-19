@@ -23,7 +23,7 @@ from database import (
     update_user_role, link_user_nickname, unlink_user_nickname,
     delete_user, get_linked_nicknames, count_super_admins,
     give_apple, get_apples_given_this_week, get_apples_received_map,
-    get_apples_received_for, reset_apples,
+    get_apples_received_for, get_apple_givers_for, reset_apples,
     reset_apples_given_by_user,
     get_setting, set_setting,
     update_user_squads, get_squads_by_nickname_map,
@@ -693,6 +693,7 @@ def cabinet():
     given_this_week = get_apples_given_this_week(user_id)
     apples_left = max(0, APPLES_PER_WEEK - given_this_week)
     apples_received = get_apples_received_for(linked_nickname) if linked_nickname else 0
+    apple_givers = get_apple_givers_for(linked_nickname) if linked_nickname else []
 
     return render_template('cabinet.html',
                            player={
@@ -713,6 +714,7 @@ def cabinet():
                            preview_active=preview_active,
                            apples_left=apples_left,
                            apples_received=apples_received,
+                           apple_givers=apple_givers,
                            apples_per_week=APPLES_PER_WEEK)
 
 

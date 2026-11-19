@@ -1101,6 +1101,31 @@ def get_apples_received_for(nickname):
     return n or 0
 
 
+def get_apple_givers_for(nickname):
+    """Кто и сколько яблок подарил конкретному нику.
+
+    Возвращает строки: (from_user_id, username, linked_nickname, count, last_at).
+    LEFT JOIN — чтобы подарки от уже удалённых аккаунтов не исчезали.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT a.from_user_id,
+               u.username,
+               u.linked_nickname,
+               COUNT(a.id) AS apples_count,
+               MAX(a.created_at) AS last_at
+        FROM apples a
+        LEFT JOIN users u ON u.id = a.from_user_id
+        WHERE a.to_nickname = %s
+        GROUP BY a.from_user_id, u.username, u.linked_nickname
+        ORDER BY last_at DESC, u.username ASC
+    """, (nickname,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
 def reset_apples():
     conn = get_connection()
     cursor = conn.cursor()

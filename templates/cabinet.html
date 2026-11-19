@@ -277,6 +277,89 @@
         body.light-theme .apples-block { background: #fff5e6; }
         body.light-theme .apples-item { background: #fff8ec; }
 
+        /* Кто дарил яблоки */
+        .apple-givers {
+            margin-top: 1rem;
+            padding-top: 0.9rem;
+            border-top: 1px solid rgba(255, 60, 60, 0.25);
+        }
+        .apple-givers-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.65rem;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--dim);
+        }
+        .apple-givers-title .cnt {
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(255, 60, 60, 0.12);
+            border: 1px solid rgba(255, 60, 60, 0.3);
+            color: #ff8a8a;
+            font-size: 0.7rem;
+            letter-spacing: 0;
+        }
+        .giver-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+        .giver-row {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.45rem 0.65rem;
+            border-radius: 8px;
+            background: rgba(10,5,3,0.45);
+            border: 1px solid var(--line-soft);
+            min-width: 0;
+        }
+        .giver-ico { font-size: 1rem; flex-shrink: 0; }
+        .giver-name {
+            font-weight: 600;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+        .giver-login {
+            color: var(--dim);
+            font-size: 0.72rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .giver-count {
+            margin-left: auto;
+            flex-shrink: 0;
+            color: #ff8a8a;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        .giver-date {
+            flex-shrink: 0;
+            color: var(--dim);
+            font-size: 0.7rem;
+            font-variant-numeric: tabular-nums;
+        }
+        .giver-empty {
+            padding: 0.6rem 0;
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+        body.light-theme .giver-row { background: #fff8ec; }
+        body.light-theme .giver-count { color: #c0281c; }
+        @media (max-width: 480px) {
+            .giver-login { display: none; }
+            .giver-date { font-size: 0.65rem; }
+        }
+
         .cab-info {
             margin-top: 2rem;
             padding: 1.25rem 1.5rem;
@@ -576,6 +659,30 @@
                 <span class="txt">Подарили вам за сезон:</span>
                 <span class="val {% if apples_received == 0 %}zero{% endif %}">{{ apples_received }}</span>
             </div>
+        </div>
+
+        <div class="apple-givers">
+            <div class="apple-givers-title">
+                <span>Кто дарил вам яблоки</span>
+                <span class="cnt">{{ apple_givers|length }}</span>
+            </div>
+            {% if apple_givers %}
+            <ul class="giver-list">
+                {% for giver in apple_givers %}
+                <li class="giver-row">
+                    <span class="giver-ico">🍎</span>
+                    <span class="giver-name">{{ giver[2] or giver[1] or ('Аккаунт #' ~ giver[0]) }}</span>
+                    {% if giver[2] and giver[1] %}
+                    <span class="giver-login">@{{ giver[1] }}</span>
+                    {% endif %}
+                    <span class="giver-count">×{{ giver[3] }}</span>
+                    <span class="giver-date">{{ giver[4][:10] if giver[4] else '' }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="giver-empty">Пока никто не дарил вам яблоки.</div>
+            {% endif %}
         </div>
     </section>
     {% endif %}
