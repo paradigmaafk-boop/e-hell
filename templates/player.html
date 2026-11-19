@@ -116,7 +116,13 @@
 
     <div class="page-head">
         <h1 class="page-title">{{ nickname }}</h1>
-        <p class="page-sub">Прогресс в разделе {{ display_name }}</p>
+        <p class="page-sub">
+            {% if rating_type == 'total' %}
+                Сумма Дуэли и Аркадии по неделям
+            {% else %}
+                Прогресс в разделе {{ display_name }}
+            {% endif %}
+        </p>
     </div>
 
     <section class="stats-grid">
@@ -193,7 +199,7 @@
             labels: formattedDates,
             datasets: [
                 {
-                    label: {{ nickname|tojson }},
+                    label: {{ series_label|tojson }},
                     data: points,
                     borderColor: '#ff4500',
                     backgroundColor: gradient,

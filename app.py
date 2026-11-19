@@ -10,11 +10,11 @@ import pandas as pd
 from database import (
     init_db, check_user, save_rating, get_latest_rating, get_total_rating,
     get_player_history, get_all_players, get_average_history,
-    get_nicknames_with_history,
+    get_nicknames_with_history, get_total_player_history, get_total_average_history,
     get_underperforming, get_consistently_underperforming,
     get_total_weeks, get_all_rating_types,
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
-    delete_nickname_alias, reset_rating, delete_player,
+    delete_nickname_alias, reset_rating, delete_player, delete_player_from_all_ratings,
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
     get_connection,
@@ -474,10 +474,18 @@ def give_apple_route():
 def player_profile(rating_type, nickname):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids or rating_type == 'total':
+    if rating_type not in rt_ids:
         return redirect(url_for('index'))
 
-    history = get_player_history(rating_type, nickname)
+    if rating_type == 'total':
+        history = get_total_player_history(nickname)
+        avg_data = get_total_average_history()
+        series_label = f'{nickname} — сумма Дуэли и Аркадии'
+    else:
+        history = get_player_history(rating_type, nickname)
+        avg_data = get_average_history(rating_type)
+        series_label = nickname
+
     if not history:
         flash('У этого игрока пока нет истории замеров.')
         return redirect(url_for('rating_view', rating_type=rating_type))
@@ -486,7 +494,6 @@ def player_profile(rating_type, nickname):
 
     dates = [row[0] for row in history]
     points = [row[1] for row in history]
-    avg_data = get_average_history(rating_type)
     avg_by_date = {str(row[0]): round(row[1], 1) for row in avg_data}
     # Выравниваем среднее по датам игрока, иначе линии на графике
     # рисовались по разным неделям и не совпадали.
@@ -498,6 +505,7 @@ def player_profile(rating_type, nickname):
                            nickname=nickname,
                            rating_type=rating_type,
                            display_name=display_name,
+                           series_label=series_label,
                            dates=dates, points=points,
                            avg_dates=[row[0] for row in avg_data],
                            avg_points=avg_points)
@@ -1194,6 +1202,18 @@ def delete_player_route(rating_type, nickname):
     else:
         flash(f'Ошибка при удалении игрока "{nickname}"')
     return redirect(url_for('rating_view', rating_type=rating_type))
+
+
+@app.route('/delete-total-player/<nickname>', methods=['POST'])
+@admin_required
+def delete_total_player_route(nickname):
+    """Удаляет строку из общего рейтинга: результаты и история обеих дисциплин."""
+    if delete_player_from_all_ratings(nickname):
+        increment_counter('admin_actions')
+        flash(f'Игрок "{nickname}" удалён из общего рейтинга (Дуэль и Аркадия).')
+    else:
+        flash(f'Ошибка при удалении игрока "{nickname}"')
+    return redirect(url_for('rating_view', rating_type='total'))
 
 
 # ============================================================

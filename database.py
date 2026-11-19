@@ -714,6 +714,56 @@ def get_player_history(rating_type, nickname):
     return data
 
 
+def get_total_player_history(nickname):
+    """История игрока по датам: Дуэль + Аркадия.
+
+    Группируем по календарному дню: загрузки Дуэли и Аркадии могут
+    прийти в разное время, но относиться к одному замеру.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT MIN(date) AS date, SUM(points) AS points
+        FROM (
+            SELECT date, points FROM history_duel WHERE nickname = %s
+            UNION ALL
+            SELECT date, points FROM history_arcadia WHERE nickname = %s
+        ) AS combined
+        GROUP BY SUBSTR(date, 1, 10)
+        ORDER BY MIN(date) ASC
+    """, (nickname, nickname))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def get_total_average_history():
+    """Среднее по союзу за день: сумма Дуэли и Аркадии на игрока."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        WITH combined AS (
+            SELECT date, SUBSTR(date, 1, 10) AS day, nickname, points
+            FROM history_duel
+            UNION ALL
+            SELECT date, SUBSTR(date, 1, 10) AS day, nickname, points
+            FROM history_arcadia
+        ),
+        per_player AS (
+            SELECT day, nickname, SUM(points) AS points, MIN(date) AS sample_date
+            FROM combined
+            GROUP BY day, nickname
+        )
+        SELECT MIN(sample_date) AS date, AVG(points) AS avg_points
+        FROM per_player
+        GROUP BY day
+        ORDER BY MIN(sample_date) ASC
+    """)
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
 def get_all_players(rating_type):
     conn = get_connection()
     cursor = conn.cursor()
@@ -837,6 +887,26 @@ def delete_player(rating_type, nickname):
         conn.close()
 
 
+def delete_player_from_all_ratings(nickname):
+    """Полностью убирает строку из общего рейтинга: Дуэль + Аркадия."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        for rating_type in ('duel', 'arcadia'):
+            cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nickname,))
+            cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
+        # Иначе будущая загрузка старого ника через алиас вернёт удалённого игрока.
+        cursor.execute("DELETE FROM nickname_aliases WHERE current_nickname = %s", (nickname,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error deleting player from all ratings: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
 def get_all_rating_types():
     return [
         {'id': 'total',   'name': 'Рейтинг',         'icon': '🏆', 'color': '#ffb800'},
@@ -849,7 +919,7 @@ def get_rating_display_name(rating_type):
     names = {
         'duel': 'Рейтинг Дуэли',
         'arcadia': 'Рейтинг Аркадии',
-        'total': 'Рейтинг',
+        'total': 'Общий рейтинг',
     }
     return names.get(rating_type, rating_type)
 

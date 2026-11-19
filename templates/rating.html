@@ -834,6 +834,28 @@
                         </button>
                         {% endif %}
                     </div>
+
+                    <div class="rating-actions">
+                        {% if chart_type %}
+                        <a href="{{ url_for('player_profile', rating_type='total', nickname=nick) }}"
+                           class="rating-btn" title="График суммы Дуэли и Аркадии">
+                            📈 <span class="rating-btn-text">График</span>
+                        </a>
+                        {% else %}
+                        <span class="rating-btn rating-btn-disabled" title="Нет истории замеров">
+                            📈 <span class="rating-btn-text">График</span>
+                        </span>
+                        {% endif %}
+                        {% if session.get('role') in ['admin', 'super_admin'] %}
+                        <form action="{{ url_for('delete_total_player_route', nickname=nick) }}" method="POST"
+                              style="display: inline; margin: 0;"
+                              onsubmit='return confirm({{ ("Удалить игрока " ~ nick ~ " из общего рейтинга? Будут удалены результаты Дуэли и Аркадии и вся история.")|tojson }});'>
+                            <button type="submit" class="rating-btn rating-btn-danger" title="Удалить из общего рейтинга">
+                                🗑 <span class="rating-btn-text">Удалить</span>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                 </div>
             {% else %}
                 <div class="rating-row {{ css_class }}">

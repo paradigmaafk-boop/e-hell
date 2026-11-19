@@ -943,6 +943,12 @@ td.points-cell {
     color: #fff;
 }
 
+.rating-btn-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .rating-btn-text { display: inline; }
 
 /* === ЦВЕТА МЕСТ === */
@@ -1032,7 +1038,7 @@ td.points-cell {
 /* Мобильный */
 @media (max-width: 780px) {
     .rating-row {
-        grid-template-columns: 44px 1fr auto;
+        grid-template-columns: 44px 1fr auto auto;
         gap: 0.7rem;
         padding: 0.55rem 0.8rem 0.55rem 0.6rem;
     }
@@ -1049,7 +1055,7 @@ td.points-cell {
 
 @media (max-width: 480px) {
     .rating-row {
-        grid-template-columns: 40px 1fr auto;
+        grid-template-columns: 40px 1fr auto auto;
         gap: 0.55rem;
     }
     .rating-circle { width: 36px; height: 36px; font-size: 1rem; }
