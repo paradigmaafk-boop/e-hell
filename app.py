@@ -5,6 +5,7 @@ import mimetypes
 import re
 from datetime import datetime
 from functools import wraps
+from io import BytesIO
 from flask import (Flask, render_template, request, redirect, url_for,
                    session, flash, jsonify, Response)
 import pandas as pd
@@ -20,6 +21,7 @@ from database import (
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
     create_media_asset, get_media_assets, get_media_asset,
+    get_media_asset_preview, get_media_assets_without_previews, set_media_preview,
     delete_media_asset, count_media_asset_usage, migrate_static_media_urls,
     clear_slide_media,
     get_connection,
@@ -240,6 +242,36 @@ def _parse_squad(raw):
     return f"{int_part},{frac_part}"
 
 
+def build_media_preview(data, mime_type):
+    """Лёгкая WebP-версия для быстрой карусели и альбома.
+
+    Оригинал остаётся в БД и доступен по /media/<id>/original.
+    """
+    if not mime_type.startswith('image/'):
+        return None
+    try:
+        from PIL import Image, ImageOps
+    except Exception as e:
+        print(f"Pillow is not available, preview skipped: {e}")
+        return None
+    try:
+        img = Image.open(BytesIO(data))
+        if getattr(img, 'is_animated', False):
+            return None
+        img = ImageOps.exif_transpose(img)
+        resample = Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else Image.LANCZOS
+        img.thumbnail((1920, 1080), resample)
+        if img.mode not in ('RGB', 'RGBA'):
+            has_alpha = ('A' in img.getbands()) or ('transparency' in img.info)
+            img = img.convert('RGBA' if has_alpha else 'RGB')
+        out = BytesIO()
+        img.save(out, 'WEBP', quality=85, method=6)
+        return out.getvalue(), 'image/webp'
+    except Exception as e:
+        print(f"media preview error: {e}")
+        return None
+
+
 def _media_mime(filename):
     ext = (filename.rsplit('.', 1)[1].lower() if '.' in filename else '')
     return ALLOWED_MEDIA_EXTENSIONS.get(ext)
@@ -256,7 +288,12 @@ def _safe_media_name(filename):
 
 
 def save_media_bytes(filename, data, mime_type, uploaded_by=''):
-    asset_id = create_media_asset(filename, mime_type, data, uploaded_by)
+    preview = build_media_preview(data, mime_type)
+    preview_data, preview_mime = preview if preview else (None, None)
+    asset_id = create_media_asset(
+        filename, mime_type, data, uploaded_by,
+        preview_data=preview_data, preview_mime=preview_mime,
+    )
     return f"/media/{asset_id}" if asset_id else None
 
 
@@ -339,7 +376,12 @@ def import_carousel_seed():
         try:
             with open(path, 'rb') as f:
                 data = f.read()
-            asset_id = create_media_asset(name, mime_type, data, 'seed')
+            preview = build_media_preview(data, mime_type)
+            preview_data, preview_mime = preview if preview else (None, None)
+            asset_id = create_media_asset(
+                name, mime_type, data, 'seed',
+                preview_data=preview_data, preview_mime=preview_mime,
+            )
             if asset_id:
                 mapping[f'/static/carousel/{name}'] = f'/media/{asset_id}'
             else:
@@ -379,10 +421,29 @@ def cleanup_missing_static_slides():
     return cleared
 
 
+def ensure_media_previews():
+    """Догенерирует превью для фото, загруженных до этой оптимизации."""
+    try:
+        assets = get_media_assets_without_previews()
+    except Exception as e:
+        print(f"media previews check skipped: {e}")
+        return 0
+    done = 0
+    for asset_id, mime_type, data in assets:
+        preview = build_media_preview(bytes(data), mime_type)
+        if not preview:
+            continue
+        preview_data, preview_mime = preview
+        if set_media_preview(asset_id, preview_data, preview_mime):
+            done += 1
+    return done
+
+
 # Импортируем уже загруженные фото в БД при старте приложения.
 try:
     import_carousel_seed()
     cleanup_missing_static_slides()
+    ensure_media_previews()
 except Exception as _media_seed_error:
     print(f"carousel seed import failed: {_media_seed_error}")
 
@@ -481,6 +542,23 @@ def favicon_ico():
 
 @app.route('/media/<int:asset_id>')
 def media_file(asset_id):
+    preview = get_media_asset_preview(asset_id)
+    if preview:
+        filename, data, mime_type, _size = preview
+    else:
+        asset = get_media_asset(asset_id)
+        if not asset:
+            return 'Файл не найден', 404
+        _, filename, mime_type, data, _size, _created, _uploaded_by = asset
+    response = Response(data, mimetype=mime_type)
+    response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
+
+
+@app.route('/media/<int:asset_id>/original')
+def media_file_original(asset_id):
     asset = get_media_asset(asset_id)
     if not asset:
         return 'Файл не найден', 404
@@ -488,7 +566,7 @@ def media_file(asset_id):
     response = Response(data, mimetype=mime_type)
     response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
     response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+    response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
 

@@ -479,20 +479,21 @@
             <div class="carousel-stage">
 
                 {% for slide in slides %}
+                {% set media_ver = slide[8]|replace(' ', 'T')|replace(':', '') ~ '-p2' %}
                 <div class="slide {% if loop.first %}active{% endif %}" data-type="{{ slide[3] or 'none' }}">
                     {% if slide[4] %}
                         {% if slide[3] == 'video' %}
                             <div class="slide-bg" style="position:absolute; inset:0; z-index:0;"></div>
                             <video
-                                src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"
-                                {% if slide[9] %}poster="{{ slide[9] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"{% endif %}
+                                src="{{ slide[4] }}?v={{ media_ver }}"
+                                {% if slide[9] %}poster="{{ slide[9] }}?v={{ media_ver }}"{% endif %}
                                 autoplay muted loop playsinline
                                 preload="auto"
                                 {% if loop.first %}data-priority="1"{% endif %}
                                 style="position:relative; z-index:1;"
                             ></video>
                         {% else %}
-                            <img src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}" alt="{{ slide[1] or '' }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+                            <img src="{{ slide[4] }}?v={{ media_ver }}" alt="{{ slide[1] or '' }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
                         {% endif %}
                     {% else %}
                         <div class="slide-bg">Изображение не загружено</div>

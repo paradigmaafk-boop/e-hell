@@ -184,8 +184,20 @@ def init_db():
             data BYTEA NOT NULL,
             size INTEGER NOT NULL,
             created_at TEXT NOT NULL,
-            uploaded_by TEXT
+            uploaded_by TEXT,
+            preview_data BYTEA,
+            preview_mime TEXT,
+            preview_size INTEGER
         )
+    """)
+    cursor.execute("""
+        ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS preview_data BYTEA
+    """)
+    cursor.execute("""
+        ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS preview_mime TEXT
+    """)
+    cursor.execute("""
+        ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS preview_size INTEGER
     """)
     cursor.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS idx_media_assets_name_size
@@ -1428,23 +1440,30 @@ def delete_slide(slide_id):
 # МЕДИА-АЛЬБОМ (хранится в БД, переживает передеплой)
 # ============================================================
 
-def create_media_asset(filename, mime_type, data, uploaded_by=''):
+def create_media_asset(filename, mime_type, data, uploaded_by='', preview_data=None, preview_mime=None):
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     try:
         cursor.execute("""
-            INSERT INTO media_assets (filename, mime_type, data, size, created_at, uploaded_by)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO media_assets
+                (filename, mime_type, data, size, created_at, uploaded_by,
+                 preview_data, preview_mime, preview_size)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (filename, size) DO NOTHING
             RETURNING id
-        """, (filename, mime_type, psycopg2.Binary(data), len(data), now, uploaded_by or ''))
+        """, (
+            filename, mime_type, psycopg2.Binary(data), len(data), now, uploaded_by or '',
+            psycopg2.Binary(preview_data) if preview_data else None,
+            preview_mime,
+            len(preview_data) if preview_data else None,
+        ))
         row = cursor.fetchone()
         if row:
             asset_id = row[0]
         else:
             cursor.execute(
-                "SELECT id FROM media_assets WHERE filename = %s AND size = %s LIMIT 1",
+                "SELECT id, preview_data FROM media_assets WHERE filename = %s AND size = %s LIMIT 1",
                 (filename, len(data))
             )
             existing = cursor.fetchone()
@@ -1452,6 +1471,13 @@ def create_media_asset(filename, mime_type, data, uploaded_by=''):
                 conn.rollback()
                 return None
             asset_id = existing[0]
+            # Старые записи (до появления превью) дозаполняем.
+            if preview_data and existing[1] is None:
+                cursor.execute("""UPDATE media_assets
+                                  SET preview_data = %s, preview_mime = %s, preview_size = %s
+                                  WHERE id = %s""",
+                               (psycopg2.Binary(preview_data), preview_mime,
+                                len(preview_data), asset_id))
         conn.commit()
         return asset_id
     except Exception as e:
@@ -1465,7 +1491,7 @@ def create_media_asset(filename, mime_type, data, uploaded_by=''):
 def get_media_assets():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT id, filename, mime_type, size, created_at, uploaded_by
+    cursor.execute("""SELECT id, filename, mime_type, size, created_at, uploaded_by, preview_size
                       FROM media_assets
                       ORDER BY created_at DESC, id DESC""")
     data = cursor.fetchall()
@@ -1483,6 +1509,48 @@ def get_media_asset(asset_id):
     if row:
         return (row[0], row[1], row[2], bytes(row[3]), row[4], row[5], row[6])
     return None
+
+
+def get_media_asset_preview(asset_id):
+    """Лёгкая версия для показа; None, если превью ещё нет."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT filename, preview_data, preview_mime, preview_size
+                      FROM media_assets WHERE id = %s""", (asset_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row and row[1] is not None:
+        return (row[0], bytes(row[1]), row[2], row[3])
+    return None
+
+
+def get_media_assets_without_previews():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, mime_type, data
+                      FROM media_assets
+                      WHERE preview_data IS NULL AND mime_type LIKE 'image/%'""")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def set_media_preview(asset_id, data, mime_type):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""UPDATE media_assets
+                          SET preview_data = %s, preview_mime = %s, preview_size = %s
+                          WHERE id = %s""",
+                       (psycopg2.Binary(data), mime_type, len(data), asset_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"set_media_preview error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
 
 
 def delete_media_asset(asset_id):

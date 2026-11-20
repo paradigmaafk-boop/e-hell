@@ -186,20 +186,26 @@
             <div class="media-card">
                 <div class="media-thumb">
                     {% if is_video %}
-                    <video src="/media/{{ asset[0] }}" muted preload="metadata"></video>
+                    <video src="/media/{{ asset[0] }}?p=2" muted preload="metadata"></video>
                     {% else %}
-                    <img src="/media/{{ asset[0] }}" alt="{{ asset[1] }}" loading="lazy">
+                    <img src="/media/{{ asset[0] }}?p=2" alt="{{ asset[1] }}" loading="lazy">
                     {% endif %}
                 </div>
                 <div class="media-info">
                     <div class="media-name" title="{{ asset[1] }}">{{ asset[1] }}</div>
                     <div class="media-meta">
-                        {{ (asset[3] / 1024)|round(1) }} КБ · {{ asset[4][:16] }}<br>
+                        {% if asset[6] %}
+                        {{ (asset[6] / 1024)|round(1) }} КБ · оригинал {{ (asset[3] / 1024)|round(1) }} КБ
+                        {% else %}
+                        {{ (asset[3] / 1024)|round(1) }} КБ
+                        {% endif %}
+                        · {{ asset[4][:16] }}<br>
                         {{ asset[5] or '—' }}
                     </div>
                 </div>
                 <div class="media-actions">
                     <button type="button" class="btn copy-media" data-url="/media/{{ asset[0] }}">🔗 URL</button>
+                    <a href="/media/{{ asset[0] }}/original" class="btn" target="_blank" rel="noopener">Оригинал</a>
                     <a href="/admin/carousel" class="btn">В карусель</a>
                     <form method="POST" style="display: inline;"
                           onsubmit='return confirm({{ ("Удалить файл " ~ asset[1] ~ " из альбома?")|tojson }});'>
