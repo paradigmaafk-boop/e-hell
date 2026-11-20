@@ -68,7 +68,35 @@
             will-change: opacity;
         }
         .slide.active { opacity: 1; }
-        .slide img, .slide video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* Фото показываем целиком (16:9), а свободные поля заполняем
+           размытой копией — без обрезки верха и низа. */
+        .slide-blur {
+            position: absolute;
+            inset: -5%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(28px) brightness(0.42) saturate(1.2);
+            transform: scale(1.12);
+            z-index: 0;
+            pointer-events: none;
+            display: none;
+        }
+        .slide img, .slide video {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* На компьютере и планшете фото показываем целиком;
+           на телефоне оставляем привычное заполнение кадра. */
+        @media (min-width: 601px) {
+            .slide-blur { display: block; }
+            .slide img, .slide video { object-fit: contain; }
+        }
 
         .slide video:not(.video-ready) { opacity: 0; }
         .slide video { transition: opacity 0.6s ease; }
@@ -484,15 +512,18 @@
                     {% if slide[4] %}
                         {% if slide[3] == 'video' %}
                             <div class="slide-bg" style="position:absolute; inset:0; z-index:0;"></div>
+                            {% if slide[9] %}
+                            <div class="slide-blur" style="background-image:url('{{ slide[9] }}?v={{ media_ver }}')"></div>
+                            {% endif %}
                             <video
                                 src="{{ slide[4] }}?v={{ media_ver }}"
                                 {% if slide[9] %}poster="{{ slide[9] }}?v={{ media_ver }}"{% endif %}
                                 autoplay muted loop playsinline
                                 preload="auto"
                                 {% if loop.first %}data-priority="1"{% endif %}
-                                style="position:relative; z-index:1;"
                             ></video>
                         {% else %}
+                            <div class="slide-blur" style="background-image:url('{{ slide[4] }}?v={{ media_ver }}')"></div>
                             <img src="{{ slide[4] }}?v={{ media_ver }}" alt="{{ slide[1] or '' }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
                         {% endif %}
                     {% else %}
