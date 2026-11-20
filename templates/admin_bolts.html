@@ -136,6 +136,30 @@
         .bolt-history td { font-size: 0.78rem; }
         .bolt-history .date { color: var(--dim); white-space: nowrap; }
         .bolt-empty { padding: 1.2rem; color: var(--muted); font-size: 0.85rem; }
+        .bolt-toast {
+            position: fixed;
+            left: 50%;
+            bottom: 1.5rem;
+            transform: translateX(-50%);
+            z-index: 2000;
+            max-width: min(92vw, 620px);
+            padding: 0.85rem 1.2rem;
+            border-radius: 10px;
+            background: rgba(30, 20, 7, 0.98);
+            border: 1px solid rgba(255, 209, 102, 0.5);
+            box-shadow: 0 10px 35px rgba(0,0,0,0.55), 0 0 18px rgba(255, 184, 0, 0.18);
+            color: #ffe8ac;
+            font-size: 0.86rem;
+            line-height: 1.4;
+            text-align: center;
+            animation: boltToastIn 0.18s ease;
+        }
+        .bolt-toast.error { border-color: var(--danger); color: #ffb3a7; }
+        @keyframes boltToastIn {
+            from { opacity: 0; transform: translate(-50%, 10px); }
+            to   { opacity: 1; transform: translate(-50%, 0); }
+        }
+        .give-bolt-form button:disabled { opacity: 0.55; cursor: wait; }
         body.light-theme .bolts-hero {
             background:
                 radial-gradient(circle at 90% 0%, rgba(255, 184, 0, 0.18), transparent 45%),
@@ -291,7 +315,7 @@
                             </td>
                             <td>
                                 <div class="bolt-actions">
-                                    <form method="POST" action="/admin/bolts/give">
+                                    <form method="POST" action="/admin/bolts/give" class="give-bolt-form">
                                         <input type="hidden" name="nickname" value="{{ p.nickname }}">
                                         <button type="submit" class="btn btn-gold">{% include '_gold_bolt_icon.html' %} Вручить</button>
                                     </form>
@@ -393,6 +417,114 @@
         onlyNo.classList.toggle('btn-primary', noOnly);
         onlyNo.textContent = noOnly ? 'Показать всех' : 'Только без болтов';
         applyFilter();
+    });
+
+    function showBoltToast(text, isError) {
+        document.querySelectorAll('.bolt-toast').forEach(el => el.remove());
+        const toast = document.createElement('div');
+        toast.className = 'bolt-toast' + (isError ? ' error' : '');
+        toast.textContent = text;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3200);
+    }
+
+    function addHistoryRow(data) {
+        const cards = document.querySelectorAll('.bolt-card');
+        const card = cards[1];
+        if (!card) return;
+        let tbody = card.querySelector('.bolt-history tbody');
+        if (!tbody) {
+            const empty = card.querySelector('.bolt-empty');
+            if (empty) empty.remove();
+            const wrap = document.createElement('div');
+            wrap.className = 'bolt-table-wrap';
+            wrap.innerHTML = `
+                <table class="bolt-table bolt-history">
+                    <thead>
+                        <tr>
+                            <th>Когда</th>
+                            <th>Кому</th>
+                            <th>Среднее по союзу</th>
+                            <th>Бонус</th>
+                            <th>Кто дал</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>`;
+            card.appendChild(wrap);
+            tbody = wrap.querySelector('tbody');
+        }
+        const tr = document.createElement('tr');
+        const values = [
+            String(data.created_at || '').slice(0, 16),
+            data.nickname,
+            Number(data.avg || 0).toFixed(1),
+            '+' + data.bonus,
+            data.giver || '—',
+        ];
+        values.forEach((value, index) => {
+            const td = document.createElement('td');
+            if (index === 0) td.className = 'date';
+            if (index === 1) td.className = 'bolt-nick';
+            if (index === 3) td.className = 'bolt-bonus';
+            td.textContent = value;
+            tr.appendChild(td);
+        });
+        tbody.insertBefore(tr, tbody.firstChild);
+    }
+
+    document.querySelectorAll('.give-bolt-form').forEach(form => {
+        form.addEventListener('submit', async event => {
+            event.preventDefault();
+            const button = form.querySelector('button[type="submit"]');
+            if (button) button.disabled = true;
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                });
+                const data = await response.json().catch(() => ({
+                    success: false,
+                    error: 'Сервер вернул неожиданный ответ.',
+                }));
+                if (!response.ok || !data.success) {
+                    showBoltToast(data.error || 'Не удалось вручить болтик.', true);
+                    return;
+                }
+
+                const row = form.closest('tr');
+                const count = Number(data.count || 0);
+                const totalBonus = count * Number(data.bonus || 0);
+                row.dataset.bolts = String(count);
+
+                const countCell = row.querySelector('.bolt-count');
+                const icon = countCell ? countCell.querySelector('.gold-bolt-icon') : null;
+                if (countCell) {
+                    countCell.innerHTML = '';
+                    if (icon) countCell.appendChild(icon);
+                    countCell.appendChild(document.createTextNode(' ' + count));
+                }
+                const bonusCell = row.querySelector('.bolt-bonus');
+                if (bonusCell) bonusCell.textContent = totalBonus ? '+' + totalBonus : '—';
+                const status = row.querySelector('.bolt-status');
+                if (status) {
+                    status.className = 'bolt-status yes';
+                    status.textContent = '✓ получал';
+                }
+
+                addHistoryRow(data);
+                showBoltToast(data.message, false);
+                applyFilter();
+            } catch (error) {
+                showBoltToast('Ошибка сети. Болтик не вручён.', true);
+            } finally {
+                if (button) button.disabled = false;
+            }
+        });
     });
 </script>
 

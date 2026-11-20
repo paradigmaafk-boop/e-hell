@@ -1191,9 +1191,26 @@ def admin_bolts():
 @admin_required
 def admin_bolts_give():
     nickname = request.form.get('nickname', '').strip()
-    ok, message, _count, _bonus, _avg = give_gold_bolt(session['user_id'], nickname)
+    ok, message, count, bonus, avg = give_gold_bolt(session['user_id'], nickname)
     if ok:
         increment_counter('admin_actions')
+
+    wants_json = (request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+                  or request.accept_mimetypes.best == 'application/json')
+    if wants_json:
+        if not ok:
+            return jsonify({'success': False, 'error': message}), 400
+        return jsonify({
+            'success': True,
+            'message': message,
+            'nickname': nickname,
+            'count': count,
+            'bonus': bonus,
+            'avg': avg,
+            'giver': session.get('username', '—'),
+            'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        })
+
     flash(message)
     return redirect(url_for('admin_bolts'))
 
