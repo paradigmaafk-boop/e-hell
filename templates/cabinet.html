@@ -744,6 +744,40 @@
 
     </section>
 
+    {% if player.linked_nickname %}
+    <section class="bolts-block">
+        <div class="bolts-head">
+            <div class="bolts-title"><span class="ico">{% include '_gold_bolt_icon.html' %}</span> Золотые болтики</div>
+            <span class="bolts-season">за сезон</span>
+        </div>
+        <div class="bolts-main">
+            {% include '_gold_bolt_icon.html' %}
+            <span class="bolts-count {% if bolts_received == 0 %}zero{% endif %}">{{ bolts_received }}</span>
+            <span class="bolts-unit">{% if bolts_received % 10 == 1 and bolts_received % 100 != 11 %}золотой болтик{% elif bolts_received % 10 in [2, 3, 4] and bolts_received % 100 not in [12, 13, 14] %}золотых болтика{% else %}золотых болтиков{% endif %}</span>
+        </div>
+        <p class="bolts-philosophy">
+            Каждый золотой болт — это участие в ивенте союза.
+            Доказательство того, что тебе не всё равно.
+        </p>
+        <div class="bolts-stats">
+            <span>Вклад в общий рейтинг: <b>+{{ bolts_bonus }}</b></span>
+            <span>Дарителей: <b>{{ bolt_givers|length }}</b></span>
+            <a href="/rating/events" style="color: #ffd166;">Рейтинг Ивентов →</a>
+        </div>
+        {% if bolt_givers %}
+        <div class="bolts-givers">
+            {% for giver in bolt_givers %}
+            <span class="bolts-giver">{% include '_gold_bolt_icon.html' %} {{ giver[0] }} <b>×{{ giver[1] }}</b></span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bolts-stats" style="border-top: none; padding-top: 0.6rem; margin-top: 0.4rem;">
+            Пока ни одного болтика — но всё впереди.
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
     <section class="squads-block">
         <h3>⚔ Боевая мощь отрядов</h3>
         <p class="squads-hint">
@@ -820,38 +854,6 @@
             <div class="giver-empty">Пока никто не дарил вам яблоки.</div>
             {% endif %}
         </div>
-    </section>
-
-    <section class="bolts-block">
-        <div class="bolts-head">
-            <div class="bolts-title"><span class="ico">{% include '_gold_bolt_icon.html' %}</span> Золотые болтики</div>
-            <span class="bolts-season">за сезон</span>
-        </div>
-        <div class="bolts-main">
-            {% include '_gold_bolt_icon.html' %}
-            <span class="bolts-count {% if bolts_received == 0 %}zero{% endif %}">{{ bolts_received }}</span>
-            <span class="bolts-unit">{% if bolts_received % 10 == 1 and bolts_received % 100 != 11 %}золотой болтик{% elif bolts_received % 10 in [2, 3, 4] and bolts_received % 100 not in [12, 13, 14] %}золотых болтика{% else %}золотых болтиков{% endif %}</span>
-        </div>
-        <p class="bolts-philosophy">
-            Каждый золотой болт — это участие в ивенте союза.
-            Доказательство того, что тебе не всё равно.
-        </p>
-        <div class="bolts-stats">
-            <span>Вклад в общий рейтинг: <b>+{{ bolts_bonus }}</b></span>
-            <span>Дарителей: <b>{{ bolt_givers|length }}</b></span>
-            <a href="/rating/events" style="color: #ffd166;">Рейтинг Ивентов →</a>
-        </div>
-        {% if bolt_givers %}
-        <div class="bolts-givers">
-            {% for giver in bolt_givers %}
-            <span class="bolts-giver">{% include '_gold_bolt_icon.html' %} {{ giver[0] }} <b>×{{ giver[1] }}</b></span>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="bolts-stats" style="border-top: none; padding-top: 0.6rem; margin-top: 0.4rem;">
-            Пока ни одного болтика — но всё впереди.
-        </div>
-        {% endif %}
     </section>
     {% endif %}
 
