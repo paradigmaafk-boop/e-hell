@@ -260,6 +260,25 @@ def init_db():
     """)
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS gold_bolts (
+            id SERIAL PRIMARY KEY,
+            from_user_id INTEGER NOT NULL,
+            to_nickname TEXT NOT NULL,
+            duel_average NUMERIC(12, 2) NOT NULL DEFAULT 0,
+            bonus_points INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gold_bolts_to_nickname
+        ON gold_bolts (to_nickname)
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_gold_bolts_from_user
+        ON gold_bolts (from_user_id)
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS site_settings (
             id SERIAL PRIMARY KEY,
             key TEXT UNIQUE NOT NULL,
@@ -646,6 +665,9 @@ def add_nickname_alias(current_nickname, old_nickname):
         cursor.execute("""UPDATE apples SET to_nickname = %s
                           WHERE to_nickname = %s""",
                        (current_nickname, old_nickname))
+        cursor.execute("""UPDATE gold_bolts SET to_nickname = %s
+                          WHERE to_nickname = %s""",
+                       (current_nickname, old_nickname))
         conn.commit()
         return True
     except Exception as e:
@@ -747,17 +769,30 @@ def get_total_rating():
             SELECT nickname FROM players_duel
             UNION
             SELECT nickname FROM players_arcadia
+            UNION
+            SELECT to_nickname FROM gold_bolts
         ),
         duel AS (SELECT nickname, points FROM players_duel),
-        arcadia AS (SELECT nickname, points FROM players_arcadia)
+        arcadia AS (SELECT nickname, points FROM players_arcadia),
+        bolts AS (
+            SELECT to_nickname AS nickname,
+                   COUNT(*) AS bolt_count,
+                   COALESCE(SUM(bonus_points), 0) AS bolt_bonus
+            FROM gold_bolts
+            GROUP BY to_nickname
+        )
         SELECT
             p.nickname,
             COALESCE(d.points, 0) AS duel_points,
             COALESCE(a.points, 0) AS arcadia_points,
-            COALESCE(d.points, 0) + COALESCE(a.points, 0) AS total_points
+            COALESCE(d.points, 0) + COALESCE(a.points, 0)
+                + COALESCE(b.bolt_bonus, 0) AS total_points,
+            COALESCE(b.bolt_bonus, 0) AS bolt_bonus,
+            COALESCE(b.bolt_count, 0) AS bolt_count
         FROM players p
         LEFT JOIN duel d ON d.nickname = p.nickname
         LEFT JOIN arcadia a ON a.nickname = p.nickname
+        LEFT JOIN bolts b ON b.nickname = p.nickname
         ORDER BY total_points DESC, p.nickname ASC
     """)
     data = cursor.fetchall()
@@ -965,6 +1000,7 @@ def delete_player_from_all_ratings(nickname):
         for rating_type in ('duel', 'arcadia'):
             cursor.execute(f"DELETE FROM players_{rating_type} WHERE nickname = %s", (nickname,))
             cursor.execute(f"DELETE FROM history_{rating_type} WHERE nickname = %s", (nickname,))
+        cursor.execute("DELETE FROM gold_bolts WHERE to_nickname = %s", (nickname,))
         # Иначе будущая загрузка старого ника через алиас вернёт удалённого игрока.
         cursor.execute("DELETE FROM nickname_aliases WHERE current_nickname = %s", (nickname,))
         conn.commit()
@@ -982,6 +1018,7 @@ def get_all_rating_types():
         {'id': 'total',   'name': 'Рейтинг',         'icon': '🏆', 'color': '#ffb800'},
         {'id': 'duel',    'name': 'Рейтинг Дуэли',   'icon': '⚔️', 'color': '#ff8a1f'},
         {'id': 'arcadia', 'name': 'Рейтинг Аркадии', 'icon': '🌿', 'color': '#4caf50'},
+        {'id': 'events',  'name': 'Ивенты',          'icon': '🔩', 'color': '#ffd166'},
     ]
 
 
@@ -990,6 +1027,7 @@ def get_rating_display_name(rating_type):
         'duel': 'Рейтинг Дуэли',
         'arcadia': 'Рейтинг Аркадии',
         'total': 'Общий рейтинг',
+        'events': 'Ивенты',
     }
     return names.get(rating_type, rating_type)
 
@@ -1085,6 +1123,12 @@ def associate_players(target_nickname, duel_nicks, arcadia_nicks, created_by='')
 
         duel_added, duel_merged = merge_group('duel', duel_nicks)
         arcadia_added, arcadia_merged = merge_group('arcadia', arcadia_nicks)
+
+        # Болтики — часть рейтинга игрока, поэтому при объединении строк
+        # переносим и их на целевой ник.
+        for nick in dict.fromkeys(duel_nicks + arcadia_nicks):
+            cursor.execute("UPDATE gold_bolts SET to_nickname = %s WHERE to_nickname = %s",
+                           (target_nickname, nick))
 
         if duel_merged:
             cursor.execute("SELECT points FROM players_duel WHERE nickname = %s", (target_nickname,))
@@ -1276,6 +1320,231 @@ def reset_apples_given_by_user(user_id):
         return True
     except Exception as e:
         print(f"reset_apples_given_by_user error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+# ============================================================
+# ЗОЛОТЫЕ БОЛТИКИ (ИВЕНТЫ)
+# ============================================================
+
+def get_player_duel_average(nickname):
+    """Средний рейтинг игрока в Дуэли на текущий момент.
+
+    Если истории ещё нет — берём текущие очки из таблицы Дуэли.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT AVG(points) FROM history_duel WHERE nickname = %s", (nickname,))
+    row = cursor.fetchone()
+    avg = row[0] if row else None
+    if avg is None:
+        cursor.execute("SELECT points FROM players_duel WHERE nickname = %s LIMIT 1", (nickname,))
+        row = cursor.fetchone()
+        avg = row[0] if row else 0
+    conn.close()
+    return float(avg or 0)
+
+
+def give_gold_bolt(from_user_id, to_nickname):
+    """Дарит один болт. Бонус фиксируется по среднему Дуэли сейчас."""
+    nickname = (to_nickname or '').strip()
+    if not nickname:
+        return False, 'Не указан игрок.', 0, 0, 0
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT 1 FROM players_duel WHERE nickname = %s
+            UNION
+            SELECT 1 FROM players_arcadia WHERE nickname = %s
+            UNION
+            SELECT 1 FROM gold_bolts WHERE to_nickname = %s
+            LIMIT 1
+        """, (nickname, nickname, nickname))
+        if not cursor.fetchone():
+            conn.rollback()
+            return False, 'Игрок не найден в рейтингах.', 0, 0, 0
+
+        avg = get_player_duel_average(nickname)
+        bonus = int(avg * 0.5 + 0.5)
+        now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        cursor.execute("""
+            INSERT INTO gold_bolts (from_user_id, to_nickname, duel_average, bonus_points, created_at)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (from_user_id, nickname, avg, bonus, now))
+        cursor.execute("SELECT COUNT(*) FROM gold_bolts WHERE to_nickname = %s", (nickname,))
+        count = cursor.fetchone()[0] or 0
+        conn.commit()
+        message = f'Золотой болт вручён игроку {nickname}.'
+        if bonus:
+            message += f' +{bonus} к общему рейтингу (50% от среднего Дуэли {avg:.1f}).'
+        else:
+            message += ' Средний рейтинг Дуэли пока 0, поэтому бонусных очков нет.'
+        return True, message, count, bonus, avg
+    except Exception as e:
+        print(f"give_gold_bolt error: {e}")
+        conn.rollback()
+        return False, 'Ошибка при вручении болта.', 0, 0, 0
+    finally:
+        conn.close()
+
+
+def get_gold_bolts_received_map():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT to_nickname, COUNT(*) FROM gold_bolts
+                      GROUP BY to_nickname""")
+    data = {row[0]: row[1] for row in cursor.fetchall()}
+    conn.close()
+    return data
+
+
+def get_gold_bolts_bonus_map():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT to_nickname, COALESCE(SUM(bonus_points), 0)
+                      FROM gold_bolts GROUP BY to_nickname""")
+    data = {row[0]: int(row[1] or 0) for row in cursor.fetchall()}
+    conn.close()
+    return data
+
+
+def get_gold_bolts_summary(nickname):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT COUNT(*), COALESCE(SUM(bonus_points), 0)
+                      FROM gold_bolts WHERE to_nickname = %s""", (nickname,))
+    row = cursor.fetchone()
+    conn.close()
+    return (row[0] or 0, int(row[1] or 0)) if row else (0, 0)
+
+
+def get_gold_bolt_givers_for(nickname):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT COALESCE(u.username, '—') AS giver,
+               COUNT(g.id) AS bolts_count,
+               COALESCE(SUM(g.bonus_points), 0) AS bonus_total,
+               MAX(g.created_at) AS last_at
+        FROM gold_bolts g
+        LEFT JOIN users u ON u.id = g.from_user_id
+        WHERE g.to_nickname = %s
+        GROUP BY g.from_user_id, u.username
+        ORDER BY last_at DESC, giver ASC
+    """, (nickname,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def get_all_gold_bolts(limit=200):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT g.id, g.to_nickname, g.duel_average, g.bonus_points, g.created_at,
+               COALESCE(u.username, '—') AS giver
+        FROM gold_bolts g
+        LEFT JOIN users u ON u.id = g.from_user_id
+        ORDER BY g.created_at DESC, g.id DESC
+        LIMIT %s
+    """, (limit,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def get_events_rating():
+    """Рейтинг посещаемости: количество болтов и их вклад в общий рейтинг."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT to_nickname,
+               COUNT(*) AS bolts_count,
+               COALESCE(SUM(bonus_points), 0) AS bonus_total
+        FROM gold_bolts
+        GROUP BY to_nickname
+        ORDER BY bolts_count DESC, bonus_total DESC, to_nickname ASC
+    """)
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def get_events_player_history(nickname):
+    """Накопленные болты по дням — для графика."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT SUBSTR(created_at, 1, 10) AS day, COUNT(*)
+        FROM gold_bolts
+        WHERE to_nickname = %s
+        GROUP BY SUBSTR(created_at, 1, 10)
+        ORDER BY day ASC
+    """, (nickname,))
+    rows = cursor.fetchall()
+    conn.close()
+    total = 0
+    result = []
+    for day, count in rows:
+        total += count
+        result.append((day, total))
+    return result
+
+
+def get_bolt_bonus_history(nickname):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT created_at, bonus_points FROM gold_bolts
+                      WHERE to_nickname = %s ORDER BY created_at ASC, id ASC""",
+                   (nickname,))
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def reset_gold_bolts():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM gold_bolts")
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"reset_gold_bolts error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def reset_gold_bolts_given_by_user(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM gold_bolts WHERE from_user_id = %s", (user_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"reset_gold_bolts_given_by_user error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def reset_gold_bolts_for_player(nickname):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM gold_bolts WHERE to_nickname = %s", (nickname,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"reset_gold_bolts_for_player error: {e}")
         conn.rollback()
         return False
     finally:

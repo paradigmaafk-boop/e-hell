@@ -99,6 +99,10 @@
             <span class="nav-full">Рейтинг Аркадии</span>
             <span class="nav-short">Аркадия</span>
         </a>
+        <a href="/rating/events" {% if rating_type == 'events' %}class="active"{% endif %}>
+            <span class="nav-full">Ивенты</span>
+            <span class="nav-short">Ивенты</span>
+        </a>
         {% if state_available %}
         <a href="/state">
     <span class="nav-full">Штат</span>
@@ -118,7 +122,9 @@
         <h1 class="page-title">{{ nickname }}</h1>
         <p class="page-sub">
             {% if rating_type == 'total' %}
-                Сумма Дуэли и Аркадии по неделям
+                Сумма Дуэли, Аркадии и золотых болтиков по неделям
+            {% elif rating_type == 'events' %}
+                Накопленные золотые болтики за ивенты союза
             {% else %}
                 Прогресс в разделе {{ display_name }}
             {% endif %}
@@ -128,22 +134,22 @@
     <section class="stats-grid">
         <div class="stat-card">
             <div class="number">{{ dates|length }}</div>
-            <div class="label">Всего замеров</div>
+            <div class="label">{% if rating_type == 'events' %}Дней с болтами{% else %}Всего замеров{% endif %}</div>
         </div>
         <div class="stat-card">
             <div class="number">{{ points|max }}</div>
-            <div class="label">Максимум</div>
+            <div class="label">{% if rating_type == 'events' %}Максимум болтов{% else %}Максимум{% endif %}</div>
         </div>
         <div class="stat-card">
             <div class="number">{{ points|last }}</div>
-            <div class="label">Текущий результат</div>
+            <div class="label">{% if rating_type == 'events' %}Болтов сейчас{% else %}Текущий результат{% endif %}</div>
         </div>
         {% set growth = points|last - points|first %}
         <div class="stat-card">
             <div class="number" style="color: {% if growth > 0 %}var(--success){% elif growth < 0 %}var(--danger){% else %}var(--muted){% endif %};">
                 {% if growth > 0 %}+{% endif %}{{ growth }}
             </div>
-            <div class="label">Рост за всё время</div>
+            <div class="label">{% if rating_type == 'events' %}Прирост{% else %}Рост за всё время{% endif %}</div>
         </div>
     </section>
 
@@ -211,7 +217,7 @@
                     pointHoverRadius: 7,
                     fill: true,
                     tension: 0.35
-                },
+                }{% if avg_points %},
                 {
                     label: 'Среднее по союзу',
                     data: avgPoints,
@@ -227,7 +233,7 @@
                     fill: false,
                     tension: 0.35,
                     spanGaps: true
-                }
+                }{% endif %}
             ]
         },
         options: {

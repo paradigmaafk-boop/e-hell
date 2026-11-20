@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Золотые болтики | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
+    <style>
+        .bolts-hero {
+            position: relative;
+            overflow: hidden;
+            margin: 1.25rem 0;
+            padding: 1.5rem 1.6rem;
+            border-radius: 16px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(255, 209, 102, 0.16), transparent 45%),
+                linear-gradient(180deg, rgba(42, 29, 8, 0.92), rgba(15, 9, 3, 0.97));
+            border: 1px solid rgba(255, 209, 102, 0.4);
+            box-shadow: 0 0 28px rgba(255, 184, 0, 0.12);
+        }
+        .bolts-hero h1 {
+            font-family: 'Forum', serif;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            letter-spacing: 2px;
+            color: #ffd166;
+            margin-bottom: 0.4rem;
+        }
+        .bolts-hero p {
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-width: 58rem;
+            margin-bottom: 0.35rem;
+        }
+        .bolts-hero b { color: #ffd166; }
+        .bolts-reset {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 209, 102, 0.2);
+        }
+        .bolts-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+        @media (max-width: 980px) {
+            .bolts-layout { grid-template-columns: 1fr; }
+        }
+        .bolt-card {
+            background: rgba(10, 5, 3, 0.62);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .bolt-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            padding: 1rem 1.1rem;
+            border-bottom: 1px solid var(--line);
+        }
+        .bolt-card-head h2 {
+            font-family: 'Forum', serif;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            color: var(--accent-warm);
+        }
+        .bolt-tools { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+        .bolt-tools input {
+            padding: 0.4rem 0.6rem;
+            border-radius: 7px;
+            border: 1px solid var(--line);
+            background: rgba(10, 5, 3, 0.7);
+            color: var(--text);
+            font-size: 0.78rem;
+            font-family: inherit;
+            min-width: 12rem;
+        }
+        .bolt-tools input:focus { outline: none; border-color: #ffd166; }
+        .bolt-table-wrap { overflow-x: auto; }
+        table.bolt-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        table.bolt-table th {
+            text-align: left;
+            padding: 0.65rem 0.8rem;
+            color: var(--dim);
+            font-size: 0.68rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+        table.bolt-table td {
+            padding: 0.62rem 0.8rem;
+            border-bottom: 1px solid var(--line-soft);
+            vertical-align: middle;
+        }
+        table.bolt-table tr:last-child td { border-bottom: none; }
+        table.bolt-table tr.no-bolts { opacity: 0.72; }
+        .bolt-nick { font-weight: 700; color: var(--text); }
+        .bolt-count { color: #ffd166; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .bolt-bonus { color: var(--accent-warm); font-variant-numeric: tabular-nums; }
+        .bolt-status {
+            display: inline-block;
+            padding: 0.16rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            white-space: nowrap;
+        }
+        .bolt-status.yes { color: #ffd166; background: rgba(255, 209, 102, 0.1); border: 1px solid rgba(255, 209, 102, 0.3); }
+        .bolt-status.no { color: var(--dim); background: rgba(255,255,255,0.03); border: 1px solid var(--line); }
+        .bolt-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+        .bolt-actions form { display: inline; margin: 0; }
+        .btn-gold {
+            background: linear-gradient(180deg, #ffd166, #d99a17);
+            color: #241300 !important;
+            border-color: #ffd166 !important;
+            font-weight: 700;
+        }
+        .btn-gold:hover { filter: brightness(1.08); }
+        .bolt-history td { font-size: 0.78rem; }
+        .bolt-history .date { color: var(--dim); white-space: nowrap; }
+        .bolt-empty { padding: 1.2rem; color: var(--muted); font-size: 0.85rem; }
+        body.light-theme .bolts-hero {
+            background:
+                radial-gradient(circle at 90% 0%, rgba(255, 184, 0, 0.18), transparent 45%),
+                linear-gradient(180deg, #fff8e6, #fffdf7);
+            border-color: rgba(184, 119, 0, 0.35);
+        }
+        body.light-theme .bolt-card { background: #fffbf2; }
+        body.light-theme .bolt-tools input { background: #fff; }
+        @media (max-width: 620px) {
+            .bolts-hero { padding: 1.15rem 1rem; }
+            .bolt-tools { width: 100%; }
+            .bolt-tools input { flex: 1; min-width: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
+        <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
+        <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
+        <a href="/rating/events" class="active"><span class="nav-full">Ивенты</span><span class="nav-short">Ивенты</span></a>
+        {% if state_available %}
+        <a href="/state"><span class="nav-full">Штат</span><span class="nav-short">Штат</span></a>
+        {% endif %}
+        <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <section class="bolts-hero">
+        <h1>🔩 Золотые болтики</h1>
+        <p>
+            Один болт — один союзный ивент. Каждый болт добавляет игроку
+            <b>50% от его среднего рейтинга Дуэли на момент вручения</b> к общему рейтингу.
+            Дарить можно без ограничений.
+        </p>
+        <p>Здесь видно, кому болт уже вручён, а кому ещё нет, и вся история вручений.</p>
+        {% if is_super_admin %}
+        <div class="bolts-reset">
+            <form method="POST" action="/admin/bolts/reset-my">
+                <button type="submit" class="btn btn-primary">🔩 Обнулить мои вручения</button>
+            </form>
+            <form method="POST" action="/admin/bolts/reset-all"
+                  onsubmit="return confirm('Сбросить ВСЕ золотые болтики? Бонусы исчезнут из общего рейтинга.');">
+                <button type="submit" class="btn btn-critical">🔩 Сбросить все болтики</button>
+            </form>
+        </div>
+        {% endif %}
+    </section>
+
+    <div class="bolts-layout">
+        <section class="bolt-card">
+            <div class="bolt-card-head">
+                <h2>Игроки</h2>
+                <div class="bolt-tools">
+                    <input type="search" id="boltSearch" placeholder="Поиск по нику…" aria-label="Поиск игрока">
+                    <button type="button" class="btn" id="onlyNoBolts">Только без болтов</button>
+                </div>
+            </div>
+            {% if players %}
+            <div class="bolt-table-wrap">
+                <table class="bolt-table" id="playersTable">
+                    <thead>
+                        <tr>
+                            <th>Игрок</th>
+                            <th>Болтов</th>
+                            <th>В общий</th>
+                            <th>Статус</th>
+                            <th>Действие</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in players %}
+                        <tr data-bolts="{{ p.bolts }}" data-nick="{{ p.nickname|lower }}">
+                            <td class="bolt-nick">{{ p.nickname }}</td>
+                            <td class="bolt-count">🔩 {{ p.bolts }}</td>
+                            <td class="bolt-bonus">{% if p.bonus %}+{{ p.bonus }}{% else %}—{% endif %}</td>
+                            <td>
+                                {% if p.bolts %}
+                                <span class="bolt-status yes">✓ получал</span>
+                                {% else %}
+                                <span class="bolt-status no">— нет</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="bolt-actions">
+                                    <form method="POST" action="/admin/bolts/give">
+                                        <input type="hidden" name="nickname" value="{{ p.nickname }}">
+                                        <button type="submit" class="btn btn-gold">🔩 Вручить</button>
+                                    </form>
+                                    {% if is_super_admin and p.bolts %}
+                                    <form method="POST" action="{{ url_for('admin_bolts_reset_player', nickname=p.nickname) }}"
+                                          onsubmit='return confirm({{ ("Сбросить болтики игрока " ~ p.nickname ~ "?")|tojson }});'>
+                                        <button type="submit" class="btn btn-danger">Сбросить</button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="bolt-empty" id="tableEmpty" style="display:none;">Никого не нашлось.</div>
+            {% else %}
+            <div class="bolt-empty">В рейтингах пока нет игроков.</div>
+            {% endif %}
+        </section>
+
+        <section class="bolt-card">
+            <div class="bolt-card-head">
+                <h2>История вручений</h2>
+            </div>
+            {% if history %}
+            <div class="bolt-table-wrap">
+                <table class="bolt-table bolt-history">
+                    <thead>
+                        <tr>
+                            <th>Когда</th>
+                            <th>Кому</th>
+                            <th>Средняя Дуэль</th>
+                            <th>Бонус</th>
+                            <th>Кто дал</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for h in history %}
+                        <tr>
+                            <td class="date">{{ h[4][:16] }}</td>
+                            <td class="bolt-nick">{{ h[1] }}</td>
+                            <td>{{ '%.1f'|format(h[2]|float) }}</td>
+                            <td class="bolt-bonus">+{{ h[3] }}</td>
+                            <td>{{ h[5] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="bolt-empty">Пока ни одного вручения.</div>
+            {% endif %}
+        </section>
+    </div>
+
+    <a href="/admin" class="back-link">← В админ-панель</a>
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+
+    const search = document.getElementById('boltSearch');
+    const onlyNo = document.getElementById('onlyNoBolts');
+    const rows = Array.from(document.querySelectorAll('#playersTable tbody tr'));
+    let noOnly = false;
+
+    function applyFilter() {
+        const q = (search.value || '').trim().toLowerCase();
+        let visible = 0;
+        rows.forEach(row => {
+            const okSearch = !q || row.dataset.nick.includes(q);
+            const okBolts = !noOnly || row.dataset.bolts === '0';
+            const show = okSearch && okBolts;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        const empty = document.getElementById('tableEmpty');
+        if (empty) empty.style.display = visible ? 'none' : '';
+    }
+
+    if (search) search.addEventListener('input', applyFilter);
+    if (onlyNo) onlyNo.addEventListener('click', () => {
+        noOnly = !noOnly;
+        onlyNo.classList.toggle('btn-primary', noOnly);
+        onlyNo.textContent = noOnly ? 'Показать всех' : 'Только без болтов';
+        applyFilter();
+    });
+</script>
+
+</body>
+</html>

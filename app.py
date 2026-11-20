@@ -33,6 +33,10 @@ from database import (
     give_apple, get_apples_given_this_week, get_apples_received_map,
     get_apples_received_for, get_apple_givers_for, reset_apples,
     reset_apples_given_by_user,
+    give_gold_bolt, get_gold_bolts_received_map, get_gold_bolts_bonus_map,
+    get_gold_bolts_summary, get_gold_bolt_givers_for, get_all_gold_bolts,
+    get_events_rating, get_events_player_history, get_bolt_bonus_history,
+    reset_gold_bolts, reset_gold_bolts_given_by_user, reset_gold_bolts_for_player,
     get_setting, set_setting,
     update_user_squads, get_squads_by_nickname_map,
     get_last_update_date,
@@ -514,6 +518,8 @@ def get_player_rank_data(linked_nickname):
                 'duel_points': row[1],
                 'arcadia_points': row[2],
                 'total_points': row[3],
+                'bolt_bonus': row[4] if len(row) > 4 else 0,
+                'bolt_count': row[5] if len(row) > 5 else 0,
             }
     return None
 
@@ -607,6 +613,8 @@ def rating_view(rating_type):
 
     if rating_type == 'total':
         rating_data = get_total_rating()
+    elif rating_type == 'events':
+        rating_data = get_events_rating()
     else:
         rating_data = get_latest_rating(rating_type)
 
@@ -616,12 +624,15 @@ def rating_view(rating_type):
     if rating_type == 'total':
         duel_nicks = get_nicknames_with_history('duel')
         arcadia_nicks = get_nicknames_with_history('arcadia')
+        events_nicks = {row[0] for row in get_events_rating()}
         for row in rating_data:
             nick = row[0]
             if nick in duel_nicks:
                 chart_types[nick] = 'duel'
             elif nick in arcadia_nicks:
                 chart_types[nick] = 'arcadia'
+            elif nick in events_nicks:
+                chart_types[nick] = 'events'
 
     apples_map = {}
     squads_map = {}
@@ -729,7 +740,11 @@ def player_profile(rating_type, nickname):
     if rating_type == 'total':
         history = get_total_player_history(nickname)
         avg_data = get_total_average_history()
-        series_label = f'{nickname} — сумма Дуэли и Аркадии'
+        series_label = f'{nickname} — сумма Дуэли, Аркадии и болтиков'
+    elif rating_type == 'events':
+        history = get_events_player_history(nickname)
+        avg_data = []
+        series_label = f'{nickname} — золотые болтики'
     else:
         history = get_player_history(rating_type, nickname)
         avg_data = get_average_history(rating_type)
@@ -743,10 +758,34 @@ def player_profile(rating_type, nickname):
 
     dates = [row[0] for row in history]
     points = [row[1] for row in history]
+
+    # Болтики дают бонус к общему рейтингу с момента вручения.
+    if rating_type == 'total':
+        bolt_history = get_bolt_bonus_history(nickname)
+        if bolt_history:
+            bonus = 0
+            bolt_index = 0
+            for i, day in enumerate(dates):
+                day_key = str(day)[:10]
+                while (bolt_index < len(bolt_history)
+                       and str(bolt_history[bolt_index][0])[:10] <= day_key):
+                    bonus += int(bolt_history[bolt_index][1] or 0)
+                    bolt_index += 1
+                points[i] = int(points[i] or 0) + bonus
+            # Показываем последний подарок, даже если после него не было замеров.
+            if bolt_index < len(bolt_history):
+                last_day = str(bolt_history[-1][0])[:10]
+                dates.append(last_day)
+                points.append(int(points[-1] or 0) + sum(
+                    int(b[1] or 0) for b in bolt_history[bolt_index:]
+                ))
+
     avg_by_date = {str(row[0]): round(row[1], 1) for row in avg_data}
     # Выравниваем среднее по датам игрока, иначе линии на графике
     # рисовались по разным неделям и не совпадали.
     avg_points = [avg_by_date.get(str(d)) for d in dates]
+    if rating_type == 'events':
+        avg_points = []
 
     display_name = get_rating_display_name(rating_type)
 
@@ -951,6 +990,8 @@ def cabinet():
     apples_left = max(0, APPLES_PER_WEEK - given_this_week)
     apples_received = get_apples_received_for(linked_nickname) if linked_nickname else 0
     apple_givers = get_apple_givers_for(linked_nickname) if linked_nickname else []
+    bolts_received, bolts_bonus = get_gold_bolts_summary(linked_nickname) if linked_nickname else (0, 0)
+    bolt_givers = get_gold_bolt_givers_for(linked_nickname) if linked_nickname else []
 
     return render_template('cabinet.html',
                            player={
@@ -972,7 +1013,10 @@ def cabinet():
                            apples_left=apples_left,
                            apples_received=apples_received,
                            apple_givers=apple_givers,
-                           apples_per_week=APPLES_PER_WEEK)
+                           apples_per_week=APPLES_PER_WEEK,
+                           bolts_received=bolts_received,
+                           bolts_bonus=bolts_bonus,
+                           bolt_givers=bolt_givers)
 
 
 @app.route('/cabinet/save-squads', methods=['POST'])
@@ -1106,6 +1150,74 @@ def admin_reset_my_apples():
     else:
         flash('Ошибка при обнулении.')
     return redirect(url_for('admin_panel'))
+
+
+# ============================================================
+# ЗОЛОТЫЕ БОЛТИКИ В АДМИНКЕ
+# ============================================================
+
+@app.route('/admin/bolts')
+@admin_required
+def admin_bolts():
+    counts = get_gold_bolts_received_map()
+    bonuses = get_gold_bolts_bonus_map()
+    players = []
+    for row in get_total_rating():
+        nick = row[0]
+        players.append({
+            'nickname': nick,
+            'bolts': counts.get(nick, 0),
+            'bonus': bonuses.get(nick, 0),
+        })
+    players.sort(key=lambda p: p['nickname'].casefold())
+    return render_template('admin_bolts.html',
+                           players=players,
+                           history=get_all_gold_bolts(),
+                           is_super_admin=is_super_admin())
+
+
+@app.route('/admin/bolts/give', methods=['POST'])
+@admin_required
+def admin_bolts_give():
+    nickname = request.form.get('nickname', '').strip()
+    ok, message, _count, _bonus, _avg = give_gold_bolt(session['user_id'], nickname)
+    if ok:
+        increment_counter('admin_actions')
+    flash(message)
+    return redirect(url_for('admin_bolts'))
+
+
+@app.route('/admin/bolts/reset-all', methods=['POST'])
+@super_admin_required
+def admin_bolts_reset_all():
+    if reset_gold_bolts():
+        increment_counter('admin_actions')
+        flash('Все золотые болтики сброшены. Бонусы убраны из общего рейтинга.')
+    else:
+        flash('Ошибка при сбросе болтиков.')
+    return redirect(url_for('admin_bolts'))
+
+
+@app.route('/admin/bolts/reset-my', methods=['POST'])
+@super_admin_required
+def admin_bolts_reset_my():
+    if reset_gold_bolts_given_by_user(session['user_id']):
+        increment_counter('admin_actions')
+        flash('Все болтики, которые вы дарили, сброшены.')
+    else:
+        flash('Ошибка при сбросе ваших болтиков.')
+    return redirect(url_for('admin_bolts'))
+
+
+@app.route('/admin/bolts/reset-player/<nickname>', methods=['POST'])
+@super_admin_required
+def admin_bolts_reset_player(nickname):
+    if reset_gold_bolts_for_player(nickname):
+        increment_counter('admin_actions')
+        flash(f'Болтики игрока {nickname} сброшены.')
+    else:
+        flash(f'Ошибка при сбросе болтиков игрока {nickname}.')
+    return redirect(url_for('admin_bolts'))
 
 
 @app.route('/admin/reset-state-tables', methods=['POST'])
@@ -1319,7 +1431,7 @@ def admin_players_change_role(user_id):
 def upload_file(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids or rating_type == 'total':
+    if rating_type not in rt_ids or rating_type in ('total', 'events'):
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
 
@@ -1466,6 +1578,14 @@ def reset_rating_route(rating_type):
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
 
+    if rating_type == 'events':
+        if reset_gold_bolts():
+            increment_counter('admin_actions')
+            flash('Рейтинг Ивентов сброшен: все болтики удалены.')
+        else:
+            flash('Ошибка при сбросе болтиков.')
+        return redirect(url_for('rating_view', rating_type='events'))
+
     if reset_rating(rating_type):
         increment_counter('admin_actions')
         if rating_type == 'duel':
@@ -1488,6 +1608,13 @@ def delete_player_route(rating_type, nickname):
     if rating_type not in rt_ids or rating_type == 'total':
         flash('Неверный тип рейтинга!')
         return redirect(url_for('index'))
+    if rating_type == 'events':
+        if reset_gold_bolts_for_player(nickname):
+            increment_counter('admin_actions')
+            flash(f'Болтики игрока "{nickname}" сброшены.')
+        else:
+            flash(f'Ошибка при сбросе болтиков игрока "{nickname}"')
+        return redirect(url_for('rating_view', rating_type='events'))
     if delete_player(rating_type, nickname):
         increment_counter('admin_actions')
         flash(f'Игрок "{nickname}" удалён!')
@@ -1502,7 +1629,7 @@ def delete_total_player_route(nickname):
     """Удаляет строку из общего рейтинга: результаты и история обеих дисциплин."""
     if delete_player_from_all_ratings(nickname):
         increment_counter('admin_actions')
-        flash(f'Игрок "{nickname}" удалён из общего рейтинга (Дуэль и Аркадия).')
+        flash(f'Игрок "{nickname}" удалён из общего рейтинга (Дуэль, Аркадия и болтики).')
     else:
         flash(f'Ошибка при удалении игрока "{nickname}"')
     return redirect(url_for('rating_view', rating_type='total'))
@@ -1542,7 +1669,7 @@ def rating_stats():
 def underperforming(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids or rating_type == 'total':
+    if rating_type not in rt_ids or rating_type in ('total', 'events'):
         return redirect(url_for('index'))
 
     underperformers, avg = get_underperforming(rating_type)
@@ -1559,7 +1686,7 @@ def underperforming(rating_type):
 def consistently_underperforming(rating_type):
     rating_types = get_all_rating_types()
     rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids or rating_type == 'total':
+    if rating_type not in rt_ids or rating_type in ('total', 'events'):
         return redirect(url_for('index'))
 
     players = get_consistently_underperforming(rating_type, 10)

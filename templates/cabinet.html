@@ -360,6 +360,133 @@
             .giver-date { font-size: 0.65rem; }
         }
 
+        /* Золотые болтики за сезон */
+        .bolts-block {
+            position: relative;
+            overflow: hidden;
+            margin-top: 1.5rem;
+            padding: 1.5rem 1.6rem;
+            border-radius: 16px;
+            background:
+                radial-gradient(circle at 85% 0%, rgba(255, 209, 102, 0.18), transparent 45%),
+                linear-gradient(180deg, rgba(46, 32, 8, 0.92), rgba(18, 11, 3, 0.97));
+            border: 1px solid rgba(255, 209, 102, 0.45);
+            box-shadow: 0 0 28px rgba(255, 184, 0, 0.14), inset 0 1px 0 rgba(255, 230, 160, 0.12);
+        }
+        .bolts-block::after {
+            content: "🔩";
+            position: absolute;
+            right: -0.2rem;
+            bottom: -1.8rem;
+            font-size: 8rem;
+            opacity: 0.07;
+            transform: rotate(-18deg);
+            pointer-events: none;
+        }
+        .bolts-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+        .bolts-title {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-size: 0.72rem;
+            color: #ffd166;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 700;
+        }
+        .bolts-title .ico { font-size: 1.15rem; }
+        .bolts-season {
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 209, 102, 0.35);
+            background: rgba(255, 209, 102, 0.08);
+            color: #ffd166;
+            font-size: 0.68rem;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        .bolts-main {
+            display: flex;
+            align-items: baseline;
+            gap: 0.7rem;
+            margin: 0.35rem 0 0.5rem;
+        }
+        .bolts-count {
+            font-family: 'Forum', serif;
+            font-size: clamp(3.2rem, 8vw, 4.6rem);
+            line-height: 0.95;
+            color: #ffd166;
+            text-shadow: 0 0 22px rgba(255, 184, 0, 0.45);
+            font-variant-numeric: tabular-nums;
+        }
+        .bolts-count.zero { color: #8a6a2a; text-shadow: none; }
+        .bolts-unit {
+            font-size: 0.9rem;
+            color: #e8c98a;
+            letter-spacing: 0.5px;
+        }
+        .bolts-philosophy {
+            max-width: 46rem;
+            margin: 0 0 1rem;
+            color: #f0d7a4;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.02rem;
+            font-style: italic;
+            line-height: 1.5;
+        }
+        .bolts-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1.2rem;
+            padding-top: 0.9rem;
+            border-top: 1px solid rgba(255, 209, 102, 0.22);
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .bolts-stats b {
+            color: #ffd166;
+            font-variant-numeric: tabular-nums;
+        }
+        .bolts-givers {
+            margin-top: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            align-items: center;
+        }
+        .bolts-giver {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.28rem 0.6rem;
+            border-radius: 999px;
+            background: rgba(255, 209, 102, 0.08);
+            border: 1px solid rgba(255, 209, 102, 0.22);
+            color: #f0d7a4;
+            font-size: 0.76rem;
+        }
+        .bolts-giver b { color: #ffd166; }
+        body.light-theme .bolts-block {
+            background:
+                radial-gradient(circle at 85% 0%, rgba(255, 184, 0, 0.18), transparent 45%),
+                linear-gradient(180deg, #fff8e6, #fffdf7);
+            border-color: rgba(184, 119, 0, 0.35);
+            box-shadow: 0 0 24px rgba(184, 119, 0, 0.1);
+        }
+        body.light-theme .bolts-philosophy { color: #6b4a12; }
+        body.light-theme .bolts-stats { color: #7a5a2a; }
+        body.light-theme .bolts-giver { color: #6b4a12; }
+        @media (max-width: 480px) {
+            .bolts-block { padding: 1.2rem 1rem; }
+            .bolts-philosophy { font-size: 0.95rem; }
+        }
+
         .cab-info {
             margin-top: 2rem;
             padding: 1.25rem 1.5rem;
@@ -540,6 +667,7 @@
         <a href="/rating/total">Рейтинг</a>
         <a href="/rating/duel">Дуэль</a>
         <a href="/rating/arcadia">Аркадия</a>
+        <a href="/rating/events">Ивенты</a>
         {% if state_available %}
         <a href="/state">Штат</a>
         {% endif %}
@@ -684,6 +812,37 @@
             <div class="giver-empty">Пока никто не дарил вам яблоки.</div>
             {% endif %}
         </div>
+    </section>
+
+    <section class="bolts-block">
+        <div class="bolts-head">
+            <div class="bolts-title"><span class="ico">🔩</span> Золотые болтики</div>
+            <span class="bolts-season">за сезон</span>
+        </div>
+        <div class="bolts-main">
+            <span class="bolts-count {% if bolts_received == 0 %}zero{% endif %}">{{ bolts_received }}</span>
+            <span class="bolts-unit">{% if bolts_received == 1 %}золотой болтик{% elif bolts_received > 1 and bolts_received < 5 %}золотых болтика{% else %}золотых болтиков{% endif %}</span>
+        </div>
+        <p class="bolts-philosophy">
+            Каждый золотой болт — это участие в ивенте союза.
+            Доказательство того, что тебе не всё равно.
+        </p>
+        <div class="bolts-stats">
+            <span>Вклад в общий рейтинг: <b>+{{ bolts_bonus }}</b></span>
+            <span>Дарителей: <b>{{ bolt_givers|length }}</b></span>
+            <a href="/rating/events" style="color: #ffd166;">Рейтинг Ивентов →</a>
+        </div>
+        {% if bolt_givers %}
+        <div class="bolts-givers">
+            {% for giver in bolt_givers %}
+            <span class="bolts-giver">🔩 {{ giver[0] }} <b>×{{ giver[1] }}</b></span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="bolts-stats" style="border-top: none; padding-top: 0.6rem; margin-top: 0.4rem;">
+            Пока ни одного болтика — но всё впереди.
+        </div>
+        {% endif %}
     </section>
     {% endif %}
 

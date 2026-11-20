@@ -188,6 +188,18 @@
             color: var(--accent-warm);
             text-shadow: 0 0 8px rgba(255,184,0,0.35);
         }
+        .events-subtitle {
+            flex-basis: 100%;
+            margin-top: 0.25rem;
+            color: var(--dim);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+        .bolt-points {
+            color: #ffd166;
+            text-shadow: 0 0 12px rgba(255, 209, 102, 0.35);
+        }
+        .bolt-points small { color: var(--dim); }
         .rating-stats-line .stat-sep {
             color: var(--line);
         }
@@ -661,6 +673,10 @@
             <span class="nav-full">Рейтинг Аркадии</span>
             <span class="nav-short">Аркадия</span>
         </a>
+        <a href="/rating/events" {% if rating_type == 'events' %}class="active"{% endif %}>
+            <span class="nav-full">Ивенты</span>
+            <span class="nav-short">Ивенты</span>
+        </a>
         {% if state_available %}
         <a href="/state">
     <span class="nav-full">Штат</span>
@@ -713,10 +729,20 @@
                         Рейтинг дуэли
                     {% elif rating_type == 'arcadia' %}
                         Рейтинг Аркадии
+                    {% elif rating_type == 'events' %}
+                        Ивенты
                     {% else %}
                         Рейтинг
                     {% endif %}
                 </span>
+                {% if rating_type == 'events' %}
+                <div class="events-subtitle">
+                    Посещаемость союзных ивентов. Один золотой болтик — один ивент.
+                    {% if session.get('role') in ['admin', 'super_admin'] %}
+                    · <a href="{{ url_for('admin_bolts') }}" style="color: var(--accent-warm);">Управлять болтиками</a>
+                    {% endif %}
+                </div>
+                {% endif %}
                 {% if rating_type == 'total' and tooltip_text %}
                 <button class="tooltip-trigger" id="tooltipTrigger" title="Что это?">?</button>
                 {% endif %}
@@ -821,6 +847,11 @@
                                 <span class="stat-label">БМ</span>
                                 <span class="stat-value">{% if squad1 %}{{ squad1 }}{% else %}—{% endif %}</span>
                             </span>
+                            <span class="stat-sep">;</span>
+                            <span class="stat-item">
+                                <span class="stat-label">Болты</span>
+                                <span class="stat-value">🔩 {{ row[5] }}{% if row[4] %} <small class="bolt-points">+{{ row[4] }}</small>{% endif %}</span>
+                            </span>
                         </div>
                     </div>
 
@@ -839,8 +870,8 @@
 
                     <div class="rating-actions">
                         {% if chart_type %}
-                        <a href="{{ url_for('player_profile', rating_type='total', nickname=nick) }}"
-                           class="rating-btn" title="График суммы Дуэли и Аркадии">
+                        <a href="{{ url_for('player_profile', rating_type=('events' if chart_type == 'events' else 'total'), nickname=nick) }}"
+                           class="rating-btn" title="График суммы Дуэли, Аркадии и болтиков">
                             📈 <span class="rating-btn-text">График</span>
                         </a>
                         {% else %}
@@ -851,9 +882,58 @@
                         {% if session.get('role') in ['admin', 'super_admin'] %}
                         <form action="{{ url_for('delete_total_player_route', nickname=nick) }}" method="POST"
                               style="display: inline; margin: 0;"
-                              onsubmit='return confirm({{ ("Удалить игрока " ~ nick ~ " из общего рейтинга? Будут удалены результаты Дуэли и Аркадии и вся история.")|tojson }});'>
+                              onsubmit='return confirm({{ ("Удалить игрока " ~ nick ~ " из общего рейтинга? Будут удалены результаты Дуэли, Аркадии, болтики и вся история.")|tojson }});'>
                             <button type="submit" class="rating-btn rating-btn-danger" title="Удалить из общего рейтинга">
                                 🗑 <span class="rating-btn-text">Удалить</span>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            {% elif rating_type == 'events' %}
+                <div class="rating-row {{ css_class }}" data-nick="{{ row[0] }}">
+                    <div class="rating-circle">{{ place }}</div>
+
+                    <div class="rating-info">
+                        <a href="{{ url_for('player_profile', rating_type='events', nickname=row[0]) }}" class="rating-name">{{ row[0] }}</a>
+                        <div class="rating-tier">
+                            {% if place == 1 %}💎 Алмаз
+                            {% elif place <= 3 %}🥇 Золото
+                            {% elif place <= 6 %}🥈 Серебро
+                            {% elif place <= 10 %}🥉 Бронза
+                            {% elif place <= 50 %}⚙️ Сталь
+                            {% else %}🪨 Камень{% endif %}
+                        </div>
+
+                        <div class="rating-stats-line">
+                            <span class="stat-item">
+                                <span class="stat-label">Ивентов</span>
+                                <span class="stat-value">{{ row[1] }}</span>
+                            </span>
+                            <span class="stat-sep">;</span>
+                            <span class="stat-item">
+                                <span class="stat-label">В общий рейтинг</span>
+                                <span class="stat-value bolt-points">+{{ row[2] }}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="rating-points bolt-points">
+                        {{ row[1] }}<small>🔩</small>
+                    </div>
+
+                    <div class="rating-actions">
+                        <a href="{{ url_for('player_profile', rating_type='events', nickname=row[0]) }}" class="rating-btn" title="История болтиков">
+                            📈 <span class="rating-btn-text">График</span>
+                        </a>
+                        {% if session.get('role') in ['admin', 'super_admin'] %}
+                        <a href="{{ url_for('admin_bolts') }}" class="rating-btn" title="Вручить ещё болтик">
+                            🔩 <span class="rating-btn-text">Вручить</span>
+                        </a>
+                        <form action="{{ url_for('delete_player_route', rating_type='events', nickname=row[0]) }}" method="POST" style="display: inline; margin: 0;"
+                              onsubmit='return confirm({{ ("Сбросить все болтики игрока " ~ row[0] ~ "?")|tojson }});'>
+                            <button type="submit" class="rating-btn rating-btn-danger" title="Сбросить болтики">
+                                🗑 <span class="rating-btn-text">Сбросить</span>
                             </button>
                         </form>
                         {% endif %}
@@ -897,7 +977,13 @@
 
         </div>
         {% else %}
-        <div class="empty-msg">Нет данных. Загрузите рейтинг!</div>
+        <div class="empty-msg">
+            {% if rating_type == 'events' %}
+                Пока нет золотых болтиков. Админ может вручить их на странице «Золотые болтики».
+            {% else %}
+                Нет данных. Загрузите рейтинг!
+            {% endif %}
+        </div>
         {% endif %}
     </section>
 
