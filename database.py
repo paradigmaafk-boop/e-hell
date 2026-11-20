@@ -1331,23 +1331,20 @@ def reset_apples_given_by_user(user_id):
 # ============================================================
 
 def get_duel_union_average():
-    """Средний рейтинг Дуэли по всему союзу за последнее обновление.
+    """Средний рейтинг Дуэли по союзу за последнее обновление.
 
-    Болтик стоит 50% от этого значения, поэтому у всех игроков
-    одинаковая цена болтика.
+    Важно: players_duel хранит накопленную сумму, а не последний замер.
+    Поэтому берём среднее из history_duel за самую свежую дату —
+    именно его видно на графике как «среднее по союзу».
     """
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT AVG(points) FROM players_duel")
+    cursor.execute("""
+        SELECT AVG(points) FROM history_duel
+        WHERE date = (SELECT MAX(date) FROM history_duel)
+    """)
     row = cursor.fetchone()
     avg = row[0] if row else None
-    if avg is None:
-        cursor.execute("""
-            SELECT AVG(points) FROM history_duel
-            WHERE date = (SELECT MAX(date) FROM history_duel)
-        """)
-        row = cursor.fetchone()
-        avg = row[0] if row else 0
     conn.close()
     return float(avg or 0)
 
