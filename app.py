@@ -246,9 +246,11 @@ def _media_mime(filename):
 
 
 def _safe_media_name(filename):
-    safe = secure_filename(filename or '')
-    if not safe:
-        ext = (filename.rsplit('.', 1)[1].lower() if filename and '.' in filename else 'bin')
+    filename = filename or ''
+    ext = filename.rsplit('.', 1)[1].lower() if '.' in filename else 'bin'
+    safe = secure_filename(filename)
+    # secure_filename может выбросить кириллическое имя целиком.
+    if not safe or '.' not in safe or safe.rsplit('.', 1)[1].lower() != ext:
         safe = f"media_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}"
     return safe
 
@@ -488,6 +490,12 @@ def media_file(asset_id):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
+
+
+@app.errorhandler(413)
+def file_too_large(_error):
+    flash('Суммарный размер файлов больше 64 МБ. Загрузите файлы меньшими частями.')
+    return redirect(url_for('admin_media'))
 
 
 @app.route('/')
