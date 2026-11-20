@@ -22,6 +22,7 @@ from database import (
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
     create_media_asset, get_media_assets, get_media_asset,
     get_media_asset_preview, get_media_assets_without_previews, set_media_preview,
+    update_media_asset_title,
     delete_media_asset, count_media_asset_usage, migrate_static_media_urls,
     clear_slide_media,
     get_connection,
@@ -287,12 +288,13 @@ def _safe_media_name(filename):
     return safe
 
 
-def save_media_bytes(filename, data, mime_type, uploaded_by=''):
+def save_media_bytes(filename, data, mime_type, uploaded_by='', title=None):
     preview = build_media_preview(data, mime_type)
     preview_data, preview_mime = preview if preview else (None, None)
     asset_id = create_media_asset(
         filename, mime_type, data, uploaded_by,
         preview_data=preview_data, preview_mime=preview_mime,
+        title=title,
     )
     return f"/media/{asset_id}" if asset_id else None
 
@@ -308,7 +310,9 @@ def save_uploaded_media(file, uploaded_by=''):
     data = file.read()
     if not data:
         return None, 'Пустой файл.'
-    url = save_media_bytes(filename, data, mime_type, uploaded_by)
+    original_title = os.path.splitext(os.path.basename(file.filename))[0].strip()[:120]
+    url = save_media_bytes(filename, data, mime_type, uploaded_by,
+                           title=original_title or filename)
     if not url:
         return None, 'Не удалось сохранить файл в альбом.'
     return url, None
@@ -329,7 +333,7 @@ def save_base64_media(data_url, prefix='poster'):
         elif 'webp' in header:
             ext, mime_type = 'webp', 'image/webp'
         unique_name = f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}"
-        return save_media_bytes(unique_name, img_bytes, mime_type, 'carousel')
+        return save_media_bytes(unique_name, img_bytes, mime_type, 'carousel', title='Постер')
     except Exception as e:
         print(f"Error saving base64 media: {e}")
         return None
@@ -366,6 +370,7 @@ def import_carousel_seed():
 
     mapping = {}
     failed = 0
+    seed_index = 0
     for name in os.listdir(CAROUSEL_FOLDER):
         path = os.path.join(CAROUSEL_FOLDER, name)
         if not os.path.isfile(path):
@@ -373,6 +378,7 @@ def import_carousel_seed():
         mime_type = _media_mime(name)
         if not mime_type:
             continue
+        seed_index += 1
         try:
             with open(path, 'rb') as f:
                 data = f.read()
@@ -381,6 +387,7 @@ def import_carousel_seed():
             asset_id = create_media_asset(
                 name, mime_type, data, 'seed',
                 preview_data=preview_data, preview_mime=preview_mime,
+                title=f'Фото {seed_index}',
             )
             if asset_id:
                 mapping[f'/static/carousel/{name}'] = f'/media/{asset_id}'
@@ -1663,6 +1670,22 @@ def admin_merges():
 def admin_media():
     if request.method == 'POST':
         action = request.form.get('action', 'upload')
+        if action == 'rename':
+            asset_id = request.form.get('asset_id', type=int)
+            title = request.form.get('title', '').strip()
+            if not asset_id:
+                flash('Файл не указан.')
+            elif not title:
+                flash('Название не может быть пустым.')
+            elif len(title) > 120:
+                flash('Название слишком длинное (максимум 120 символов).')
+            elif update_media_asset_title(asset_id, title):
+                increment_counter('admin_actions')
+                flash('Название сохранено.')
+            else:
+                flash('Не удалось сохранить название.')
+            return redirect(url_for('admin_media'))
+
         if action == 'delete':
             asset_id = request.form.get('asset_id', type=int)
             if not asset_id:

@@ -234,12 +234,14 @@
                     <option value="">— выберите файл из альбома —</option>
                     {% for asset in media_assets %}
                     <option value="/media/{{ asset[0] }}"
+                            title="{{ asset[1] }}"
                             data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
-                        {{ asset[1] }}
+                        {{ asset[7] }}
                     </option>
                     {% endfor %}
                 </select>
                 <div id="create-media-preview" class="album-preview"></div>
+                <div class="album-hint">Названия файлов меняются в <a href="/admin/media">альбоме медиа</a>.</div>
             </div>
 
             <div class="calc-field" style="margin-bottom: 1.5rem;">
@@ -359,11 +361,13 @@
                             <option value="">— не менять —</option>
                             {% for asset in media_assets %}
                             <option value="/media/{{ asset[0] }}"
+                                    title="{{ asset[1] }}"
                                     data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
-                                {{ asset[1] }}
+                                {{ asset[7] }}
                             </option>
                             {% endfor %}
                         </select>
+                        <div class="album-hint">Названия файлов меняются в <a href="/admin/media">альбоме медиа</a>.</div>
                         <div id="update-media-preview-{{ slide[0] }}" class="album-preview"></div>
                     </div>
 

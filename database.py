@@ -180,6 +180,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS media_assets (
             id SERIAL PRIMARY KEY,
             filename TEXT NOT NULL,
+            title TEXT,
             mime_type TEXT NOT NULL,
             data BYTEA NOT NULL,
             size INTEGER NOT NULL,
@@ -189,6 +190,12 @@ def init_db():
             preview_mime TEXT,
             preview_size INTEGER
         )
+    """)
+    cursor.execute("""
+        ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS title TEXT
+    """)
+    cursor.execute("""
+        UPDATE media_assets SET title = 'Фото ' || id WHERE title IS NULL OR title = ''
     """)
     cursor.execute("""
         ALTER TABLE media_assets ADD COLUMN IF NOT EXISTS preview_data BYTEA
@@ -1440,20 +1447,21 @@ def delete_slide(slide_id):
 # МЕДИА-АЛЬБОМ (хранится в БД, переживает передеплой)
 # ============================================================
 
-def create_media_asset(filename, mime_type, data, uploaded_by='', preview_data=None, preview_mime=None):
+def create_media_asset(filename, mime_type, data, uploaded_by='', preview_data=None, preview_mime=None, title=None):
     conn = get_connection()
     cursor = conn.cursor()
     now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    display_title = (title or filename).strip() or filename
     try:
         cursor.execute("""
             INSERT INTO media_assets
-                (filename, mime_type, data, size, created_at, uploaded_by,
+                (filename, title, mime_type, data, size, created_at, uploaded_by,
                  preview_data, preview_mime, preview_size)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (filename, size) DO NOTHING
             RETURNING id
         """, (
-            filename, mime_type, psycopg2.Binary(data), len(data), now, uploaded_by or '',
+            filename, display_title, mime_type, psycopg2.Binary(data), len(data), now, uploaded_by or '',
             psycopg2.Binary(preview_data) if preview_data else None,
             preview_mime,
             len(preview_data) if preview_data else None,
@@ -1491,12 +1499,28 @@ def create_media_asset(filename, mime_type, data, uploaded_by='', preview_data=N
 def get_media_assets():
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT id, filename, mime_type, size, created_at, uploaded_by, preview_size
+    cursor.execute("""SELECT id, filename, mime_type, size, created_at, uploaded_by, preview_size,
+                             COALESCE(title, filename) AS title
                       FROM media_assets
                       ORDER BY created_at DESC, id DESC""")
     data = cursor.fetchall()
     conn.close()
     return data
+
+
+def update_media_asset_title(asset_id, title):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE media_assets SET title = %s WHERE id = %s", (title, asset_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"update_media_asset_title error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
 
 
 def get_media_asset(asset_id):
