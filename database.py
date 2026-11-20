@@ -1330,22 +1330,52 @@ def reset_apples_given_by_user(user_id):
 # ЗОЛОТЫЕ БОЛТИКИ (ИВЕНТЫ)
 # ============================================================
 
-def get_player_duel_average(nickname):
-    """Средний рейтинг игрока в Дуэли на текущий момент.
+def get_duel_union_average():
+    """Средний рейтинг Дуэли по всему союзу за последнее обновление.
 
-    Если истории ещё нет — берём текущие очки из таблицы Дуэли.
+    Болтик стоит 50% от этого значения, поэтому у всех игроков
+    одинаковая цена болтика.
     """
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT AVG(points) FROM history_duel WHERE nickname = %s", (nickname,))
+    cursor.execute("SELECT AVG(points) FROM players_duel")
     row = cursor.fetchone()
     avg = row[0] if row else None
     if avg is None:
-        cursor.execute("SELECT points FROM players_duel WHERE nickname = %s LIMIT 1", (nickname,))
+        cursor.execute("""
+            SELECT AVG(points) FROM history_duel
+            WHERE date = (SELECT MAX(date) FROM history_duel)
+        """)
         row = cursor.fetchone()
         avg = row[0] if row else 0
     conn.close()
     return float(avg or 0)
+
+
+def get_gold_bolt_value():
+    """Сколько очков даёт один болт при текущем среднем по союзу."""
+    avg = get_duel_union_average()
+    return avg, int(avg * 0.5 + 0.5)
+
+
+def recalculate_gold_bolt_bonuses():
+    """Уравнивает стоимость всех болтов по последнему обновлению Дуэли."""
+    avg, bonus = get_gold_bolt_value()
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""UPDATE gold_bolts
+                          SET duel_average = %s, bonus_points = %s""",
+                       (avg, bonus))
+        updated = cursor.rowcount or 0
+        conn.commit()
+        return avg, bonus, updated
+    except Exception as e:
+        print(f"recalculate_gold_bolt_bonuses error: {e}")
+        conn.rollback()
+        return avg, bonus, 0
+    finally:
+        conn.close()
 
 
 def give_gold_bolt(from_user_id, to_nickname):
@@ -1368,9 +1398,12 @@ def give_gold_bolt(from_user_id, to_nickname):
             conn.rollback()
             return False, 'Игрок не найден в рейтингах.', 0, 0, 0
 
-        avg = get_player_duel_average(nickname)
-        bonus = int(avg * 0.5 + 0.5)
+        avg, bonus = get_gold_bolt_value()
         now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # Держим одинаковую стоимость у всех болтов.
+        cursor.execute("""UPDATE gold_bolts
+                          SET duel_average = %s, bonus_points = %s""",
+                       (avg, bonus))
         cursor.execute("""
             INSERT INTO gold_bolts (from_user_id, to_nickname, duel_average, bonus_points, created_at)
             VALUES (%s, %s, %s, %s, %s)
@@ -1380,9 +1413,9 @@ def give_gold_bolt(from_user_id, to_nickname):
         conn.commit()
         message = f'Золотой болт вручён игроку {nickname}.'
         if bonus:
-            message += f' +{bonus} к общему рейтингу (50% от среднего Дуэли {avg:.1f}).'
+            message += f' +{bonus} к общему рейтингу (50% от среднего по союзу {avg:.1f}).'
         else:
-            message += ' Средний рейтинг Дуэли пока 0, поэтому бонусных очков нет.'
+            message += ' Средний рейтинг Дуэли по союзу пока 0, поэтому бонусных очков нет.'
         return True, message, count, bonus, avg
     except Exception as e:
         print(f"give_gold_bolt error: {e}")

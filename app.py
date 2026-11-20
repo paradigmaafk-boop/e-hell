@@ -36,6 +36,7 @@ from database import (
     give_gold_bolt, get_gold_bolts_received_map, get_gold_bolts_bonus_map,
     get_gold_bolts_summary, get_gold_bolt_givers_for, get_all_gold_bolts,
     get_events_rating, get_events_player_history, get_bolt_bonus_history,
+    get_duel_union_average, get_gold_bolt_value, recalculate_gold_bolt_bonuses,
     reset_gold_bolts, reset_gold_bolts_given_by_user, reset_gold_bolts_for_player,
     get_setting, set_setting,
     update_user_squads, get_squads_by_nickname_map,
@@ -82,6 +83,13 @@ if not os.path.exists(CAROUSEL_FOLDER):
 APPLES_PER_WEEK = 5
 
 init_db()
+
+# Все болтики должны стоить одинаково: 50% от среднего по союзу
+# за последнее обновление Дуэли. Пересчитываем уже выданные.
+try:
+    recalculate_gold_bolt_bonuses()
+except Exception as _bolt_recalc_error:
+    print(f"gold bolt recalculation skipped: {_bolt_recalc_error}")
 
 
 # ============================================================
@@ -1170,9 +1178,12 @@ def admin_bolts():
             'bonus': bonuses.get(nick, 0),
         })
     players.sort(key=lambda p: p['nickname'].casefold())
+    bolt_avg, bolt_value = get_gold_bolt_value()
     return render_template('admin_bolts.html',
                            players=players,
                            history=get_all_gold_bolts(),
+                           bolt_avg=bolt_avg,
+                           bolt_value=bolt_value,
                            is_super_admin=is_super_admin())
 
 
@@ -1495,6 +1506,12 @@ def upload_file(rating_type):
             if not save_rating(rating_type, rating_list):
                 flash('Не удалось сохранить рейтинг. Изменения отменены.')
                 return redirect(url_for('rating_view', rating_type=rating_type))
+
+            if rating_type == 'duel':
+                avg, bonus, updated = recalculate_gold_bolt_bonuses()
+                if updated:
+                    flash(f'Золотые болтики пересчитаны: {updated} шт. по {bonus} очков '
+                          f'(50% от среднего по союзу {avg:.1f}).')
 
             all_players = get_all_players(rating_type)
             increment_counter('admin_actions')
