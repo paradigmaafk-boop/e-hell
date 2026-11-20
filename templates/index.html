@@ -232,27 +232,28 @@
 
         @media (min-width: 901px) {
             .nav { display: none !important; }
-            .page { grid-template-rows: auto 1fr; }
+            .page {
+                grid-template-rows: auto 1fr;
+                padding: 0.75rem 2rem;
+            }
             .main-grid {
                 align-items: center;
-                padding-top: 1rem;
+                padding-top: 0;
             }
             .side-nav { align-self: start; }
             .carousel {
                 height: auto;
                 max-height: none;
                 align-self: center;
-                justify-self: center;
                 width: 100%;
-                max-width: min(100%, calc((100vh - 15rem) * 1.7778));
             }
             .carousel-stage {
-                aspect-ratio: 16 / 9;
+                aspect-ratio: 2.1;
                 max-height: none;
                 flex: 0 0 auto;
             }
             .carousel-caption {
-                height: clamp(7.5rem, 16vh, 9.5rem);
+                height: 10.5rem;
                 padding: 0.8rem 1.5rem 0.9rem;
             }
             .caption-title {
@@ -374,12 +375,12 @@
                 align-self: center;
             }
             .carousel-stage {
-                aspect-ratio: 16 / 9 !important;
+                aspect-ratio: 2.1 !important;
                 max-height: none !important;
                 flex: 0 0 auto;
             }
             .carousel-caption {
-                height: clamp(7.5rem, 16vh, 9.5rem);
+                height: 10.5rem;
                 padding: 0.8rem 1.1rem 0.9rem;
             }
             .caption-title {
