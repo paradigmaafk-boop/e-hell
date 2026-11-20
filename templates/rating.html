@@ -140,21 +140,13 @@
         .apples-badge.clicked {
             animation: appleClick 0.4s ease;
         }
-        /* Золотые болтики рядом с яблоками */
+        /* Золотой болтик рядом с яблоком — только иконка */
         .bolts-badge {
             display: inline-flex;
             align-items: center;
-            gap: 0.28rem;
             margin-left: 0.45rem;
-            padding: 0.12rem 0.55rem;
-            border-radius: 999px;
-            background: rgba(255, 209, 102, 0.09);
-            border: 1px solid rgba(255, 209, 102, 0.38);
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: #ffd166;
-            font-variant-numeric: tabular-nums;
             vertical-align: middle;
+            line-height: 1;
             white-space: nowrap;
         }
         .bolts-badge .gold-bolt-icon {
@@ -164,21 +156,11 @@
         .bolts-badge.zero {
             opacity: 0.55;
         }
-        .bolts-badge .bolts-bonus {
-            color: #b98b2e;
-            font-weight: 600;
-            font-size: 0.7rem;
-        }
         .rating-points .gold-bolt-icon {
             width: 1.45rem;
             height: 1.45rem;
             vertical-align: -0.28rem;
             margin-left: 0.2rem;
-        }
-        body.light-theme .bolts-badge {
-            background: rgba(184, 119, 0, 0.08);
-            border-color: rgba(184, 119, 0, 0.35);
-            color: #8a5a00;
         }
         @keyframes appleClick {
             0%   { transform: scale(1); }
@@ -864,8 +846,6 @@
                         <span class="bolts-badge {% if not row[5] %}zero{% endif %}"
                               title="Золотые болтики: {{ row[5] }}{% if row[4] %}, +{{ row[4] }} к общему рейтингу{% endif %}">
                             {% include '_gold_bolt_icon.html' %}
-                            <span class="bolts-num">{{ row[5] }}</span>
-                            {% if row[4] %}<span class="bolts-bonus">+{{ row[4] }}</span>{% endif %}
                         </span>
                         {% if chart_type %}</a>{% else %}</span>{% endif %}
 
@@ -892,11 +872,6 @@
                             <span class="stat-item stat-bm">
                                 <span class="stat-label">БМ</span>
                                 <span class="stat-value">{% if squad1 %}{{ squad1 }}{% else %}—{% endif %}</span>
-                            </span>
-                            <span class="stat-sep">;</span>
-                            <span class="stat-item">
-                                <span class="stat-label">Болтики</span>
-                                <span class="stat-value">{% include '_gold_bolt_icon.html' %} {{ row[5] }}{% if row[4] %} <small class="bolt-points">+{{ row[4] }}</small>{% endif %}</span>
                             </span>
                         </div>
                     </div>
