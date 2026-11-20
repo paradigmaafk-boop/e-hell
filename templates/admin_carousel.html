@@ -566,16 +566,17 @@
             const preview = document.getElementById(select.dataset.previewTarget);
             if (preview) {
                 preview.innerHTML = '';
+                const previewUrl = value.startsWith('/media/') ? value + '?p=2' : value;
                 if (kind === 'video') {
                     const video = document.createElement('video');
-                    video.src = value;
+                    video.src = previewUrl;
                     video.muted = true;
                     video.controls = true;
                     video.preload = 'metadata';
                     preview.appendChild(video);
                 } else {
                     const img = document.createElement('img');
-                    img.src = value;
+                    img.src = previewUrl;
                     img.alt = 'Выбранное медиа';
                     preview.appendChild(img);
                 }
