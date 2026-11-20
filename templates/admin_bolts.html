@@ -28,7 +28,13 @@
             letter-spacing: 2px;
             color: #ffd166;
             margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
         }
+        .bolts-hero h1 .gold-bolt-icon { width: 1.7rem; height: 1.7rem; }
+        .bolt-count .gold-bolt-icon { width: 1rem; height: 1rem; vertical-align: -0.15rem; }
+        .btn-gold .gold-bolt-icon { width: 1.05rem; height: 1.05rem; vertical-align: -0.15rem; }
         .bolts-hero p {
             color: var(--muted);
             font-size: 0.9rem;
@@ -227,7 +233,7 @@
     {% endwith %}
 
     <section class="bolts-hero">
-        <h1>🔩 Золотые болтики</h1>
+        <h1>{% include '_gold_bolt_icon.html' %} Золотые болтики</h1>
         <p>
             Один болт — один союзный ивент. Каждый болт добавляет игроку
             <b>50% от его среднего рейтинга Дуэли на момент вручения</b> к общему рейтингу.
@@ -237,11 +243,11 @@
         {% if is_super_admin %}
         <div class="bolts-reset">
             <form method="POST" action="/admin/bolts/reset-my">
-                <button type="submit" class="btn btn-primary">🔩 Обнулить мои вручения</button>
+                <button type="submit" class="btn btn-primary">{% include '_gold_bolt_icon.html' %} Обнулить мои вручения</button>
             </form>
             <form method="POST" action="/admin/bolts/reset-all"
                   onsubmit="return confirm('Сбросить ВСЕ золотые болтики? Бонусы исчезнут из общего рейтинга.');">
-                <button type="submit" class="btn btn-critical">🔩 Сбросить все болтики</button>
+                <button type="submit" class="btn btn-critical">{% include '_gold_bolt_icon.html' %} Сбросить все болтики</button>
             </form>
         </div>
         {% endif %}
@@ -272,7 +278,7 @@
                         {% for p in players %}
                         <tr data-bolts="{{ p.bolts }}" data-nick="{{ p.nickname|lower }}">
                             <td class="bolt-nick">{{ p.nickname }}</td>
-                            <td class="bolt-count">🔩 {{ p.bolts }}</td>
+                            <td class="bolt-count">{% include '_gold_bolt_icon.html' %} {{ p.bolts }}</td>
                             <td class="bolt-bonus">{% if p.bonus %}+{{ p.bonus }}{% else %}—{% endif %}</td>
                             <td>
                                 {% if p.bolts %}
@@ -285,7 +291,7 @@
                                 <div class="bolt-actions">
                                     <form method="POST" action="/admin/bolts/give">
                                         <input type="hidden" name="nickname" value="{{ p.nickname }}">
-                                        <button type="submit" class="btn btn-gold">🔩 Вручить</button>
+                                        <button type="submit" class="btn btn-gold">{% include '_gold_bolt_icon.html' %} Вручить</button>
                                     </form>
                                     {% if is_super_admin and p.bolts %}
                                     <form method="POST" action="{{ url_for('admin_bolts_reset_player', nickname=p.nickname) }}"

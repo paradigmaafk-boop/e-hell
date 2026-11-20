@@ -2158,3 +2158,14 @@ body.light-theme textarea::placeholder {
     .res-player-row .pref { font-size: 0.65rem; padding: 0.1rem 0.35rem; }
     .res-player-row .squad1 { font-size: 0.8rem; }
 }
+
+/* Золотой болтик — общая иконка для рейтинга, кабинета и админки */
+.gold-bolt-icon {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    flex-shrink: 0;
+    vertical-align: -0.18em;
+    filter: drop-shadow(0 0 4px rgba(255, 200, 60, 0.4));
+}
+
