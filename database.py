@@ -177,6 +177,22 @@ def init_db():
     """)
 
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS media_assets (
+            id SERIAL PRIMARY KEY,
+            filename TEXT NOT NULL,
+            mime_type TEXT NOT NULL,
+            data BYTEA NOT NULL,
+            size INTEGER NOT NULL,
+            created_at TEXT NOT NULL,
+            uploaded_by TEXT
+        )
+    """)
+    cursor.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_media_assets_name_size
+        ON media_assets (filename, size)
+    """)
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS reservoir_map (
             id SERIAL PRIMARY KEY,
             key TEXT UNIQUE NOT NULL,
@@ -1404,6 +1420,134 @@ def delete_slide(slide_id):
         print(f"Error deleting slide: {e}")
         conn.rollback()
         return False
+    finally:
+        conn.close()
+
+
+# ============================================================
+# МЕДИА-АЛЬБОМ (хранится в БД, переживает передеплой)
+# ============================================================
+
+def create_media_asset(filename, mime_type, data, uploaded_by=''):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            INSERT INTO media_assets (filename, mime_type, data, size, created_at, uploaded_by)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (filename, size) DO NOTHING
+            RETURNING id
+        """, (filename, mime_type, psycopg2.Binary(data), len(data), now, uploaded_by or ''))
+        row = cursor.fetchone()
+        if row:
+            asset_id = row[0]
+        else:
+            cursor.execute(
+                "SELECT id FROM media_assets WHERE filename = %s AND size = %s LIMIT 1",
+                (filename, len(data))
+            )
+            existing = cursor.fetchone()
+            if not existing:
+                conn.rollback()
+                return None
+            asset_id = existing[0]
+        conn.commit()
+        return asset_id
+    except Exception as e:
+        print(f"create_media_asset error: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
+def get_media_assets():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, filename, mime_type, size, created_at, uploaded_by
+                      FROM media_assets
+                      ORDER BY created_at DESC, id DESC""")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def get_media_asset(asset_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT id, filename, mime_type, data, size, created_at, uploaded_by
+                      FROM media_assets WHERE id = %s""", (asset_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return (row[0], row[1], row[2], bytes(row[3]), row[4], row[5], row[6])
+    return None
+
+
+def delete_media_asset(asset_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM media_assets WHERE id = %s", (asset_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"delete_media_asset error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def count_media_asset_usage(asset_id):
+    url = f'/media/{asset_id}'
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""SELECT COUNT(*) FROM carousel_slides
+                      WHERE media_url = %s OR poster_url = %s""", (url, url))
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count or 0
+
+
+def clear_slide_media(slide_id):
+    """Убирает битую ссылку на статический файл, которого уже нет."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE carousel_slides SET media_url = NULL WHERE id = %s", (slide_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"clear_slide_media error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def migrate_static_media_urls(mapping):
+    """Заменяет старые /static/carousel/... на /media/<id>."""
+    if not mapping:
+        return 0
+    conn = get_connection()
+    cursor = conn.cursor()
+    updated = 0
+    try:
+        for old_url, new_url in mapping.items():
+            cursor.execute("UPDATE carousel_slides SET media_url = %s WHERE media_url = %s",
+                           (new_url, old_url))
+            updated += cursor.rowcount or 0
+            cursor.execute("UPDATE carousel_slides SET poster_url = %s WHERE poster_url = %s",
+                           (new_url, old_url))
+            updated += cursor.rowcount or 0
+        conn.commit()
+        return updated
+    except Exception as e:
+        print(f"migrate_static_media_urls error: {e}")
+        conn.rollback()
+        return 0
     finally:
         conn.close()
 

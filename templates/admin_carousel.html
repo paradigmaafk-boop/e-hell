@@ -10,6 +10,18 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
     <style>
+        .album-preview { margin-top: 0.5rem; }
+        .album-preview img,
+        .album-preview video {
+            max-width: 180px;
+            max-height: 110px;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #000;
+            display: block;
+        }
+        .album-picker { width: 100%; }
+        .album-hint { color: var(--dim); font-size: 0.78rem; margin-top: 0.35rem; }
         .poster-editor {
             margin-top: 0.75rem;
             padding: 1rem;
@@ -163,6 +175,10 @@
     <div class="page-head">
         <h1 class="page-title">Управление каруселью</h1>
         <p class="page-sub">Слайды на главной странице</p>
+        <div style="margin-top: 0.9rem;">
+            <a href="/admin/media" class="btn">🖼 Альбом медиа</a>
+            <span class="album-hint">Файлы из альбома хранятся в базе и не пропадают при обновлении сайта.</span>
+        </div>
     </div>
 
     {% with messages = get_flashed_messages() %}
@@ -207,13 +223,28 @@
             </div>
 
             <div class="calc-field" style="margin-bottom: 1rem;">
-                <label>Загрузить файл</label>
+                <label>Загрузить файл (сохранится в альбом)</label>
                 <input type="file" name="media_file" id="create-media-file" accept="image/*,video/*">
+            </div>
+
+            <div class="calc-field" style="margin-bottom: 1rem;">
+                <label>Или выбрать из альбома</label>
+                <select class="album-picker" data-url-target="create-media-url"
+                        data-type-target="create-media-type" data-preview-target="create-media-preview">
+                    <option value="">— выберите файл из альбома —</option>
+                    {% for asset in media_assets %}
+                    <option value="/media/{{ asset[0] }}"
+                            data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
+                        {{ asset[1] }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div id="create-media-preview" class="album-preview"></div>
             </div>
 
             <div class="calc-field" style="margin-bottom: 1.5rem;">
                 <label>Или ссылка на медиа (URL)</label>
-                <input type="text" name="media_url" placeholder="https://...">
+                <input type="text" name="media_url" id="create-media-url" placeholder="https://...">
             </div>
 
             <div class="poster-editor" id="create-poster-editor" style="display: none;">
@@ -316,13 +347,29 @@
                     </div>
 
                     <div class="calc-field" style="margin-bottom: 1rem;">
-                        <label>Заменить медиа</label>
+                        <label>Заменить медиа (сохранится в альбом)</label>
                         <input type="file" name="media_file" id="update-media-file-{{ slide[0] }}" accept="image/*,video/*">
                     </div>
 
                     <div class="calc-field" style="margin-bottom: 1rem;">
+                        <label>Или выбрать из альбома</label>
+                        <select class="album-picker" data-url-target="update-media-url-{{ slide[0] }}"
+                                data-type-target="update-media-type-{{ slide[0] }}"
+                                data-preview-target="update-media-preview-{{ slide[0] }}">
+                            <option value="">— не менять —</option>
+                            {% for asset in media_assets %}
+                            <option value="/media/{{ asset[0] }}"
+                                    data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
+                                {{ asset[1] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div id="update-media-preview-{{ slide[0] }}" class="album-preview"></div>
+                    </div>
+
+                    <div class="calc-field" style="margin-bottom: 1rem;">
                         <label>URL медиа</label>
-                        <input type="text" name="media_url" value="{{ slide[4] or '' }}">
+                        <input type="text" name="media_url" id="update-media-url-{{ slide[0] }}" value="{{ slide[4] or '' }}">
                     </div>
 
                     <div class="poster-editor" id="update-poster-editor-{{ slide[0] }}" style="{% if slide[3] != 'video' %}display: none;{% endif %}">
@@ -503,6 +550,38 @@
         mediaTypeEl: document.getElementById('update-media-type-{{ slide[0] }}')
     });
     {% endfor %}
+
+    document.querySelectorAll('.album-picker').forEach(select => {
+        select.addEventListener('change', () => {
+            const value = select.value;
+            if (!value) return;
+            const urlInput = document.getElementById(select.dataset.urlTarget);
+            if (urlInput) urlInput.value = value;
+
+            const option = select.options[select.selectedIndex];
+            const kind = option ? option.dataset.kind : 'image';
+            const typeSelect = document.getElementById(select.dataset.typeTarget);
+            if (typeSelect && kind) typeSelect.value = kind;
+
+            const preview = document.getElementById(select.dataset.previewTarget);
+            if (preview) {
+                preview.innerHTML = '';
+                if (kind === 'video') {
+                    const video = document.createElement('video');
+                    video.src = value;
+                    video.muted = true;
+                    video.controls = true;
+                    video.preload = 'metadata';
+                    preview.appendChild(video);
+                } else {
+                    const img = document.createElement('img');
+                    img.src = value;
+                    img.alt = 'Выбранное медиа';
+                    preview.appendChild(img);
+                }
+            }
+        });
+    });
 </script>
 
 </body>

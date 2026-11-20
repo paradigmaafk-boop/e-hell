@@ -1,6 +1,7 @@
 import os
 import base64
 import json
+import mimetypes
 import re
 from datetime import datetime
 from functools import wraps
@@ -18,6 +19,9 @@ from database import (
     delete_nickname_alias, reset_rating, delete_player, delete_player_from_all_ratings,
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
+    create_media_asset, get_media_assets, get_media_asset,
+    delete_media_asset, count_media_asset_usage, migrate_static_media_urls,
+    clear_slide_media,
     get_connection,
     get_user_by_id, get_all_users,
     register_user, update_user_username, update_user_password,
@@ -45,6 +49,21 @@ app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here_change_it_to
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024
+
+# Медиа для карусели храним в БД: файловая система контейнера
+# очищается при каждом передеплое.
+ALLOWED_MEDIA_EXTENSIONS = {
+    'png': 'image/png',
+    'jpg': 'image/jpeg',
+    'jpeg': 'image/jpeg',
+    'webp': 'image/webp',
+    'gif': 'image/gif',
+    'avif': 'image/avif',
+    'mp4': 'video/mp4',
+    'webm': 'video/webm',
+    'ogg': 'video/ogg',
+}
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
@@ -221,7 +240,42 @@ def _parse_squad(raw):
     return f"{int_part},{frac_part}"
 
 
-def save_base64_image(data_url, prefix='poster'):
+def _media_mime(filename):
+    ext = (filename.rsplit('.', 1)[1].lower() if '.' in filename else '')
+    return ALLOWED_MEDIA_EXTENSIONS.get(ext)
+
+
+def _safe_media_name(filename):
+    safe = secure_filename(filename or '')
+    if not safe:
+        ext = (filename.rsplit('.', 1)[1].lower() if filename and '.' in filename else 'bin')
+        safe = f"media_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}"
+    return safe
+
+
+def save_media_bytes(filename, data, mime_type, uploaded_by=''):
+    asset_id = create_media_asset(filename, mime_type, data, uploaded_by)
+    return f"/media/{asset_id}" if asset_id else None
+
+
+def save_uploaded_media(file, uploaded_by=''):
+    """Сохраняет загруженный файл в БД. Возвращает (url, error)."""
+    if not file or not file.filename:
+        return None, 'Файл не выбран.'
+    filename = _safe_media_name(file.filename)
+    mime_type = _media_mime(filename)
+    if not mime_type:
+        return None, 'Разрешены только изображения и видео (png, jpg, webp, gif, mp4, webm, ogg).'
+    data = file.read()
+    if not data:
+        return None, 'Пустой файл.'
+    url = save_media_bytes(filename, data, mime_type, uploaded_by)
+    if not url:
+        return None, 'Не удалось сохранить файл в альбом.'
+    return url, None
+
+
+def save_base64_media(data_url, prefix='poster'):
     if not data_url or ',' not in data_url:
         return None
     try:
@@ -230,18 +284,105 @@ def save_base64_image(data_url, prefix='poster'):
             return None
         img_bytes = base64.b64decode(encoded)
         ext = 'jpg'
+        mime_type = 'image/jpeg'
         if 'png' in header:
-            ext = 'png'
+            ext, mime_type = 'png', 'image/png'
         elif 'webp' in header:
-            ext = 'webp'
+            ext, mime_type = 'webp', 'image/webp'
         unique_name = f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S%f')}.{ext}"
-        filepath = os.path.join(CAROUSEL_FOLDER, unique_name)
-        with open(filepath, 'wb') as f:
-            f.write(img_bytes)
-        return f"/static/carousel/{unique_name}"
+        return save_media_bytes(unique_name, img_bytes, mime_type, 'carousel')
     except Exception as e:
-        print(f"Error saving base64 image: {e}")
+        print(f"Error saving base64 media: {e}")
         return None
+
+
+def import_carousel_seed():
+    """Импортирует файлы из static/carousel в БД и переводит слайды на /media/<id>.
+
+    Нужно один раз после перехода на медиа-альбом: так уже загруженные
+    фотографии не пропадут при следующем передеплое.
+    """
+    if not os.path.isdir(CAROUSEL_FOLDER):
+        return 0
+
+    try:
+        if get_setting('carousel_seed_imported', '') == '1':
+            return 0
+    except Exception as e:
+        print(f"seed media setting check skipped: {e}")
+
+    # Если все слайды уже переведены на /media/, повторно 27 МБ не читаем.
+    try:
+        slides = get_all_slides()
+        has_static = any(
+            (s[4] or '').startswith('/static/carousel/')
+            or (len(s) > 9 and (s[9] or '').startswith('/static/carousel/'))
+            for s in slides
+        )
+        if not has_static:
+            set_setting('carousel_seed_imported', '1')
+            return 0
+    except Exception as e:
+        print(f"seed media check skipped: {e}")
+
+    mapping = {}
+    failed = 0
+    for name in os.listdir(CAROUSEL_FOLDER):
+        path = os.path.join(CAROUSEL_FOLDER, name)
+        if not os.path.isfile(path):
+            continue
+        mime_type = _media_mime(name)
+        if not mime_type:
+            continue
+        try:
+            with open(path, 'rb') as f:
+                data = f.read()
+            asset_id = create_media_asset(name, mime_type, data, 'seed')
+            if asset_id:
+                mapping[f'/static/carousel/{name}'] = f'/media/{asset_id}'
+            else:
+                failed += 1
+        except Exception as e:
+            failed += 1
+            print(f"seed media import skipped for {name}: {e}")
+    updated = migrate_static_media_urls(mapping)
+    if mapping and not failed:
+        try:
+            set_setting('carousel_seed_imported', '1')
+        except Exception as e:
+            print(f"seed media setting save skipped: {e}")
+    return updated
+
+
+def cleanup_missing_static_slides():
+    """Убирает ссылки на статические файлы, которых уже нет на диске.
+
+    Иначе в карусели остаётся битая картинка. Текст слайда сохраняется.
+    """
+    try:
+        slides = get_all_slides()
+    except Exception as e:
+        print(f"cleanup static slides skipped: {e}")
+        return 0
+    cleared = 0
+    for slide in slides:
+        url = slide[4] or ''
+        if not url.startswith('/static/carousel/'):
+            continue
+        name = os.path.basename(url.split('?', 1)[0])
+        if not name or os.path.exists(os.path.join(CAROUSEL_FOLDER, name)):
+            continue
+        if clear_slide_media(slide[0]):
+            cleared += 1
+    return cleared
+
+
+# Импортируем уже загруженные фото в БД при старте приложения.
+try:
+    import_carousel_seed()
+    cleanup_missing_static_slides()
+except Exception as _media_seed_error:
+    print(f"carousel seed import failed: {_media_seed_error}")
 
 
 def increment_counter(counter_name):
@@ -334,6 +475,19 @@ def inject_navigation_state():
 def favicon_ico():
     # Старые страницы/браузеры всё ещё спрашивают /favicon.ico.
     return app.send_static_file('favicon.svg')
+
+
+@app.route('/media/<int:asset_id>')
+def media_file(asset_id):
+    asset = get_media_asset(asset_id)
+    if not asset:
+        return 'Файл не найден', 404
+    _, filename, mime_type, data, _size, _created, _uploaded_by = asset
+    response = Response(data, mimetype=mime_type)
+    response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Disposition'] = f'inline; filename="{filename}"'
+    return response
 
 
 @app.route('/')
@@ -1418,6 +1572,49 @@ def admin_merges():
     return render_template('admin_merges.html', records=get_all_merge_records())
 
 
+@app.route('/admin/media', methods=['GET', 'POST'])
+@admin_required
+def admin_media():
+    if request.method == 'POST':
+        action = request.form.get('action', 'upload')
+        if action == 'delete':
+            asset_id = request.form.get('asset_id', type=int)
+            if not asset_id:
+                flash('Файл не указан.')
+            elif count_media_asset_usage(asset_id):
+                flash('Этот файл используется в слайде карусели. Сначала замените его в слайде.')
+            elif delete_media_asset(asset_id):
+                increment_counter('admin_actions')
+                flash('Файл удалён из альбома.')
+            else:
+                flash('Ошибка при удалении файла.')
+            return redirect(url_for('admin_media'))
+
+        files = request.files.getlist('files')
+        if not files or all(not f.filename for f in files):
+            flash('Выберите файлы для загрузки.')
+            return redirect(url_for('admin_media'))
+
+        saved = 0
+        errors = []
+        for file in files:
+            if not file or not file.filename:
+                continue
+            _url, error = save_uploaded_media(file, session.get('username', ''))
+            if error:
+                errors.append(f'{file.filename}: {error}')
+            else:
+                saved += 1
+        if saved:
+            increment_counter('admin_actions')
+            flash(f'Загружено в альбом: {saved}.')
+        for error in errors[:5]:
+            flash(error)
+        return redirect(url_for('admin_media'))
+
+    return render_template('admin_media.html', assets=get_media_assets())
+
+
 @app.route('/admin/vacations', methods=['GET', 'POST'])
 @admin_required
 def admin_vacations():
@@ -1470,15 +1667,15 @@ def admin_carousel():
             if 'media_file' in request.files:
                 file = request.files['media_file']
                 if file and file.filename:
-                    filename = secure_filename(file.filename)
-                    unique_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
-                    filepath = os.path.join(CAROUSEL_FOLDER, unique_name)
-                    file.save(filepath)
-                    media_url = f"/static/carousel/{unique_name}"
+                    uploaded_url, upload_error = save_uploaded_media(file, session.get('username', ''))
+                    if uploaded_url:
+                        media_url = uploaded_url
+                    else:
+                        flash(upload_error or 'Не удалось загрузить файл.')
 
             poster_data = request.form.get('poster_data', '').strip()
             if poster_data:
-                poster_url = save_base64_image(poster_data, prefix='poster')
+                poster_url = save_base64_media(poster_data, prefix='poster')
 
             if content:
                 if create_slide(title, content, media_type, media_url, position, poster_url):
@@ -1503,15 +1700,15 @@ def admin_carousel():
             if 'media_file' in request.files:
                 file = request.files['media_file']
                 if file and file.filename:
-                    filename = secure_filename(file.filename)
-                    unique_name = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
-                    filepath = os.path.join(CAROUSEL_FOLDER, unique_name)
-                    file.save(filepath)
-                    media_url = f"/static/carousel/{unique_name}"
+                    uploaded_url, upload_error = save_uploaded_media(file, session.get('username', ''))
+                    if uploaded_url:
+                        media_url = uploaded_url
+                    else:
+                        flash(upload_error or 'Не удалось загрузить файл.')
 
             poster_data = request.form.get('poster_data', '').strip()
             if poster_data:
-                new_poster = save_base64_image(poster_data, prefix='poster')
+                new_poster = save_base64_media(poster_data, prefix='poster')
                 if new_poster:
                     poster_url = new_poster
 
@@ -1537,7 +1734,7 @@ def admin_carousel():
         return redirect(url_for('admin_carousel'))
 
     slides = get_all_slides()
-    return render_template('admin_carousel.html', slides=slides)
+    return render_template('admin_carousel.html', slides=slides, media_assets=get_media_assets())
 
 
 if __name__ == '__main__':
