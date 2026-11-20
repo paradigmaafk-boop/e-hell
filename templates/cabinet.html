@@ -821,7 +821,7 @@
         </div>
         <div class="bolts-main">
             <span class="bolts-count {% if bolts_received == 0 %}zero{% endif %}">{{ bolts_received }}</span>
-            <span class="bolts-unit">{% if bolts_received == 1 %}золотой болтик{% elif bolts_received > 1 and bolts_received < 5 %}золотых болтика{% else %}золотых болтиков{% endif %}</span>
+            <span class="bolts-unit">{% if bolts_received % 10 == 1 and bolts_received % 100 != 11 %}золотой болтик{% elif bolts_received % 10 in [2, 3, 4] and bolts_received % 100 not in [12, 13, 14] %}золотых болтика{% else %}золотых болтиков{% endif %}</span>
         </div>
         <p class="bolts-philosophy">
             Каждый золотой болт — это участие в ивенте союза.
