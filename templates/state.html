@@ -364,8 +364,12 @@
     window.ACTIVE_TAB = {{ active_tab|tojson }};
 </script>
 <script>
-    const RAW_COORDS = [
+    const COORDS_S3 = [
 {% include '_state_coords.html' %}
+    ];
+    const COORDS_S4 = [
+        "1024.00,880.00,1174.00,1020.00,1024.00,1170.00,874.00,1020.00",
+{% include '_state_coords_s4.html' %}
     ];
 </script>
 <script>
@@ -380,6 +384,12 @@
         '#ec407a', '#26a69a'
     ];
     const DEFAULT_STROKE = '#333';
+    const MAP_VIEWBOX = {
+        s1: '50 40 950 950', s2: '50 40 950 950',
+        s3: '50 40 950 950', s4: '0 0 2048 2048'
+    };
+    const MAP_COORDS = {s1: COORDS_S3, s2: COORDS_S3, s3: COORDS_S3, s4: COORDS_S4};
+    let RAW_COORDS = COORDS_S3;
     const svg = document.getElementById('map-svg');
     let cells = [];
     let legend = DEFAULT_COLORS.map(color => ({color, label: ''}));
@@ -420,7 +430,10 @@
         }
         return {cx: (minX + maxX) / 2, cy: (minY + maxY) / 2, w: maxX - minX, h: maxY - minY};
     }
-    function chooseFontSize(b) { return Math.max(8, Math.min(22, Math.min(b.w, b.h) / 3.4)); }
+    function chooseFontSize(b) {
+        const scale = season === 's4' ? 2 : 1;
+        return Math.max(8 * scale, Math.min(22 * scale, Math.min(b.w, b.h) / 3.4));
+    }
 
     function renderMap() {
         if (!svg) return;
@@ -556,6 +569,8 @@
             season = btn.dataset.season;
             document.querySelectorAll('.season-btn').forEach(b => b.classList.toggle('active', b === btn));
             currentMapId = null;
+            RAW_COORDS = MAP_COORDS[season];
+            svg.setAttribute('viewBox', MAP_VIEWBOX[season]);
             legend = DEFAULT_COLORS.map(color => ({color, label: ''}));
             renderLegend(); renderMap(); updateStatus();
             toast(`Открыта пустая карта сезона ${season}.`);
@@ -692,6 +707,8 @@
     });
     function loadMap(item) {
         season = item.season; currentMapId = item.id; canEdit = item.can_edit;
+        RAW_COORDS = MAP_COORDS[season] || COORDS_S3;
+        if (svg) svg.setAttribute('viewBox', MAP_VIEWBOX[season] || MAP_VIEWBOX.s3);
         currentStateName = item.state_name || '';
         currentUnionName = item.union_name || '';
         currentVersionName = item.version_name || '';
