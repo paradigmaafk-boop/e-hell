@@ -1884,31 +1884,37 @@ def state_map_delete(map_id):
     return jsonify({'success': True})
 
 
+@app.route('/admin/state-maps')
+@admin_required
+def admin_state_maps():
+    maps = get_all_state_maps()
+    return render_template('admin_state_maps.html', maps=maps)
+
+
 @app.route('/state/admin')
 @admin_required
 def state_admin_maps():
-    maps = get_all_state_maps()
-    return render_template('state_admin_maps.html', maps=maps)
+    return redirect(url_for('admin_state_maps'))
 
 
-@app.route('/state/admin/delete/<int:map_id>', methods=['POST'])
+@app.route('/admin/state-maps/delete/<int:map_id>', methods=['POST'])
 @admin_required
-def state_admin_delete_map(map_id):
+def admin_state_delete_map(map_id):
     if delete_state_map(map_id):
         flash('Карта удалена.')
     else:
         flash('Не удалось удалить карту.')
-    return redirect(url_for('state_admin_maps'))
+    return redirect(url_for('admin_state_maps'))
 
 
-@app.route('/state/admin/delete-all', methods=['POST'])
+@app.route('/admin/state-maps/delete-all', methods=['POST'])
 @admin_required
-def state_admin_delete_all_maps():
+def admin_state_delete_all_maps():
     if delete_all_state_maps():
         flash('Все сохранённые карты удалены.')
     else:
         flash('Не удалось удалить карты.')
-    return redirect(url_for('state_admin_maps'))
+    return redirect(url_for('admin_state_maps'))
 
 
 @app.route('/state/export')

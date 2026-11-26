@@ -71,6 +71,8 @@
         </div>
     </header>
 
+    {% include '_admin_nav.html' %}
+
     <div class="page-head">
         <h1 class="page-title">Управление картами</h1>
         <p class="page-sub">Все сохранённые версии карт штата.</p>
@@ -90,7 +92,7 @@
             </div>
             <div class="map-admin-actions">
                 <a href="/state/maps/{{ m.id }}" class="btn" target="_blank" rel="noopener">Данные</a>
-                <form method="POST" action="/state/admin/delete/{{ m.id }}"
+                <form method="POST" action="/admin/state-maps/delete/{{ m.id }}"
                       onsubmit='return confirm({{ ("Удалить карту " ~ m.version_name ~ "?")|tojson }});'>
                     <button type="submit" class="btn btn-danger">Удалить</button>
                 </form>
@@ -98,7 +100,7 @@
         </div>
         {% endfor %}
     </div>
-    <form method="POST" action="/state/admin/delete-all" style="margin-top:1rem;"
+    <form method="POST" action="/admin/state-maps/delete-all" style="margin-top:1rem;"
           onsubmit="return confirm('Удалить ВСЕ сохранённые карты? Это необратимо.');">
         <button type="submit" class="btn btn-critical">Удалить все карты</button>
     </form>
@@ -106,7 +108,7 @@
     <div class="map-admin-empty">Сохранённых карт нет.</div>
     {% endif %}
 
-    <a href="/state" class="back-link">← К разделу «Штат»</a>
+    <a href="/admin" class="back-link">← В админ-панель</a>
 </div>
 
 <script>
