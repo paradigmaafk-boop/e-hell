@@ -1,4 +1,5 @@
 import os
+import json
 import psycopg2
 import psycopg2.extras
 import hashlib
@@ -240,6 +241,28 @@ def init_db():
             updated_at TEXT NOT NULL
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS state_maps (
+            id SERIAL PRIMARY KEY,
+            season TEXT NOT NULL,
+            version_name TEXT NOT NULL,
+            state_name TEXT NOT NULL,
+            union_name TEXT NOT NULL,
+            owner_user_id INTEGER NOT NULL,
+            legend TEXT NOT NULL DEFAULT '[]',
+            cells TEXT NOT NULL DEFAULT '[]',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS state_map_access (
+            id SERIAL PRIMARY KEY,
+            map_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            UNIQUE(map_id, user_id)
+        )
+    """)
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS apples (
@@ -358,6 +381,38 @@ def init_db():
             INSERT INTO site_settings (key, value, updated_at)
             VALUES ('rating_tooltip_text', %s, %s)
         """, ('Это рейтинг союза. Каждую неделю игроки могут дарить яблоки другим участникам союза. Яблоки копятся весь сезон, а топ-10 игроков по сбору яблок получают иммунитет от ротации.', now))
+
+    # Старую единственную карту сохраняем как версию «657 HEL» для s3.
+    cursor.execute("SELECT value FROM site_settings WHERE key = 'state_maps_migrated'")
+    already_migrated = cursor.fetchone()
+    if not already_migrated:
+        cursor.execute("SELECT COUNT(*) FROM state_maps")
+        if (cursor.fetchone()[0] or 0) == 0:
+            cursor.execute("SELECT cell_index, color, label FROM state_cells ORDER BY cell_index ASC")
+            old_cells = cursor.fetchall()
+            if old_cells:
+                cursor.execute("SELECT color, label FROM state_legend ORDER BY id ASC")
+                old_legend = [{'color': row[0], 'label': row[1]} for row in cursor.fetchall()]
+                cells_json = [
+                    {'index': row[0], 'color': row[1], 'label': row[2]}
+                    for row in old_cells if row[1] or row[2]
+                ]
+                cursor.execute("""SELECT id FROM users
+                                  WHERE role = 'super_admin'
+                                  ORDER BY id ASC LIMIT 1""")
+                owner = cursor.fetchone()
+                owner_id = owner[0] if owner else 1
+                cursor.execute("""
+                    INSERT INTO state_maps
+                        (season, version_name, state_name, union_name, owner_user_id,
+                         legend, cells, created_at, updated_at)
+                    VALUES ('s3', '657 HEL', '657', 'HEL', %s, %s, %s, %s, %s)
+                """, (owner_id, json.dumps(old_legend, ensure_ascii=False),
+                      json.dumps(cells_json, ensure_ascii=False), now, now))
+        cursor.execute("""INSERT INTO site_settings (key, value, updated_at)
+                          VALUES ('state_maps_migrated', '1', %s)
+                          ON CONFLICT (key) DO UPDATE SET value = '1', updated_at = %s""",
+                       (now, now))
 
     conn.commit()
     conn.close()
@@ -2552,6 +2607,226 @@ def save_state_cells(cells_list):
         return True
     except Exception as e:
         print(f"save_state_cells error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+# ============================================================
+# СОХРАНЁННЫЕ КАРТЫ ШТАТА
+# ============================================================
+
+STATE_MAP_FIELDS = """m.id, m.season, m.version_name, m.state_name, m.union_name,
+                      m.owner_user_id, m.legend, m.cells, m.created_at, m.updated_at,
+                      COALESCE(u.username, '—') AS author"""
+
+
+def _state_map_row(row):
+    if not row:
+        return None
+    return {
+        'id': row[0], 'season': row[1], 'version_name': row[2],
+        'state_name': row[3], 'union_name': row[4],
+        'owner_user_id': row[5],
+        'legend': json.loads(row[6] or '[]'),
+        'cells': json.loads(row[7] or '[]'),
+        'created_at': row[8], 'updated_at': row[9],
+        'author': row[10],
+    }
+
+
+def create_state_map(season, version_name, state_name, union_name,
+                     owner_user_id, legend, cells):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            INSERT INTO state_maps
+                (season, version_name, state_name, union_name, owner_user_id,
+                 legend, cells, created_at, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (season, version_name, state_name, union_name, owner_user_id,
+              json.dumps(legend, ensure_ascii=False),
+              json.dumps(cells, ensure_ascii=False), now, now))
+        map_id = cursor.fetchone()[0]
+        conn.commit()
+        return map_id
+    except Exception as e:
+        print(f"create_state_map error: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
+def update_state_map(map_id, season, version_name, state_name, union_name, legend, cells):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            UPDATE state_maps
+            SET season = %s, version_name = %s, state_name = %s, union_name = %s,
+                legend = %s, cells = %s, updated_at = %s
+            WHERE id = %s
+        """, (season, version_name, state_name, union_name,
+              json.dumps(legend, ensure_ascii=False),
+              json.dumps(cells, ensure_ascii=False), now, map_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"update_state_map error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def update_state_map_legend(map_id, legend):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("UPDATE state_maps SET legend = %s, updated_at = %s WHERE id = %s",
+                       (json.dumps(legend, ensure_ascii=False), now, map_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"update_state_map_legend error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def get_state_map(map_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"""SELECT {STATE_MAP_FIELDS}
+                       FROM state_maps m LEFT JOIN users u ON u.id = m.owner_user_id
+                       WHERE m.id = %s""", (map_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return _state_map_row(row)
+
+
+def get_state_maps_for_user(user_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"""SELECT {STATE_MAP_FIELDS}
+                       FROM state_maps m
+                       LEFT JOIN users u ON u.id = m.owner_user_id
+                       LEFT JOIN state_map_access a ON a.map_id = m.id AND a.user_id = %s
+                       WHERE m.owner_user_id = %s OR a.id IS NOT NULL
+                       ORDER BY m.updated_at DESC, m.id DESC""", (user_id, user_id))
+    rows = cursor.fetchall()
+    conn.close()
+    return [_state_map_row(row) for row in rows]
+
+
+def get_all_state_maps():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"""SELECT {STATE_MAP_FIELDS}
+                       FROM state_maps m LEFT JOIN users u ON u.id = m.owner_user_id
+                       ORDER BY m.updated_at DESC, m.id DESC""")
+    rows = cursor.fetchall()
+    conn.close()
+    return [_state_map_row(row) for row in rows]
+
+
+def get_state_map_access(map_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT user_id FROM state_map_access WHERE map_id = %s", (map_id,))
+    data = {row[0] for row in cursor.fetchall()}
+    conn.close()
+    return data
+
+
+def get_state_access_users(map_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT u.id, u.username,
+               CASE WHEN a.id IS NULL THEN FALSE ELSE TRUE END AS has_access
+        FROM users u
+        LEFT JOIN state_map_access a ON a.map_id = %s AND a.user_id = u.id
+        ORDER BY u.username ASC
+    """, (map_id,))
+    data = [(row[0], row[1], bool(row[2])) for row in cursor.fetchall()]
+    conn.close()
+    return data
+
+
+def set_state_map_access(map_id, user_ids):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM state_map_access WHERE map_id = %s", (map_id,))
+        for user_id in user_ids or []:
+            cursor.execute("""INSERT INTO state_map_access (map_id, user_id)
+                              VALUES (%s, %s) ON CONFLICT DO NOTHING""",
+                           (map_id, int(user_id)))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"set_state_map_access error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def can_edit_state_map(map_id, user_id, role):
+    if role in ('admin', 'super_admin', 'state_admin'):
+        return True
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT owner_user_id FROM state_maps WHERE id = %s", (map_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return False
+    if row[0] == user_id:
+        conn.close()
+        return True
+    cursor.execute("SELECT 1 FROM state_map_access WHERE map_id = %s AND user_id = %s",
+                   (map_id, user_id))
+    allowed = cursor.fetchone() is not None
+    conn.close()
+    return allowed
+
+
+def delete_state_map(map_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM state_map_access WHERE map_id = %s", (map_id,))
+        cursor.execute("DELETE FROM state_maps WHERE id = %s", (map_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"delete_state_map error: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def delete_all_state_maps():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM state_map_access")
+        cursor.execute("DELETE FROM state_maps")
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"delete_all_state_maps error: {e}")
         conn.rollback()
         return False
     finally:

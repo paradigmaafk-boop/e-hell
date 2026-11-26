@@ -48,6 +48,10 @@ from database import (
     # Карта штата:
     get_state_legend, add_state_legend, delete_state_legend,
     get_state_cells, save_state_cells,
+    create_state_map, update_state_map, update_state_map_legend, get_state_map,
+    get_state_maps_for_user, get_all_state_maps, get_state_map_access,
+    get_state_access_users, set_state_map_access, can_edit_state_map,
+    delete_state_map, delete_all_state_maps,
 )
 from werkzeug.utils import secure_filename
 
@@ -559,7 +563,7 @@ def inject_navigation_state():
         linked = user[3] if user else None
         session['linked_nickname'] = linked or ''
     return {
-        'state_available': bool(user_id and linked),
+        'state_available': True,
         'current_linked_nickname': linked or '',
     }
 
@@ -1743,16 +1747,168 @@ def rating_stats():
 # ============================================================
 
 @app.route('/state')
-@state_access_required
 def state_view():
     count_once('visits', 'counted_visit')
-    legend = get_state_legend()
-    cells = get_state_cells()
-    can_edit = can_edit_state()
+    user = get_user_by_id(session['user_id']) if session.get('user_id') else None
     return render_template('state.html',
-                           legend=legend,
-                           cells=cells,
-                           can_edit_state=can_edit)
+                           active_tab='instruction',
+                           current_user=user,
+                           current_username=session.get('username', ''),
+                           my_maps=(get_state_maps_for_user(user[0]) if user else []),
+                           is_admin=is_admin(),
+                           is_logged_in=bool(user))
+
+
+@app.route('/state/draw')
+def state_draw():
+    count_once('visits', 'counted_visit')
+    user = get_user_by_id(session['user_id']) if session.get('user_id') else None
+    return render_template('state.html',
+                           active_tab='draw',
+                           current_user=user,
+                           current_username=session.get('username', ''),
+                           my_maps=(get_state_maps_for_user(user[0]) if user else []),
+                           is_admin=is_admin(),
+                           is_logged_in=bool(user))
+
+
+@app.route('/state/maps/<int:map_id>')
+def state_map_get(map_id):
+    item = get_state_map(map_id)
+    if not item:
+        return jsonify({'success': False, 'error': 'Карта не найдена.'}), 404
+    item['can_edit'] = bool(session.get('user_id')) and can_edit_state_map(
+        map_id, session['user_id'], session.get('role', ''))
+    return jsonify({'success': True, 'map': item})
+
+
+@app.route('/state/maps')
+def state_maps_list():
+    if not session.get('user_id'):
+        return jsonify({'success': False, 'error': 'Войдите в аккаунт.'}), 401
+    return jsonify({'success': True, 'maps': get_state_maps_for_user(session['user_id'])})
+
+
+@app.route('/state/maps/save', methods=['POST'])
+def state_map_save():
+    if not session.get('user_id'):
+        return jsonify({'success': False, 'error': 'Войдите, чтобы сохранять карты.'}), 401
+    data = request.get_json() or {}
+    season = (data.get('season') or '').strip()
+    version_name = (data.get('version_name') or '').strip()
+    state_name = (data.get('state_name') or '').strip()
+    union_name = (data.get('union_name') or '').strip()
+    legend = data.get('legend') or []
+    cells = data.get('cells') or []
+    if season not in ('s1', 's2', 's3', 's4'):
+        return jsonify({'success': False, 'error': 'Неверный сезон.'}), 400
+    if not version_name or not state_name or not union_name:
+        return jsonify({'success': False, 'error': 'Заполните название версии, штат и союз.'}), 400
+    if not isinstance(legend, list) or not isinstance(cells, list):
+        return jsonify({'success': False, 'error': 'Неверные данные карты.'}), 400
+
+    map_id = data.get('map_id')
+    if map_id:
+        try:
+            map_id = int(map_id)
+        except (TypeError, ValueError):
+            map_id = None
+        if map_id and not can_edit_state_map(map_id, session['user_id'], session.get('role', '')):
+            return jsonify({'success': False, 'error': 'Нет доступа к этой карте.'}), 403
+        ok = update_state_map(map_id, season, version_name, state_name, union_name, legend, cells)
+        if not ok:
+            return jsonify({'success': False, 'error': 'Не удалось обновить карту.'}), 500
+        increment_counter('admin_actions')
+        return jsonify({'success': True, 'map_id': map_id})
+
+    new_id = create_state_map(season, version_name, state_name, union_name,
+                              session['user_id'], legend, cells)
+    if not new_id:
+        return jsonify({'success': False, 'error': 'Не удалось сохранить карту.'}), 500
+    increment_counter('admin_actions')
+    return jsonify({'success': True, 'map_id': new_id})
+
+
+@app.route('/state/maps/<int:map_id>/legend', methods=['POST'])
+def state_map_legend_save(map_id):
+    if not session.get('user_id'):
+        return jsonify({'success': False, 'error': 'Войдите, чтобы сохранять легенду.'}), 401
+    if not can_edit_state_map(map_id, session['user_id'], session.get('role', '')):
+        return jsonify({'success': False, 'error': 'Нет доступа к этой карте.'}), 403
+    data = request.get_json() or {}
+    legend = data.get('legend') or []
+    if not isinstance(legend, list):
+        return jsonify({'success': False, 'error': 'Неверная легенда.'}), 400
+    if not update_state_map_legend(map_id, legend):
+        return jsonify({'success': False, 'error': 'Не удалось сохранить легенду.'}), 500
+    return jsonify({'success': True})
+
+
+@app.route('/state/maps/<int:map_id>/access', methods=['GET', 'POST'])
+def state_map_access_route(map_id):
+    if not session.get('user_id'):
+        return jsonify({'success': False, 'error': 'Войдите в аккаунт.'}), 401
+    item = get_state_map(map_id)
+    if not item:
+        return jsonify({'success': False, 'error': 'Карта не найдена.'}), 404
+    is_owner = item['owner_user_id'] == session['user_id']
+    if not (is_owner or is_admin()):
+        return jsonify({'success': False, 'error': 'Нет доступа.'}), 403
+    if request.method == 'GET':
+        return jsonify({'success': True,
+                        'users': [{'id': u[0], 'username': u[1], 'selected': u[2]}
+                                  for u in get_state_access_users(map_id)]})
+    data = request.get_json() or {}
+    user_ids = data.get('user_ids') or []
+    try:
+        user_ids = [int(uid) for uid in user_ids]
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'error': 'Неверный список пользователей.'}), 400
+    if not set_state_map_access(map_id, user_ids):
+        return jsonify({'success': False, 'error': 'Не удалось сохранить доступ.'}), 500
+    return jsonify({'success': True})
+
+
+@app.route('/state/maps/<int:map_id>/delete', methods=['POST'])
+def state_map_delete(map_id):
+    if not session.get('user_id'):
+        return jsonify({'success': False, 'error': 'Войдите в аккаунт.'}), 401
+    item = get_state_map(map_id)
+    if not item:
+        return jsonify({'success': False, 'error': 'Карта не найдена.'}), 404
+    if not (item['owner_user_id'] == session['user_id'] or is_admin()):
+        return jsonify({'success': False, 'error': 'Нет доступа.'}), 403
+    if not delete_state_map(map_id):
+        return jsonify({'success': False, 'error': 'Не удалось удалить карту.'}), 500
+    increment_counter('admin_actions')
+    return jsonify({'success': True})
+
+
+@app.route('/state/admin')
+@admin_required
+def state_admin_maps():
+    maps = get_all_state_maps()
+    return render_template('state_admin_maps.html', maps=maps)
+
+
+@app.route('/state/admin/delete/<int:map_id>', methods=['POST'])
+@admin_required
+def state_admin_delete_map(map_id):
+    if delete_state_map(map_id):
+        flash('Карта удалена.')
+    else:
+        flash('Не удалось удалить карту.')
+    return redirect(url_for('state_admin_maps'))
+
+
+@app.route('/state/admin/delete-all', methods=['POST'])
+@admin_required
+def state_admin_delete_all_maps():
+    if delete_all_state_maps():
+        flash('Все сохранённые карты удалены.')
+    else:
+        flash('Не удалось удалить карты.')
+    return redirect(url_for('state_admin_maps'))
 
 
 @app.route('/state/export')

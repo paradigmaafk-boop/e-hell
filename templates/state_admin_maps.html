@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление картами | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
+    <style>
+        .map-admin-list { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 1rem; }
+        .map-admin-row {
+            display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+            padding: 0.8rem 1rem; border: 1px solid var(--line); border-radius: 10px;
+            background: rgba(10,5,3,0.55); flex-wrap: wrap;
+        }
+        .map-admin-title { font-weight: 700; color: var(--text); }
+        .map-admin-meta { color: var(--dim); font-size: 0.75rem; margin-top: 0.2rem; }
+        .map-admin-actions { display: flex; gap: 0.4rem; }
+        .map-admin-empty { color: var(--muted); padding: 1rem; }
+        body.light-theme .map-admin-row { background: #fffbf2; }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff2200"/><stop offset="40%" stop-color="#ff8800"/>
+            <stop offset="70%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffec80"/><stop offset="40%" stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text"><span class="brand-name">[HEL] Ацкое Пламя</span></div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/admin" class="link-btn header-link">Админ-панель</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <div class="page-head">
+        <h1 class="page-title">Управление картами</h1>
+        <p class="page-sub">Все сохранённые версии карт штата.</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for message in messages %}<div class="flash-message">{{ message }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    {% if maps %}
+    <div class="map-admin-list">
+        {% for m in maps %}
+        <div class="map-admin-row">
+            <div>
+                <div class="map-admin-title">{{ m.version_name }} · {{ m.state_name }} / {{ m.union_name }}</div>
+                <div class="map-admin-meta">{{ m.season }} · автор: {{ m.author }} · обновлено: {{ m.updated_at }}</div>
+            </div>
+            <div class="map-admin-actions">
+                <a href="/state/maps/{{ m.id }}" class="btn" target="_blank" rel="noopener">Данные</a>
+                <form method="POST" action="/state/admin/delete/{{ m.id }}"
+                      onsubmit='return confirm({{ ("Удалить карту " ~ m.version_name ~ "?")|tojson }});'>
+                    <button type="submit" class="btn btn-danger">Удалить</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <form method="POST" action="/state/admin/delete-all" style="margin-top:1rem;"
+          onsubmit="return confirm('Удалить ВСЕ сохранённые карты? Это необратимо.');">
+        <button type="submit" class="btn btn-critical">Удалить все карты</button>
+    </form>
+    {% else %}
+    <div class="map-admin-empty">Сохранённых карт нет.</div>
+    {% endif %}
+
+    <a href="/state" class="back-link">← К разделу «Штат»</a>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+</script>
+</body>
+</html>
