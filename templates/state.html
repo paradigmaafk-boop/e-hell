@@ -364,6 +364,9 @@
     window.ACTIVE_TAB = {{ active_tab|tojson }};
 </script>
 <script>
+    const COORDS_S2 = [
+{% include '_state_coords_s2.html' %}
+    ];
     const COORDS_S3 = [
 {% include '_state_coords.html' %}
     ];
@@ -385,10 +388,10 @@
     ];
     const DEFAULT_STROKE = '#333';
     const MAP_VIEWBOX = {
-        s1: '50 40 950 950', s2: '50 40 950 950',
+        s1: '50 40 950 950', s2: '0 0 2048 1372',
         s3: '50 40 950 950', s4: '0 0 2048 2048'
     };
-    const MAP_COORDS = {s1: COORDS_S3, s2: COORDS_S3, s3: COORDS_S3, s4: COORDS_S4};
+    const MAP_COORDS = {s1: COORDS_S3, s2: COORDS_S2, s3: COORDS_S3, s4: COORDS_S4};
     let RAW_COORDS = COORDS_S3;
     const svg = document.getElementById('map-svg');
     let cells = [];
@@ -431,7 +434,7 @@
         return {cx: (minX + maxX) / 2, cy: (minY + maxY) / 2, w: maxX - minX, h: maxY - minY};
     }
     function chooseFontSize(b) {
-        const scale = season === 's4' ? 2 : 1;
+        const scale = (season === 's2' || season === 's4') ? 2 : 1;
         return Math.max(8 * scale, Math.min(22 * scale, Math.min(b.w, b.h) / 3.4));
     }
 
@@ -637,7 +640,10 @@
         if (!IS_LOGGED_IN) return requireLogin();
         const clone = svg.cloneNode(true);
         clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        clone.setAttribute('width', '950'); clone.setAttribute('height', '950');
+        const vb = svg.viewBox.baseVal;
+        clone.setAttribute('width', vb.width);
+        clone.setAttribute('height', vb.height);
+        const mapRatio = vb.height / vb.width;
         clone.querySelectorAll('.cell').forEach(c => { c.setAttribute('stroke-width', '1'); });
         clone.querySelectorAll('.cell-label').forEach(t => {
             t.setAttribute('font-family', 'Arial');
@@ -648,8 +654,11 @@
         const xml = new XMLSerializer().serializeToString(clone);
         const img = new Image();
         img.onload = () => {
+            const mapW = 950;
+            const mapH = mapW * mapRatio;
             const canvas = document.createElement('canvas');
-            canvas.width = 1500; canvas.height = 1100;
+            canvas.width = 1500;
+            canvas.height = Math.max(800, 110 + mapH + 80);
             const ctx = canvas.getContext('2d');
             ctx.fillStyle = '#fffdf8'; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = '#1b0d05';
@@ -657,19 +666,19 @@
             ctx.fillText('Карта штата', 40, 55);
             ctx.font = '20px Arial';
             ctx.fillText(`${season.toUpperCase()} · ${currentStateName || 'Штат'} · ${currentUnionName || 'Союз'}`, 40, 88);
-            ctx.drawImage(img, 40, 110, 950, 950);
+            ctx.drawImage(img, 40, 110, mapW, mapH);
             ctx.font = 'bold 22px Arial'; ctx.fillStyle = '#1b0d05';
             ctx.fillText('Союзы', 1030, 135);
             let y = 175;
             legend.forEach((item, i) => {
-                if (y > 980) return;
+                if (y > canvas.height - 50) return;
                 ctx.fillStyle = item.color; ctx.fillRect(1030, y - 18, 22, 22);
                 ctx.fillStyle = '#1b0d05'; ctx.font = '16px Arial';
                 ctx.fillText(item.label || `Цвет ${i + 1}`, 1062, y);
                 y += 34;
             });
             ctx.fillStyle = '#8a5a3a'; ctx.font = '15px Arial';
-            ctx.fillText(`Карта создана на сайте e-hell.ru, автор карты: ${CURRENT_USERNAME}`, 40, 1080);
+            ctx.fillText(`Карта создана на сайте e-hell.ru, автор карты: ${CURRENT_USERNAME}`, 40, canvas.height - 25);
             const a = document.createElement('a');
             a.download = `state-${season}-${Date.now()}.png`;
             a.href = canvas.toDataURL('image/png'); a.click();
