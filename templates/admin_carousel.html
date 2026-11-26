@@ -83,6 +83,154 @@
             border-radius: 6px;
             border: 1px solid var(--line);
         }
+        .album-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0 1rem;
+        }
+        .album-count { color: var(--dim); font-size: 0.8rem; }
+        .album-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 0.9rem;
+        }
+        .album-card {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(10,5,3,0.55);
+        }
+        .album-thumb {
+            position: relative;
+            aspect-ratio: 16 / 9;
+            background: linear-gradient(135deg, #2a1208, #080302);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .album-thumb img,
+        .album-thumb video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .album-thumb-empty { color: var(--dim); font-size: 0.78rem; }
+        .album-pos {
+            position: absolute;
+            top: 0.55rem;
+            left: 0.55rem;
+            padding: 0.16rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(5,2,1,0.78);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #ffd166;
+            font-size: 0.68rem;
+            font-weight: 700;
+        }
+        .album-status {
+            position: absolute;
+            top: 0.55rem;
+            right: 0.55rem;
+            padding: 0.16rem 0.5rem;
+            border-radius: 999px;
+            font-size: 0.66rem;
+            font-weight: 700;
+            background: rgba(5,2,1,0.8);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .album-status.active { color: #8fe28f; }
+        .album-status.hidden { color: #ffab9a; }
+        .album-card-body {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            padding: 0.8rem 0.85rem 0.85rem;
+            flex: 1;
+        }
+        .album-card-body h3 {
+            font-family: 'Forum', serif;
+            font-size: 1.05rem;
+            color: var(--text);
+            line-height: 1.25;
+        }
+        .album-desc {
+            color: var(--muted);
+            font-size: 0.8rem;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .album-meta { color: var(--dim); font-size: 0.68rem; margin-top: auto; padding-top: 0.35rem; }
+        .album-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+        .album-actions .btn { font-size: 0.76rem; padding: 0.35rem 0.65rem; }
+        .album-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            border-radius: 12px;
+        }
+        .carousel-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 6000;
+            padding: 1rem;
+            background: rgba(3,0,0,0.78);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+        .carousel-modal.show { display: flex; }
+        .carousel-modal-box {
+            width: min(760px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
+            padding: 1.2rem;
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            background: linear-gradient(180deg, #1b0d05, #080302);
+            box-shadow: 0 24px 70px rgba(0,0,0,0.75);
+        }
+        .carousel-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .carousel-modal-head h2 {
+            font-family: 'Forum', serif;
+            color: var(--accent-warm);
+            font-size: 1.35rem;
+        }
+        .carousel-modal-close {
+            width: 34px;
+            height: 34px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+        .carousel-modal-close:hover { border-color: var(--accent); color: var(--accent-warm); }
+        body.light-theme .album-card { background: #fffbf2; }
+        body.light-theme .carousel-modal-box { background: #fffbf2; }
+        @media (max-width: 600px) {
+            .album-grid { grid-template-columns: 1fr; }
+            .carousel-modal-box { padding: 0.9rem; }
+        }
     </style>
 </head>
 <body>
@@ -196,240 +344,257 @@
     {% endwith %}
 
     <section class="section">
-        <div class="section-title">Добавить слайд</div>
-        <form method="POST" enctype="multipart/form-data" id="create-form">
-            <input type="hidden" name="action" value="create">
-            <input type="hidden" name="poster_data" id="create-poster-data" value="">
-
-            <div class="calc-field" style="margin-bottom: 1rem;">
-                <label>Заголовок (необязательно)</label>
-                <input type="text" name="title" placeholder="Например: Добро пожаловать!">
+        <div class="album-toolbar">
+            <div>
+                <div class="section-title" style="margin:0;">Слайды карусели</div>
+                <div class="album-count">{{ slides|length }} шт. · нажмите «Изменить», чтобы открыть редактор</div>
             </div>
-
-            <div class="calc-field" style="margin-bottom: 1rem;">
-                <label>Текст слайда *</label>
-                <textarea name="content" rows="3" required
-                    style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit; font-size: 0.95rem; resize: vertical;"
-                    placeholder="Короткий текст в 2-4 предложения"></textarea>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                <div class="calc-field">
-                    <label>Тип медиа</label>
-                    <select name="media_type" id="create-media-type" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
-                        <option value="image">Изображение</option>
-                        <option value="video">Видео</option>
-                        <option value="none">Без медиа</option>
-                    </select>
-                </div>
-                <div class="calc-field">
-                    <label>Позиция</label>
-                    <input type="number" name="position" value="0" min="0">
-                </div>
-            </div>
-
-            <div class="calc-field" style="margin-bottom: 1rem;">
-                <label>Загрузить файл (сохранится в альбом)</label>
-                <input type="file" name="media_file" id="create-media-file" accept="image/*,video/*">
-            </div>
-
-            <div class="calc-field" style="margin-bottom: 1rem;">
-                <label>Или выбрать из альбома</label>
-                <select class="album-picker" data-url-target="create-media-url"
-                        data-type-target="create-media-type" data-preview-target="create-media-preview">
-                    <option value="">— выберите файл из альбома —</option>
-                    {% for asset in media_assets %}
-                    <option value="/media/{{ asset[0] }}"
-                            title="{{ asset[1] }}"
-                            data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
-                        {{ asset[7] }}
-                    </option>
-                    {% endfor %}
-                </select>
-                <div id="create-media-preview" class="album-preview"></div>
-                <div class="album-hint">Названия файлов меняются в <a href="/admin/media">альбоме медиа</a>.</div>
-            </div>
-
-            <div class="calc-field" style="margin-bottom: 1.5rem;">
-                <label>Или ссылка на медиа (URL)</label>
-                <input type="text" name="media_url" id="create-media-url" placeholder="https://...">
-            </div>
-
-            <div class="poster-editor" id="create-poster-editor" style="display: none;">
-                <h4>🎬 Выбор постера (первого кадра)</h4>
-                <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
-                    Загрузите видео, пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
-                </p>
-                <video id="create-poster-video" controls muted preload="metadata"></video>
-                <input type="range" id="create-poster-range" min="0" max="100" value="0" step="0.1">
-                <div class="poster-controls">
-                    <span class="poster-time" id="create-poster-time">0.0 с</span>
-                    <button type="button" class="btn btn-small" id="create-grab-poster">📸 Взять этот кадр</button>
-                    <button type="button" class="btn btn-small" id="create-clear-poster">✕ Очистить</button>
-                </div>
-                <canvas id="create-poster-canvas" style="display: none;"></canvas>
-                <img id="create-poster-preview" class="poster-preview" alt="Постер">
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">Добавить слайд</button>
-        </form>
-    </section>
-
-    <section class="section">
-        <div class="section-title">Существующие слайды ({{ slides|length }})</div>
+            <button type="button" class="btn btn-primary" id="openCreateSlide">+ Добавить слайд</button>
+        </div>
 
         {% if slides %}
-        {% for slide in slides %}
-        <div class="accordion">
-            <div class="accordion-head" onclick="toggleAccordion(this)">
-                <h3>
-                    #{{ slide[5] }} — {{ slide[1] or 'Без заголовка' }}
-                    <span class="btn btn-small" style="cursor: default; margin-left: 0.5rem;">{% if slide[6] %}Активен{% else %}Скрыт{% endif %}</span>
-                </h3>
-                <span class="arrow">▼</span>
-            </div>
-            <div class="accordion-body">
-                <div style="display: grid; grid-template-columns: 200px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                    <div style="border-radius: 8px; overflow: hidden; background: #000; height: 140px; display: flex; align-items: center; justify-content: center;">
-                        {% if slide[4] %}
-                            {% if slide[3] == 'video' %}
-                                <video
-                                    src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"
-                                    {% if slide[9] %}poster="{{ slide[9] }}"{% endif %}
-                                    muted autoplay loop playsinline style="max-width: 100%; max-height: 100%;"></video>
-                            {% else %}
-                                <img src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}" style="max-width: 100%; max-height: 100%;" alt="">
-                            {% endif %}
+        <div class="album-grid">
+            {% for slide in slides %}
+            <article class="album-card">
+                <div class="album-thumb">
+                    {% if slide[4] %}
+                        {% if slide[3] == 'video' %}
+                        <video src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"
+                               {% if slide[9] %}poster="{{ slide[9] }}"{% endif %}
+                               muted loop playsinline preload="metadata"></video>
                         {% else %}
-                            <span style="color: var(--dim); font-size: 0.85rem;">Нет медиа</span>
+                        <img src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"
+                             alt="{{ slide[1] or 'Слайд' }}" loading="lazy">
                         {% endif %}
+                    {% else %}
+                        <span class="album-thumb-empty">Без медиа</span>
+                    {% endif %}
+                    <span class="album-pos">#{{ slide[5] }}</span>
+                    <span class="album-status {% if slide[6] %}active{% else %}hidden{% endif %}">
+                        {% if slide[6] %}Активен{% else %}Скрыт{% endif %}
+                    </span>
+                </div>
+                <div class="album-card-body">
+                    <h3>{{ slide[1] or 'Без заголовка' }}</h3>
+                    <p class="album-desc">{{ slide[2] }}</p>
+                    <div class="album-meta">
+                        {{ slide[3] }} · обновлён {{ slide[8][:16] if slide[8] else '—' }}
+                        {% if slide[3] == 'video' and not slide[9] %} · без постера{% endif %}
                     </div>
-                    <div>
-                        <p style="color: var(--muted); margin-bottom: 0.5rem; font-size: 0.9rem;">{{ slide[2] }}</p>
-                        <p style="color: var(--dim); font-size: 0.8rem;">
-                            Тип: {{ slide[3] }} | Обновлен: {{ slide[8][:16] if slide[8] else '—' }}
-                        </p>
-                        {% if slide[3] == 'video' and slide[9] %}
-                        <div class="poster-current">
-                            <img src="{{ slide[9] }}" alt="">
-                            <span>Постер установлен</span>
-                        </div>
-                        {% elif slide[3] == 'video' %}
-                        <div class="poster-current">
-                            <span style="color: #d4614a;">⚠ Постер не установлен (показывается градиент)</span>
-                        </div>
-                        {% endif %}
+                    <div class="album-actions">
+                        <button type="button" class="btn" onclick="openEditSlide({{ loop.index0 }})">Изменить</button>
+                        <form method="POST" onsubmit="return confirm('Удалить слайд?');" style="display:inline;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="slide_id" value="{{ slide[0] }}">
+                            <button type="submit" class="btn btn-danger">Удалить</button>
+                        </form>
                     </div>
                 </div>
-
-                <form method="POST" enctype="multipart/form-data" id="update-form-{{ slide[0] }}" style="border-top: 1px solid var(--line); padding-top: 1.5rem;">
-                    <input type="hidden" name="action" value="update">
-                    <input type="hidden" name="slide_id" value="{{ slide[0] }}">
-                    <input type="hidden" name="poster_data" id="update-poster-data-{{ slide[0] }}" value="">
-                    <input type="hidden" name="remove_poster" id="update-remove-poster-{{ slide[0] }}" value="0">
-
-                    <div class="calc-field" style="margin-bottom: 1rem;">
-                        <label>Заголовок</label>
-                        <input type="text" name="title" value="{{ slide[1] or '' }}">
-                    </div>
-
-                    <div class="calc-field" style="margin-bottom: 1rem;">
-                        <label>Текст</label>
-                        <textarea name="content" rows="3" required
-                            style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit; font-size: 0.95rem; resize: vertical;">{{ slide[2] }}</textarea>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div class="calc-field">
-                            <label>Тип медиа</label>
-                            <select name="media_type" id="update-media-type-{{ slide[0] }}" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
-                                <option value="image" {% if slide[3] == 'image' %}selected{% endif %}>Изображение</option>
-                                <option value="video" {% if slide[3] == 'video' %}selected{% endif %}>Видео</option>
-                                <option value="none" {% if slide[3] == 'none' %}selected{% endif %}>Без медиа</option>
-                            </select>
-                        </div>
-                        <div class="calc-field">
-                            <label>Позиция</label>
-                            <input type="number" name="position" value="{{ slide[5] }}" min="0">
-                        </div>
-                    </div>
-
-                    <div class="calc-field" style="margin-bottom: 1rem;">
-                        <label>Заменить медиа (сохранится в альбом)</label>
-                        <input type="file" name="media_file" id="update-media-file-{{ slide[0] }}" accept="image/*,video/*">
-                    </div>
-
-                    <div class="calc-field" style="margin-bottom: 1rem;">
-                        <label>Или выбрать из альбома</label>
-                        <select class="album-picker" data-url-target="update-media-url-{{ slide[0] }}"
-                                data-type-target="update-media-type-{{ slide[0] }}"
-                                data-preview-target="update-media-preview-{{ slide[0] }}">
-                            <option value="">— не менять —</option>
-                            {% for asset in media_assets %}
-                            <option value="/media/{{ asset[0] }}"
-                                    title="{{ asset[1] }}"
-                                    data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
-                                {{ asset[7] }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                        <div class="album-hint">Названия файлов меняются в <a href="/admin/media">альбоме медиа</a>.</div>
-                        <div id="update-media-preview-{{ slide[0] }}" class="album-preview"></div>
-                    </div>
-
-                    <div class="calc-field" style="margin-bottom: 1rem;">
-                        <label>URL медиа</label>
-                        <input type="text" name="media_url" id="update-media-url-{{ slide[0] }}" value="{{ slide[4] or '' }}">
-                    </div>
-
-                    <div class="poster-editor" id="update-poster-editor-{{ slide[0] }}" style="{% if slide[3] != 'video' %}display: none;{% endif %}">
-                        <h4>🎬 Выбор постера (первого кадра)</h4>
-                        <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
-                            {% if slide[3] == 'video' and slide[4] %}
-                                Пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
-                            {% else %}
-                                Загрузите видео, пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
-                            {% endif %}
-                        </p>
-                        <video id="update-poster-video-{{ slide[0] }}" controls muted preload="metadata"
-                            {% if slide[3] == 'video' and slide[4] %}src="{{ slide[4] }}?v={{ slide[8]|replace(' ', 'T')|replace(':', '') }}"{% endif %}></video>
-                        <input type="range" id="update-poster-range-{{ slide[0] }}" min="0" max="100" value="0" step="0.1">
-                        <div class="poster-controls">
-                            <span class="poster-time" id="update-poster-time-{{ slide[0] }}">0.0 с</span>
-                            <button type="button" class="btn btn-small" id="update-grab-poster-{{ slide[0] }}">📸 Взять этот кадр</button>
-                            <button type="button" class="btn btn-small" id="update-clear-poster-{{ slide[0] }}">✕ Убрать постер</button>
-                        </div>
-                        <canvas id="update-poster-canvas-{{ slide[0] }}" style="display: none;"></canvas>
-                        <img id="update-poster-preview-{{ slide[0] }}" class="poster-preview" alt="Новый постер"
-                            {% if slide[9] %}src="{{ slide[9] }}" style="display:block;"{% endif %}>
-                    </div>
-
-                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; font-size: 0.9rem; margin-top: 1rem;">
-                        <input type="checkbox" name="is_active" {% if slide[6] %}checked{% endif %}>
-                        Активен
-                    </label>
-
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
-                        <button type="button" class="btn" onclick="toggleAccordion(this.closest('.accordion-body').previousElementSibling)">Отмена</button>
-                    </div>
-                </form>
-
-                <form method="POST" style="margin-top: 0.75rem;"
-                      onsubmit="return confirm('Удалить слайд?');">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="slide_id" value="{{ slide[0] }}">
-                    <button type="submit" class="btn btn-small btn-danger">Удалить слайд</button>
-                </form>
-            </div>
+            </article>
+            {% endfor %}
         </div>
-        {% endfor %}
         {% else %}
-        <div style="text-align: center; padding: 3rem; color: var(--muted);">
-            <p>Пока нет слайдов. Добавьте первый!</p>
+        <div class="album-empty">
+            <p>Пока нет слайдов. Добавьте первый.</p>
         </div>
         {% endif %}
     </section>
+
+    <div class="carousel-modal" id="createModal">
+        <div class="carousel-modal-box">
+            <div class="carousel-modal-head">
+                <h2>Новый слайд</h2>
+                <button type="button" class="carousel-modal-close" data-close-modal="createModal">×</button>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="create-form">
+                <input type="hidden" name="action" value="create">
+                <input type="hidden" name="poster_data" id="create-poster-data" value="">
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Заголовок (необязательно)</label>
+                    <input type="text" name="title" placeholder="Например: Добро пожаловать!">
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Текст слайда *</label>
+                    <textarea name="content" rows="3" required
+                        style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit; font-size: 0.95rem; resize: vertical;"
+                        placeholder="Короткий текст в 2-4 предложения"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="calc-field">
+                        <label>Тип медиа</label>
+                        <select name="media_type" id="create-media-type" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
+                            <option value="image">Изображение</option>
+                            <option value="video">Видео</option>
+                            <option value="none">Без медиа</option>
+                        </select>
+                    </div>
+                    <div class="calc-field">
+                        <label>Позиция</label>
+                        <input type="number" name="position" value="0" min="0">
+                    </div>
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Загрузить файл (сохранится в альбом)</label>
+                    <input type="file" name="media_file" id="create-media-file" accept="image/*,video/*">
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Или выбрать из альбома</label>
+                    <select class="album-picker" data-url-target="create-media-url"
+                            data-type-target="create-media-type" data-preview-target="create-media-preview">
+                        <option value="">— выберите файл из альбома —</option>
+                        {% for asset in media_assets %}
+                        <option value="/media/{{ asset[0] }}"
+                                title="{{ asset[1] }}"
+                                data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
+                            {{ asset[7] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div id="create-media-preview" class="album-preview"></div>
+                    <div class="album-hint">Названия файлов меняются в <a href="/admin/media">альбоме медиа</a>.</div>
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1.5rem;">
+                    <label>Или ссылка на медиа (URL)</label>
+                    <input type="text" name="media_url" id="create-media-url" placeholder="https://...">
+                </div>
+
+                <div class="poster-editor" id="create-poster-editor" style="display: none;">
+                    <h4>🎬 Выбор постера (первого кадра)</h4>
+                    <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
+                        Загрузите видео, пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
+                    </p>
+                    <video id="create-poster-video" controls muted preload="metadata"></video>
+                    <input type="range" id="create-poster-range" min="0" max="100" value="0" step="0.1">
+                    <div class="poster-controls">
+                        <span class="poster-time" id="create-poster-time">0.0 с</span>
+                        <button type="button" class="btn btn-small" id="create-grab-poster">📸 Взять этот кадр</button>
+                        <button type="button" class="btn btn-small" id="create-clear-poster">✕ Очистить</button>
+                    </div>
+                    <canvas id="create-poster-canvas" style="display: none;"></canvas>
+                    <img id="create-poster-preview" class="poster-preview" alt="Постер">
+                </div>
+
+                <div class="modal-actions" style="display:flex; gap:0.6rem; margin-top:1rem;">
+                    <button type="button" class="btn" data-close-modal="createModal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Добавить слайд</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="carousel-modal" id="editModal">
+        <div class="carousel-modal-box">
+            <div class="carousel-modal-head">
+                <h2>Редактировать слайд <span id="editSlideNumber"></span></h2>
+                <button type="button" class="carousel-modal-close" data-close-modal="editModal">×</button>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data" id="update-form">
+                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="slide_id" id="edit-slide-id" value="">
+                <input type="hidden" name="poster_data" id="update-poster-data" value="">
+                <input type="hidden" name="remove_poster" id="update-remove-poster" value="0">
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Заголовок</label>
+                    <input type="text" name="title" id="edit-title">
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Текст</label>
+                    <textarea name="content" id="edit-content" rows="3" required
+                        style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit; font-size: 0.95rem; resize: vertical;"></textarea>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="calc-field">
+                        <label>Тип медиа</label>
+                        <select name="media_type" id="update-media-type" style="padding: 0.7rem 1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: inherit;">
+                            <option value="image">Изображение</option>
+                            <option value="video">Видео</option>
+                            <option value="none">Без медиа</option>
+                        </select>
+                    </div>
+                    <div class="calc-field">
+                        <label>Позиция</label>
+                        <input type="number" name="position" id="edit-position" min="0">
+                    </div>
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Заменить медиа (сохранится в альбом)</label>
+                    <input type="file" name="media_file" id="update-media-file" accept="image/*,video/*">
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>Или выбрать из альбома</label>
+                    <select class="album-picker" data-url-target="update-media-url"
+                            data-type-target="update-media-type" data-preview-target="update-media-preview">
+                        <option value="">— не менять —</option>
+                        {% for asset in media_assets %}
+                        <option value="/media/{{ asset[0] }}"
+                                title="{{ asset[1] }}"
+                                data-kind="{% if asset[2].startswith('video/') %}video{% else %}image{% endif %}">
+                            {{ asset[7] }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="album-hint">Названия файлов меняются в <a href="/admin/media">альбоме медиа</a>.</div>
+                    <div id="update-media-preview" class="album-preview"></div>
+                </div>
+
+                <div class="calc-field" style="margin-bottom: 1rem;">
+                    <label>URL медиа</label>
+                    <input type="text" name="media_url" id="update-media-url" value="">
+                </div>
+
+                <div class="poster-editor" id="update-poster-editor" style="display: none;">
+                    <h4>🎬 Выбор постера (первого кадра)</h4>
+                    <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 0.75rem;">
+                        Пролистайте ползунком до нужного момента и нажмите «Взять этот кадр».
+                    </p>
+                    <video id="update-poster-video" controls muted preload="metadata"></video>
+                    <input type="range" id="update-poster-range" min="0" max="100" value="0" step="0.1">
+                    <div class="poster-controls">
+                        <span class="poster-time" id="update-poster-time">0.0 с</span>
+                        <button type="button" class="btn btn-small" id="update-grab-poster">📸 Взять этот кадр</button>
+                        <button type="button" class="btn btn-small" id="update-clear-poster">✕ Убрать постер</button>
+                    </div>
+                    <canvas id="update-poster-canvas" style="display: none;"></canvas>
+                    <img id="update-poster-preview" class="poster-preview" alt="Новый постер">
+                </div>
+
+                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; font-size: 0.9rem; margin-top: 1rem;">
+                    <input type="checkbox" name="is_active" id="edit-is-active">
+                    Активен
+                </label>
+
+                <div class="modal-actions" style="display:flex; gap:0.6rem; margin-top:1rem;">
+                    <button type="button" class="btn" data-close-modal="editModal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SLIDE_DATA = [
+            {% for slide in slides %}
+            {id: {{ slide[0] }}, title: {{ slide[1]|tojson }}, content: {{ slide[2]|tojson }},
+             type: {{ slide[3]|tojson }}, url: {{ slide[4]|tojson }},
+             position: {{ slide[5] }}, active: {{ 'true' if slide[6] else 'false' }},
+             poster: {{ slide[9]|tojson if slide[9] else 'null' }},
+             updated: {{ slide[8]|tojson }}}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+    </script>
 
     <a href="/" class="back-link">← На главную</a>
 
@@ -448,11 +613,70 @@
         toggleBtn.textContent = '☀️';
     }
 
-    function toggleAccordion(header) {
-        const content = header.nextElementSibling;
-        const arrow = header.querySelector('.arrow');
-        content.classList.toggle('open');
-        if (arrow) arrow.classList.toggle('open');
+    function closeCarouselModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('show');
+    }
+    function openCarouselModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.add('show');
+    }
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+        btn.addEventListener('click', () => closeCarouselModal(btn.dataset.closeModal));
+    });
+    document.querySelectorAll('.carousel-modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.remove('show');
+        });
+    });
+    document.getElementById('openCreateSlide')?.addEventListener('click', () => {
+        const form = document.getElementById('create-form');
+        form.reset();
+        document.getElementById('create-poster-data').value = '';
+        document.getElementById('create-media-preview').innerHTML = '';
+        const preview = document.getElementById('create-poster-preview');
+        preview.src = '';
+        preview.classList.remove('show');
+        document.getElementById('create-poster-editor').style.display = 'none';
+        openCarouselModal('createModal');
+    });
+
+    function openEditSlide(index) {
+        const s = SLIDE_DATA[index];
+        if (!s) return;
+        document.getElementById('editSlideNumber').textContent = '#' + s.position;
+        document.getElementById('edit-slide-id').value = s.id;
+        document.getElementById('edit-title').value = s.title || '';
+        document.getElementById('edit-content').value = s.content || '';
+        document.getElementById('edit-position').value = s.position;
+        document.getElementById('edit-is-active').checked = !!s.active;
+        document.getElementById('update-media-type').value = s.type || 'image';
+        document.getElementById('update-media-url').value = s.url || '';
+        document.getElementById('update-media-file').value = '';
+        document.getElementById('update-poster-data').value = '';
+        document.getElementById('update-remove-poster').value = '0';
+        document.getElementById('update-media-preview').innerHTML = '';
+        document.querySelector('#editModal .album-picker').value = '';
+
+        const posterPreview = document.getElementById('update-poster-preview');
+        if (s.poster) {
+            posterPreview.src = s.poster;
+            posterPreview.classList.add('show');
+        } else {
+            posterPreview.src = '';
+            posterPreview.classList.remove('show');
+        }
+        const video = document.getElementById('update-poster-video');
+        if (s.type === 'video' && s.url) {
+            video.src = s.url;
+            video.load();
+        } else {
+            video.removeAttribute('src');
+            video.load();
+        }
+        document.getElementById('update-poster-editor').style.display =
+            s.type === 'video' ? 'block' : 'none';
+        openCarouselModal('editModal');
     }
 
     function setupPosterEditor(opts) {
@@ -545,21 +769,19 @@
         mediaTypeEl: document.getElementById('create-media-type')
     });
 
-    {% for slide in slides %}
     setupPosterEditor({
-        videoEl: document.getElementById('update-poster-video-{{ slide[0] }}'),
-        rangeEl: document.getElementById('update-poster-range-{{ slide[0] }}'),
-        timeEl: document.getElementById('update-poster-time-{{ slide[0] }}'),
-        grabBtn: document.getElementById('update-grab-poster-{{ slide[0] }}'),
-        clearBtn: document.getElementById('update-clear-poster-{{ slide[0] }}'),
-        canvasEl: document.getElementById('update-poster-canvas-{{ slide[0] }}'),
-        previewEl: document.getElementById('update-poster-preview-{{ slide[0] }}'),
-        dataInput: document.getElementById('update-poster-data-{{ slide[0] }}'),
-        removeInput: document.getElementById('update-remove-poster-{{ slide[0] }}'),
-        mediaFileEl: document.getElementById('update-media-file-{{ slide[0] }}'),
-        mediaTypeEl: document.getElementById('update-media-type-{{ slide[0] }}')
+        videoEl: document.getElementById('update-poster-video'),
+        rangeEl: document.getElementById('update-poster-range'),
+        timeEl: document.getElementById('update-poster-time'),
+        grabBtn: document.getElementById('update-grab-poster'),
+        clearBtn: document.getElementById('update-clear-poster'),
+        canvasEl: document.getElementById('update-poster-canvas'),
+        previewEl: document.getElementById('update-poster-preview'),
+        dataInput: document.getElementById('update-poster-data'),
+        removeInput: document.getElementById('update-remove-poster'),
+        mediaFileEl: document.getElementById('update-media-file'),
+        mediaTypeEl: document.getElementById('update-media-type')
     });
-    {% endfor %}
 
     document.querySelectorAll('.album-picker').forEach(select => {
         select.addEventListener('change', () => {
@@ -571,7 +793,10 @@
             const option = select.options[select.selectedIndex];
             const kind = option ? option.dataset.kind : 'image';
             const typeSelect = document.getElementById(select.dataset.typeTarget);
-            if (typeSelect && kind) typeSelect.value = kind;
+            if (typeSelect && kind) {
+                typeSelect.value = kind;
+                typeSelect.dispatchEvent(new Event('change'));
+            }
 
             const preview = document.getElementById(select.dataset.previewTarget);
             if (preview) {
