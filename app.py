@@ -13,8 +13,7 @@ from database import (
     init_db, check_user, save_rating, get_latest_rating, get_total_rating,
     get_player_history, get_all_players, get_average_history,
     get_nicknames_with_history, get_total_player_history, get_total_average_history,
-    get_underperforming, get_consistently_underperforming,
-    get_total_weeks, get_all_rating_types,
+    get_all_rating_types,
     get_site_stats,
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
     get_alias_resolutions,
@@ -30,7 +29,7 @@ from database import (
     get_user_by_id, get_all_users,
     register_user, update_user_username, update_user_password,
     update_user_role, link_user_nickname, unlink_user_nickname,
-    delete_user, get_linked_nicknames, count_super_admins,
+    delete_user, get_linked_nicknames,
     give_apple, get_apples_given_this_week, get_apples_received_map,
     get_apples_received_for, get_apple_givers_for, reset_apples,
     reset_apples_given_by_user,
@@ -1084,40 +1083,6 @@ def reservoir_removed(subpath=None):
 
 
 # ============================================================
-# СУПЕР-АДМИН: СМЕНА РОЛЕЙ
-# ============================================================
-
-@app.route('/admin/roles/update', methods=['POST'])
-@super_admin_required
-def admin_roles_update():
-    user_id = request.form.get('user_id', type=int)
-    new_role = request.form.get('new_role', '').strip()
-    if not user_id or new_role not in ('player', 'reservoir', 'state_admin', 'admin', 'super_admin'):
-        flash('Неверные данные.')
-        return redirect(url_for('admin_panel'))
-
-    if user_id == session['user_id'] and new_role != 'super_admin':
-        flash('Нельзя понизить самого себя.')
-        return redirect(url_for('admin_panel'))
-
-    target = get_user_by_id(user_id)
-    if not target:
-        flash('Пользователь не найден.')
-        return redirect(url_for('admin_panel'))
-
-    if target[4] == 'super_admin' and new_role != 'super_admin' and count_super_admins() <= 1:
-        flash('Нельзя понизить последнего супер-администратора.')
-        return redirect(url_for('admin_panel'))
-
-    if update_user_role(user_id, new_role):
-        increment_counter('admin_actions')
-        flash(f'Роль пользователя «{target[1]}» изменена на «{new_role}».')
-    else:
-        flash('Ошибка при смене роли.')
-    return redirect(url_for('admin_panel'))
-
-
-# ============================================================
 # АДМИН-ПАНЕЛЬ
 # ============================================================
 
@@ -1136,15 +1101,6 @@ def admin_panel():
     stats['created_label'] = format_site_date(stats.get('created_at'))
     return render_template('admin.html', stats=stats,
                            is_super_admin=is_super_admin())
-
-
-@app.route('/admin/roles')
-@super_admin_required
-def admin_roles():
-    return render_template('admin_roles.html',
-                           accounts=get_all_users(),
-                           current_user_id=session['user_id'],
-                           is_super_admin=True)
 
 
 @app.route('/admin/resets')
@@ -1519,24 +1475,23 @@ def admin_players_change_password(user_id):
 @app.route('/admin/players/change-role/<int:user_id>', methods=['POST'])
 @super_admin_required
 def admin_players_change_role(user_id):
-    redirect_target = admin_roles if request.form.get('next') == 'roles' else admin_players
     target = get_user_by_id(user_id)
     if not target:
         flash('Пользователь не найден.')
-        return redirect(url_for(redirect_target.__name__))
+        return redirect(url_for('admin_players'))
     new_role = request.form.get('new_role', '').strip()
     if new_role not in ('player', 'reservoir', 'state_admin', 'admin'):
         flash('Неверная роль.')
-        return redirect(url_for(redirect_target.__name__))
+        return redirect(url_for('admin_players'))
     if user_id == session['user_id']:
         flash('Нельзя менять роль самому себе.')
-        return redirect(url_for(redirect_target.__name__))
+        return redirect(url_for('admin_players'))
     if update_user_role(user_id, new_role):
         increment_counter('admin_actions')
         flash(f'Роль пользователя «{target[1]}» изменена на «{new_role}».')
     else:
         flash('Ошибка при смене роли.')
-    return redirect(url_for(redirect_target.__name__))
+    return redirect(url_for('admin_players'))
 
 
 # ============================================================
@@ -1781,45 +1736,6 @@ def rating_stats():
                            chart_count=chart_count,
                            admin_count=admin_count,
                            rating_types=get_all_rating_types())
-
-
-# ============================================================
-# ОТСТАЮЩИЕ
-# ============================================================
-
-@app.route('/underperforming/<rating_type>')
-@admin_required
-def underperforming(rating_type):
-    rating_types = get_all_rating_types()
-    rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids or rating_type in ('total', 'events'):
-        return redirect(url_for('index'))
-
-    underperformers, avg = get_underperforming(rating_type)
-    display_name = get_rating_display_name(rating_type)
-    return render_template('underperforming.html',
-                           underperformers=underperformers,
-                           avg=avg,
-                           rating_type=rating_type,
-                           display_name=display_name)
-
-
-@app.route('/consistently-underperforming/<rating_type>')
-@admin_required
-def consistently_underperforming(rating_type):
-    rating_types = get_all_rating_types()
-    rt_ids = [rt['id'] for rt in rating_types]
-    if rating_type not in rt_ids or rating_type in ('total', 'events'):
-        return redirect(url_for('index'))
-
-    players = get_consistently_underperforming(rating_type, 10)
-    total_weeks = get_total_weeks(rating_type)
-    display_name = get_rating_display_name(rating_type)
-    return render_template('consistently.html',
-                           players=players,
-                           total_weeks=total_weeks,
-                           rating_type=rating_type,
-                           display_name=display_name)
 
 
 # ============================================================
