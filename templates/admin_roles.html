@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление ролями | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
+    <style>
+        .roles-card {
+            margin-top: 1rem;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(10,5,3,0.62);
+            overflow: hidden;
+        }
+        .roles-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+        .roles-table th {
+            padding: 0.7rem 0.9rem;
+            text-align: left;
+            color: var(--dim);
+            font-size: 0.68rem;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--line);
+            white-space: nowrap;
+        }
+        .roles-table td {
+            padding: 0.7rem 0.9rem;
+            border-bottom: 1px solid var(--line-soft);
+            vertical-align: middle;
+        }
+        .roles-table tr:last-child td { border-bottom: none; }
+        .roles-user { font-weight: 700; color: var(--text); }
+        .roles-nick { color: var(--muted); font-size: 0.78rem; }
+        .roles-current {
+            display: inline-block;
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 0.72rem;
+        }
+        .roles-form { display: flex; gap: 0.45rem; align-items: center; margin: 0; }
+        .roles-form select {
+            padding: 0.42rem 0.55rem;
+            border-radius: 7px;
+            border: 1px solid var(--line);
+            background: rgba(10,5,3,0.7);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.8rem;
+        }
+        .roles-form select:focus { outline: none; border-color: var(--accent); }
+        .roles-empty { padding: 1.2rem; color: var(--muted); }
+        body.light-theme .roles-card { background: #fffbf2; }
+        body.light-theme .roles-form select { background: #fff; }
+        @media (max-width: 640px) {
+            .roles-table th:nth-child(3), .roles-table td:nth-child(3) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff2200"/><stop offset="40%" stop-color="#ff8800"/>
+            <stop offset="70%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffec80"/><stop offset="40%" stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text"><span class="brand-name">[HEL] Ацкое Пламя</span></div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/cabinet" class="link-btn header-link">Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
+        <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
+        <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
+        <a href="/rating/events"><span class="nav-full">Ивенты</span><span class="nav-short">Ивенты</span></a>
+        <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
+        <a href="/admin" class="nav-admin active" title="Админ-панель">⚙</a>
+    </nav>
+
+    {% include '_admin_nav.html' %}
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for message in messages %}<div class="flash-message">{{ message }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="page-head">
+        <h1 class="page-title">Управление ролями</h1>
+        <p class="page-sub">Права доступа участников союза к разделам сайта.</p>
+    </div>
+
+    <section class="roles-card">
+        {% if accounts %}
+        <div style="overflow-x:auto;">
+            <table class="roles-table">
+                <thead>
+                    <tr>
+                        <th>Аккаунт</th>
+                        <th>Привязанный ник</th>
+                        <th>Текущая роль</th>
+                        <th>Новая роль</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for acc in accounts %}
+                    <tr>
+                        <td class="roles-user">{{ acc[1] }}</td>
+                        <td class="roles-nick">{{ acc[3] or '—' }}</td>
+                        <td>
+                            <span class="roles-current">
+                                {% if acc[4] == 'super_admin' %}Супер-админ
+                                {% elif acc[4] == 'admin' %}Админ
+                                {% elif acc[4] == 'state_admin' %}Админ штата
+                                {% elif acc[4] == 'reservoir' %}Резервуар
+                                {% else %}Игрок{% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if acc[0] == current_user_id %}
+                            <span class="roles-nick">Это вы</span>
+                            {% elif acc[4] == 'super_admin' %}
+                            <span class="roles-nick">Не изменяется</span>
+                            {% else %}
+                            <form method="POST" action="/admin/players/change-role/{{ acc[0] }}" class="roles-form">
+                                <input type="hidden" name="next" value="roles">
+                                <select name="new_role">
+                                    <option value="player" {% if acc[4] == 'player' %}selected{% endif %}>Игрок</option>
+                                    <option value="reservoir" {% if acc[4] == 'reservoir' %}selected{% endif %}>Резервуар</option>
+                                    <option value="state_admin" {% if acc[4] == 'state_admin' %}selected{% endif %}>Админ штата</option>
+                                    <option value="admin" {% if acc[4] == 'admin' %}selected{% endif %}>Админ</option>
+                                </select>
+                                <button type="submit" class="btn btn-small">Применить</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="roles-empty">Пользователей пока нет.</div>
+        {% endif %}
+    </section>
+
+    <a href="/admin" class="back-link">← В админ-панель</a>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+</script>
+</body>
+</html>

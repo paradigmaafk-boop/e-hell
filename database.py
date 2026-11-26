@@ -1024,6 +1024,55 @@ def get_total_weeks(rating_type):
     return total or 0
 
 
+def get_site_stats():
+    """Сводка для главной страницы админки."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    def scalar(query):
+        cursor.execute(query)
+        row = cursor.fetchone()
+        return row[0] if row else 0
+
+    stats = {
+        'users': scalar("SELECT COUNT(*) FROM users") or 0,
+        'linked': scalar("""SELECT COUNT(*) FROM users
+                            WHERE linked_nickname IS NOT NULL AND linked_nickname <> ''""") or 0,
+        'players': scalar("""
+            SELECT COUNT(*) FROM (
+                SELECT nickname FROM players_duel
+                UNION
+                SELECT nickname FROM players_arcadia
+                UNION
+                SELECT to_nickname FROM gold_bolts
+            ) AS all_players
+        """) or 0,
+        'updates': scalar("""
+            SELECT COUNT(*) FROM (
+                SELECT date FROM history_duel
+                UNION
+                SELECT date FROM history_arcadia
+            ) AS all_updates
+        """) or 0,
+        'bolts': scalar("SELECT COUNT(*) FROM gold_bolts") or 0,
+        'apples': scalar("SELECT COUNT(*) FROM apples") or 0,
+    }
+
+    dates = []
+    for query in (
+        "SELECT MIN(created_at) FROM users",
+        "SELECT MIN(date) FROM history_duel",
+        "SELECT MIN(date) FROM history_arcadia",
+    ):
+        value = scalar(query)
+        if value:
+            dates.append(str(value))
+    stats['created_at'] = min(dates) if dates else datetime.now().strftime('%Y-%m-%d')
+
+    conn.close()
+    return stats
+
+
 def get_all_time_leaders(rating_type, limit=3):
     conn = get_connection()
     cursor = conn.cursor()

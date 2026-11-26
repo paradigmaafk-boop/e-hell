@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сбросы рейтингов | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
+    <style>
+        .resets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .reset-card {
+            padding: 1.15rem 1.2rem;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(10,5,3,0.62);
+        }
+        .reset-card h2 {
+            font-family: 'Forum', serif;
+            font-size: 1.05rem;
+            color: var(--text);
+            letter-spacing: 1px;
+            margin-bottom: 0.4rem;
+        }
+        .reset-card p {
+            color: var(--muted);
+            font-size: 0.82rem;
+            line-height: 1.5;
+            margin-bottom: 0.9rem;
+        }
+        .reset-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .reset-actions form { margin: 0; }
+        .reset-actions .btn { min-width: 0; }
+        .reset-card.danger { border-color: rgba(224,57,43,0.35); }
+        .reset-card.danger h2 { color: #ff9a87; }
+        body.light-theme .reset-card { background: #fffbf2; }
+        @media (max-width: 720px) {
+            .resets-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff2200"/><stop offset="40%" stop-color="#ff8800"/>
+            <stop offset="70%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffec80"/><stop offset="40%" stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text"><span class="brand-name">[HEL] Ацкое Пламя</span></div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/cabinet" class="link-btn header-link">Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
+        <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
+        <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
+        <a href="/rating/events"><span class="nav-full">Ивенты</span><span class="nav-short">Ивенты</span></a>
+        <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
+        <a href="/admin" class="nav-admin active" title="Админ-панель">⚙</a>
+    </nav>
+
+    {% include '_admin_nav.html' %}
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for message in messages %}<div class="flash-message">{{ message }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <div class="page-head">
+        <h1 class="page-title">Сбросы рейтингов</h1>
+        <p class="page-sub">Опасные действия. Используйте только когда действительно нужно начать заново.</p>
+    </div>
+
+    <div class="resets-grid">
+        <section class="reset-card danger">
+            <h2>Рейтинг Дуэли</h2>
+            <p>Удаляет текущие очки и историю Дуэли. Игроки, яблоки и болтики сохраняются.</p>
+            <div class="reset-actions">
+                <form method="POST" action="/reset-rating/duel"
+                      onsubmit="return confirm('Сбросить рейтинг Дуэли? История Дуэли будет удалена.');">
+                    <input type="hidden" name="next" value="resets">
+                    <button type="submit" class="btn btn-critical">Сбросить Дуэль</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="reset-card danger">
+            <h2>Рейтинг Аркадии</h2>
+            <p>Удаляет текущие очки и историю Аркадии. Остальные данные не затрагиваются.</p>
+            <div class="reset-actions">
+                <form method="POST" action="/reset-rating/arcadia"
+                      onsubmit="return confirm('Сбросить рейтинг Аркадии? История Аркадии будет удалена.');">
+                    <input type="hidden" name="next" value="resets">
+                    <button type="submit" class="btn btn-critical">Сбросить Аркадию</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="reset-card">
+            <h2>Яблоки</h2>
+            <p>Сброс всех яблок или только тех, которые вы дарили.</p>
+            <div class="reset-actions">
+                <form method="POST" action="/admin/reset-my-apples">
+                    <input type="hidden" name="next" value="resets">
+                    <button type="submit" class="btn">Обнулить мои яблоки</button>
+                </form>
+                <form method="POST" action="/admin/reset-apples"
+                      onsubmit="return confirm('Сбросить все яблоки у всех?');">
+                    <input type="hidden" name="next" value="resets">
+                    <button type="submit" class="btn btn-danger">Сбросить все яблоки</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="reset-card">
+            <h2>Золотые болтики</h2>
+            <p>Сброс всех болтиков или только ваших вручений. Бонусы исчезнут из общего рейтинга.</p>
+            <div class="reset-actions">
+                <form method="POST" action="/admin/bolts/reset-my">
+                    <input type="hidden" name="next" value="resets">
+                    <button type="submit" class="btn">Обнулить мои болтики</button>
+                </form>
+                <form method="POST" action="/admin/bolts/reset-all"
+                      onsubmit="return confirm('Сбросить все золотые болтики?');">
+                    <input type="hidden" name="next" value="resets">
+                    <button type="submit" class="btn btn-danger">Сбросить все болтики</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="reset-card danger">
+            <h2>Карта Штата</h2>
+            <p>Полностью очищает карту и легенду Штата. Используйте с осторожностью.</p>
+            <div class="reset-actions">
+                <form method="POST" action="/admin/reset-state-tables"
+                      onsubmit="return confirm('Очистить карту Штата и легенду? Это необратимо.');">
+                    <input type="hidden" name="next" value="resets">
+                    <button type="submit" class="btn btn-critical">Сбросить карту Штата</button>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <a href="/admin" class="back-link">← В админ-панель</a>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+</script>
+</body>
+</html>

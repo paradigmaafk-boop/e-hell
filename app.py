@@ -15,6 +15,7 @@ from database import (
     get_nicknames_with_history, get_total_player_history, get_total_average_history,
     get_underperforming, get_consistently_underperforming,
     get_total_weeks, get_all_rating_types,
+    get_site_stats,
     get_rating_display_name, add_nickname_alias, get_nickname_aliases,
     get_alias_resolutions,
     delete_nickname_alias, reset_rating, delete_player, delete_player_from_all_ratings,
@@ -82,6 +83,18 @@ if not os.path.exists(CAROUSEL_FOLDER):
     os.makedirs(CAROUSEL_FOLDER)
 
 APPLES_PER_WEEK = 5
+MONTHS_RU = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+             'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+
+
+def format_site_date(value):
+    """Дата в формате «27 октября 2026» для карточки статистики."""
+    raw = str(value or '')[:10]
+    try:
+        dt = datetime.strptime(raw, '%Y-%m-%d')
+        return f'{dt.day} {MONTHS_RU[dt.month - 1]} {dt.year}'
+    except Exception:
+        return raw
 
 init_db()
 
@@ -1108,18 +1121,36 @@ def admin_roles_update():
 # АДМИН-ПАНЕЛЬ
 # ============================================================
 
+def _admin_reset_redirect(default_target):
+    """Возврат на страницу сбросов, если действие запущено оттуда."""
+    if request.form.get('next') == 'resets':
+        return redirect(url_for('admin_resets'))
+    return redirect(default_target)
+
+
 @app.route('/admin')
 @admin_required
 def admin_panel():
-    rating_types = get_all_rating_types()
-    admin_players = None
-    if is_super_admin():
-        admin_players = get_all_users()
-    return render_template('admin.html',
-                           rating_types=rating_types,
-                           admin_players=admin_players,
-                           is_super_admin=is_super_admin(),
-                           current_user_id=session['user_id'])
+    stats = get_site_stats()
+    stats['visits'] = get_counter_value('visits')
+    stats['created_label'] = format_site_date(stats.get('created_at'))
+    return render_template('admin.html', stats=stats,
+                           is_super_admin=is_super_admin())
+
+
+@app.route('/admin/roles')
+@super_admin_required
+def admin_roles():
+    return render_template('admin_roles.html',
+                           accounts=get_all_users(),
+                           current_user_id=session['user_id'],
+                           is_super_admin=True)
+
+
+@app.route('/admin/resets')
+@super_admin_required
+def admin_resets():
+    return render_template('admin_resets.html')
 
 
 @app.route('/admin/rating-tooltip', methods=['GET', 'POST'])
@@ -1146,7 +1177,7 @@ def admin_reset_apples():
         flash('Все яблоки сброшены!')
     else:
         flash('Ошибка при сбросе яблок.')
-    return redirect(url_for('admin_panel'))
+    return _admin_reset_redirect(url_for('admin_panel'))
 
 
 @app.route('/admin/reset-my-apples', methods=['POST'])
@@ -1158,7 +1189,7 @@ def admin_reset_my_apples():
         flash('Ваши отданные яблоки обнулены — можно снова подарить 5 штук!')
     else:
         flash('Ошибка при обнулении.')
-    return redirect(url_for('admin_panel'))
+    return _admin_reset_redirect(url_for('admin_panel'))
 
 
 # ============================================================
@@ -1224,7 +1255,7 @@ def admin_bolts_reset_all():
         flash('Все золотые болтики сброшены. Бонусы убраны из общего рейтинга.')
     else:
         flash('Ошибка при сбросе болтиков.')
-    return redirect(url_for('admin_bolts'))
+    return _admin_reset_redirect(url_for('admin_bolts'))
 
 
 @app.route('/admin/bolts/reset-my', methods=['POST'])
@@ -1235,7 +1266,7 @@ def admin_bolts_reset_my():
         flash('Все болтики, которые вы дарили, сброшены.')
     else:
         flash('Ошибка при сбросе ваших болтиков.')
-    return redirect(url_for('admin_bolts'))
+    return _admin_reset_redirect(url_for('admin_bolts'))
 
 
 @app.route('/admin/bolts/reset-player/<nickname>', methods=['POST'])
@@ -1334,15 +1365,15 @@ def admin_reset_state_tables():
         conn.commit()
 
         increment_counter('admin_actions')
-        flash('✅ Таблицы карты штата пересозданы. Данные очищены.')
+        flash('Таблицы карты штата пересозданы. Данные очищены.')
     except Exception as e:
         print(f"reset_state_tables error: {e}")
         conn.rollback()
-        flash(f'❌ Ошибка: {e}')
+        flash(f'Ошибка: {e}')
     finally:
         conn.close()
 
-    return redirect(url_for('admin_panel'))
+    return _admin_reset_redirect(url_for('admin_panel'))
 
 
 @app.route('/admin/players')
@@ -1488,23 +1519,24 @@ def admin_players_change_password(user_id):
 @app.route('/admin/players/change-role/<int:user_id>', methods=['POST'])
 @super_admin_required
 def admin_players_change_role(user_id):
+    redirect_target = admin_roles if request.form.get('next') == 'roles' else admin_players
     target = get_user_by_id(user_id)
     if not target:
         flash('Пользователь не найден.')
-        return redirect(url_for('admin_players'))
+        return redirect(url_for(redirect_target.__name__))
     new_role = request.form.get('new_role', '').strip()
     if new_role not in ('player', 'reservoir', 'state_admin', 'admin'):
         flash('Неверная роль.')
-        return redirect(url_for('admin_players'))
+        return redirect(url_for(redirect_target.__name__))
     if user_id == session['user_id']:
         flash('Нельзя менять роль самому себе.')
-        return redirect(url_for('admin_players'))
+        return redirect(url_for(redirect_target.__name__))
     if update_user_role(user_id, new_role):
         increment_counter('admin_actions')
         flash(f'Роль пользователя «{target[1]}» изменена на «{new_role}».')
     else:
         flash('Ошибка при смене роли.')
-    return redirect(url_for('admin_players'))
+    return redirect(url_for(redirect_target.__name__))
 
 
 # ============================================================
@@ -1675,7 +1707,7 @@ def reset_rating_route(rating_type):
             flash('Рейтинг Ивентов сброшен: все болтики удалены.')
         else:
             flash('Ошибка при сбросе болтиков.')
-        return redirect(url_for('rating_view', rating_type='events'))
+        return _admin_reset_redirect(url_for('rating_view', rating_type='events'))
 
     if reset_rating(rating_type):
         increment_counter('admin_actions')
@@ -1688,7 +1720,7 @@ def reset_rating_route(rating_type):
     else:
         flash('Ошибка при сбросе рейтинга')
 
-    return redirect(url_for('rating_view', rating_type=rating_type))
+    return _admin_reset_redirect(url_for('rating_view', rating_type=rating_type))
 
 
 @app.route('/delete-player/<rating_type>/<nickname>', methods=['POST'])

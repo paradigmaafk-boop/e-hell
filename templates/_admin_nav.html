@@ -1,0 +1,47 @@
+{% set admin_path = request.path %}
+<nav class="admin-subnav" aria-label="Разделы админ-панели">
+    <a href="/admin/players" class="{% if admin_path == '/admin/players' %}active{% endif %}">
+        Управление игроками
+    </a>
+    <a href="/admin/ratings-manual" class="{% if admin_path == '/admin/ratings-manual' %}active{% endif %}">
+        Добавить игрока в рейтинг вручную
+    </a>
+    <a href="/admin" class="{% if admin_path == '/admin' %}active{% endif %}">
+        Статистика сайта
+    </a>
+    <a href="/manage-nicknames" class="{% if admin_path == '/manage-nicknames' %}active{% endif %}">
+        Переименования ников
+    </a>
+    <a href="/admin/merges" class="{% if admin_path == '/admin/merges' %}active{% endif %}">
+        Журнал объединений
+    </a>
+    <a href="/admin/vacations" class="{% if admin_path == '/admin/vacations' %}active{% endif %}">
+        Журнал отпусков
+    </a>
+    <a href="/admin/media" class="{% if admin_path == '/admin/media' %}active{% endif %}">
+        Альбом медиа
+    </a>
+    <a href="/admin/bolts" class="{% if admin_path == '/admin/bolts' %}active{% endif %}">
+        Золотые болтики
+    </a>
+    <a href="/admin/carousel" class="{% if admin_path == '/admin/carousel' %}active{% endif %}">
+        Управление каруселью
+    </a>
+    <a href="/underperforming/duel" class="{% if admin_path.startswith('/underperforming/') %}active{% endif %}">
+        Отстающие игроки
+    </a>
+    <a href="/consistently-underperforming/duel" class="{% if admin_path.startswith('/consistently-underperforming/') %}active{% endif %}">
+        Стабильно отстающие
+    </a>
+    {% if session.get('role') == 'super_admin' %}
+    <a href="/admin/rating-tooltip" class="{% if admin_path == '/admin/rating-tooltip' %}active{% endif %}">
+        Тултип
+    </a>
+    <a href="/admin/roles" class="{% if admin_path == '/admin/roles' %}active{% endif %}">
+        Управление ролями
+    </a>
+    <a href="/admin/resets" class="admin-subnav-danger {% if admin_path == '/admin/resets' %}active{% endif %}">
+        Сбросы рейтингов
+    </a>
+    {% endif %}
+</nav>
