@@ -1914,6 +1914,23 @@ def update_slide(slide_id, title, content, media_type, media_url, position, is_a
         conn.close()
 
 
+def update_slide_position(slide_id, position):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("UPDATE carousel_slides SET position = %s, updated_at = %s WHERE id = %s",
+                       (position, now, slide_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error updating slide position: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
 def delete_slide(slide_id):
     conn = get_connection()
     cursor = conn.cursor()

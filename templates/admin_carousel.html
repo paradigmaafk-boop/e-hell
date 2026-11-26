@@ -126,14 +126,34 @@
             position: absolute;
             top: 0.55rem;
             left: 0.55rem;
-            padding: 0.16rem 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1px;
+            padding: 0.16rem 0.45rem;
             border-radius: 999px;
-            background: rgba(5,2,1,0.78);
+            background: rgba(5,2,1,0.8);
             border: 1px solid rgba(255,255,255,0.18);
             color: #ffd166;
             font-size: 0.68rem;
             font-weight: 700;
+            margin: 0;
         }
+        .album-pos:focus-within { border-color: var(--accent); }
+        .album-pos input {
+            width: 36px;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: #ffd166;
+            font: inherit;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+        .album-pos input::-webkit-outer-spin-button,
+        .album-pos input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         .album-status {
             position: absolute;
             top: 0.55rem;
@@ -191,17 +211,59 @@
             align-items: center;
             justify-content: center;
         }
-        .carousel-modal.show { display: flex; }
+        .carousel-modal.show { display: block; }
         .carousel-modal-box {
-            width: min(760px, 100%);
-            max-height: 92vh;
-            overflow-y: auto;
-            padding: 1.2rem;
+            width: 100%;
+            max-width: 900px;
+            flex: 0 0 auto;
+            margin: 0 auto;
+            max-height: calc(100dvh - 1.5rem);
+            overflow: hidden;
+            padding: 1rem 1.15rem;
             border: 1px solid var(--accent);
             border-radius: 14px;
             background: linear-gradient(180deg, #1b0d05, #080302);
             box-shadow: 0 24px 70px rgba(0,0,0,0.75);
+            display: flex;
+            flex-direction: column;
         }
+        .carousel-modal form { min-height: 0; }
+        .carousel-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1.1rem;
+            align-items: start;
+        }
+        .carousel-form-col { min-width: 0; }
+        .carousel-form-grid .calc-field { margin-bottom: 0.65rem !important; }
+        .carousel-modal .poster-editor { margin-top: 0.35rem; padding: 0.55rem; }
+        .carousel-modal .poster-editor h4 { font-size: 0.7rem; margin-bottom: 0.2rem; letter-spacing: 1px; }
+        .carousel-modal .poster-editor > p { display: none; }
+        .carousel-modal .poster-editor { display: none !important; }
+        .carousel-modal .poster-editor.poster-open {
+            display: block !important;
+            position: fixed;
+            z-index: 7200;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: min(520px, calc(100vw - 2rem));
+            max-height: calc(100dvh - 2rem);
+            padding: 1rem;
+            border: 1px solid var(--accent);
+            border-radius: 12px;
+            background: #1b0d05;
+            box-shadow: 0 24px 70px rgba(0,0,0,0.85);
+        }
+        .carousel-modal .poster-editor.poster-open > p { display: block; }
+        .carousel-modal .poster-editor.poster-open video { max-height: 210px; }
+        .carousel-modal .poster-editor.poster-open .poster-preview { display: block !important; max-height: 90px; }
+        .poster-trigger { display: none; margin-bottom: 0.5rem; }
+        .carousel-modal .poster-editor video { max-height: 90px; object-fit: contain; margin-bottom: 0.3rem; }
+        .carousel-modal .poster-editor input[type="range"] { margin-bottom: 0.25rem; }
+        .carousel-modal .poster-preview { display: none !important; }
+        .carousel-modal .album-preview img,
+        .carousel-modal .album-preview video { max-height: 90px; }
         .carousel-modal-head {
             display: flex;
             align-items: center;
@@ -229,7 +291,9 @@
         body.light-theme .carousel-modal-box { background: #fffbf2; }
         @media (max-width: 600px) {
             .album-grid { grid-template-columns: 1fr; }
-            .carousel-modal-box { padding: 0.9rem; }
+            .carousel-modal-box { padding: 0.8rem; }
+            .carousel-form-grid { grid-template-columns: 1fr; gap: 0; }
+            .carousel-modal .poster-editor video { max-height: 80px; }
         }
     </style>
 </head>
@@ -369,7 +433,14 @@
                     {% else %}
                         <span class="album-thumb-empty">Без медиа</span>
                     {% endif %}
-                    <span class="album-pos">#{{ slide[5] }}</span>
+                    <form class="album-pos album-pos-form" method="POST"
+                          data-index="{{ loop.index0 }}" data-slide-id="{{ slide[0] }}">
+                        <input type="hidden" name="action" value="position">
+                        <input type="hidden" name="slide_id" value="{{ slide[0] }}">
+                        <span>#</span>
+                        <input type="number" name="position" value="{{ slide[5] }}" min="0"
+                               aria-label="Позиция слайда {{ slide[0] }}">
+                    </form>
                     <span class="album-status {% if slide[6] %}active{% else %}hidden{% endif %}">
                         {% if slide[6] %}Активен{% else %}Скрыт{% endif %}
                     </span>
@@ -411,6 +482,8 @@
                 <input type="hidden" name="action" value="create">
                 <input type="hidden" name="poster_data" id="create-poster-data" value="">
 
+                <div class="carousel-form-grid">
+                <div class="carousel-form-col">
                 <div class="calc-field" style="margin-bottom: 1rem;">
                     <label>Заголовок (необязательно)</label>
                     <input type="text" name="title" placeholder="Например: Добро пожаловать!">
@@ -437,6 +510,9 @@
                         <input type="number" name="position" value="0" min="0">
                     </div>
                 </div>
+                <button type="button" class="btn btn-small poster-trigger" id="openCreatePoster">🎬 Постер видео</button>
+                </div>
+                <div class="carousel-form-col">
 
                 <div class="calc-field" style="margin-bottom: 1rem;">
                     <label>Загрузить файл (сохранится в альбом)</label>
@@ -479,11 +555,15 @@
                     </div>
                     <canvas id="create-poster-canvas" style="display: none;"></canvas>
                     <img id="create-poster-preview" class="poster-preview" alt="Постер">
+                    <button type="button" class="btn btn-small" data-close-poster="create-poster-editor" style="margin-top:0.35rem;">Готово</button>
                 </div>
 
-                <div class="modal-actions" style="display:flex; gap:0.6rem; margin-top:1rem;">
+                </div>
+
+                <div class="modal-actions" style="grid-column:1/-1; display:flex; gap:0.6rem; margin-top:1rem;">
                     <button type="button" class="btn" data-close-modal="createModal">Отмена</button>
                     <button type="submit" class="btn btn-primary">Добавить слайд</button>
+                </div>
                 </div>
             </form>
         </div>
@@ -502,6 +582,8 @@
                 <input type="hidden" name="poster_data" id="update-poster-data" value="">
                 <input type="hidden" name="remove_poster" id="update-remove-poster" value="0">
 
+                <div class="carousel-form-grid">
+                <div class="carousel-form-col">
                 <div class="calc-field" style="margin-bottom: 1rem;">
                     <label>Заголовок</label>
                     <input type="text" name="title" id="edit-title">
@@ -527,6 +609,14 @@
                         <input type="number" name="position" id="edit-position" min="0">
                     </div>
                 </div>
+                </div>
+                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; cursor: pointer; font-size: 0.9rem;">
+                    <input type="checkbox" name="is_active" id="edit-is-active">
+                    Активен
+                </label>
+                <button type="button" class="btn btn-small poster-trigger" id="openUpdatePoster">🎬 Постер видео</button>
+                </div>
+                <div class="carousel-form-col">
 
                 <div class="calc-field" style="margin-bottom: 1rem;">
                     <label>Заменить медиа (сохранится в альбом)</label>
@@ -569,16 +659,15 @@
                     </div>
                     <canvas id="update-poster-canvas" style="display: none;"></canvas>
                     <img id="update-poster-preview" class="poster-preview" alt="Новый постер">
+                    <button type="button" class="btn btn-small" data-close-poster="update-poster-editor" style="margin-top:0.35rem;">Готово</button>
                 </div>
 
-                <label style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer; font-size: 0.9rem; margin-top: 1rem;">
-                    <input type="checkbox" name="is_active" id="edit-is-active">
-                    Активен
-                </label>
+                </div>
 
-                <div class="modal-actions" style="display:flex; gap:0.6rem; margin-top:1rem;">
+                <div class="modal-actions" style="grid-column:1/-1; display:flex; gap:0.6rem; margin-top:1rem;">
                     <button type="button" class="btn" data-close-modal="editModal">Отмена</button>
                     <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
                 </div>
             </form>
         </div>
@@ -615,21 +704,59 @@
 
     function closeCarouselModal(id) {
         const modal = document.getElementById(id);
-        if (modal) modal.classList.remove('show');
+        if (modal) {
+            modal.classList.remove('show');
+            const box = modal.querySelector('.carousel-modal-box');
+            if (box) box.style.transform = '';
+            sessionStorage.removeItem('carouselScroll');
+        }
+    }
+    function fitCarouselModal(modal) {
+        if (!modal) return;
+        const box = modal.querySelector('.carousel-modal-box');
+        if (!box) return;
+        box.style.transform = '';
+        const available = window.innerHeight - 30;
+        const needed = box.scrollHeight;
+        if (needed > available && needed > 0) {
+            box.style.transformOrigin = 'top center';
+            box.style.transform = `scale(${Math.max(0.62, available / needed)})`;
+        }
     }
     function openCarouselModal(id) {
         const modal = document.getElementById(id);
-        if (modal) modal.classList.add('show');
+        if (modal) {
+            modal.classList.add('show');
+            requestAnimationFrame(() => fitCarouselModal(modal));
+        }
+    }
+    function rememberCarouselScroll() {
+        sessionStorage.setItem('carouselScroll', String(window.scrollY));
     }
     document.querySelectorAll('[data-close-modal]').forEach(btn => {
         btn.addEventListener('click', () => closeCarouselModal(btn.dataset.closeModal));
     });
     document.querySelectorAll('.carousel-modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) modal.classList.remove('show');
+            if (e.target === modal) closeCarouselModal(modal.id);
         });
     });
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.carousel-modal.show').forEach(fitCarouselModal);
+    });
+    document.querySelectorAll('[data-close-poster]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById(btn.dataset.closePoster)?.classList.remove('poster-open');
+        });
+    });
+    document.getElementById('openCreatePoster')?.addEventListener('click', () => {
+        document.getElementById('create-poster-editor')?.classList.add('poster-open');
+    });
+    document.getElementById('openUpdatePoster')?.addEventListener('click', () => {
+        document.getElementById('update-poster-editor')?.classList.add('poster-open');
+    });
     document.getElementById('openCreateSlide')?.addEventListener('click', () => {
+        rememberCarouselScroll();
         const form = document.getElementById('create-form');
         form.reset();
         document.getElementById('create-poster-data').value = '';
@@ -644,6 +771,7 @@
     function openEditSlide(index) {
         const s = SLIDE_DATA[index];
         if (!s) return;
+        rememberCarouselScroll();
         document.getElementById('editSlideNumber').textContent = '#' + s.position;
         document.getElementById('edit-slide-id').value = s.id;
         document.getElementById('edit-title').value = s.title || '';
@@ -676,6 +804,9 @@
         }
         document.getElementById('update-poster-editor').style.display =
             s.type === 'video' ? 'block' : 'none';
+        document.getElementById('update-poster-editor').classList.remove('poster-open');
+        document.getElementById('openUpdatePoster').style.display =
+            s.type === 'video' ? 'inline-flex' : 'none';
         openCarouselModal('editModal');
     }
 
@@ -683,7 +814,7 @@
         const {
             videoEl, rangeEl, timeEl, grabBtn, clearBtn,
             canvasEl, previewEl, dataInput, removeInput,
-            mediaFileEl, mediaTypeEl
+            mediaFileEl, mediaTypeEl, triggerEl
         } = opts;
         if (!videoEl) return;
 
@@ -735,8 +866,12 @@
 
         function updateVisibility() {
             const isVideo = mediaTypeEl.value === 'video';
+            if (triggerEl) triggerEl.style.display = isVideo ? 'inline-flex' : 'none';
             const editor = videoEl.closest('.poster-editor');
-            if (editor) editor.style.display = isVideo ? 'block' : 'none';
+            if (editor) {
+                editor.style.display = isVideo ? 'block' : 'none';
+                if (!isVideo) editor.classList.remove('poster-open');
+            }
         }
         if (mediaTypeEl) {
             mediaTypeEl.addEventListener('change', updateVisibility);
@@ -766,7 +901,8 @@
         dataInput: document.getElementById('create-poster-data'),
         removeInput: null,
         mediaFileEl: document.getElementById('create-media-file'),
-        mediaTypeEl: document.getElementById('create-media-type')
+        mediaTypeEl: document.getElementById('create-media-type'),
+        triggerEl: document.getElementById('openCreatePoster')
     });
 
     setupPosterEditor({
@@ -780,8 +916,61 @@
         dataInput: document.getElementById('update-poster-data'),
         removeInput: document.getElementById('update-remove-poster'),
         mediaFileEl: document.getElementById('update-media-file'),
-        mediaTypeEl: document.getElementById('update-media-type')
+        mediaTypeEl: document.getElementById('update-media-type'),
+        triggerEl: document.getElementById('openUpdatePoster')
     });
+
+    document.querySelectorAll('.album-pos-form').forEach(form => {
+        const input = form.querySelector('input[name="position"]');
+        if (!input) return;
+        let saving = false;
+        async function savePosition() {
+            if (saving) return;
+            saving = true;
+            try {
+                const res = await fetch('/admin/carousel', {
+                    method: 'POST',
+                    headers: {'X-Carousel-Ajax': '1'},
+                    body: new FormData(form)
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Ошибка');
+                const index = Number(form.dataset.index);
+                const value = Math.max(0, parseInt(input.value, 10) || 0);
+                input.value = value;
+                if (SLIDE_DATA[index]) SLIDE_DATA[index].position = value;
+                const editPos = document.getElementById('edit-position');
+                if (editPos && document.getElementById('edit-slide-id').value === form.dataset.slideId) {
+                    editPos.value = value;
+                }
+                input.blur();
+            } catch (err) {
+                alert(err.message || 'Не удалось изменить позицию.');
+            } finally {
+                saving = false;
+            }
+        }
+        input.addEventListener('change', savePosition);
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            savePosition();
+        });
+    });
+
+    // Запоминаем позицию при открытии редактора; при удалении — в момент отправки.
+    document.querySelectorAll('.album-actions form').forEach(form => {
+        form.addEventListener('submit', rememberCarouselScroll);
+    });
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    const savedScroll = sessionStorage.getItem('carouselScroll');
+    if (savedScroll !== null) {
+        sessionStorage.removeItem('carouselScroll');
+        const restoreScroll = () => window.scrollTo(0, Math.max(0, parseInt(savedScroll, 10) || 0));
+        window.addEventListener('load', () => {
+            requestAnimationFrame(restoreScroll);
+            setTimeout(restoreScroll, 80);
+        });
+    }
 
     document.querySelectorAll('.album-picker').forEach(select => {
         select.addEventListener('change', () => {

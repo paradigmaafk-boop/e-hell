@@ -19,7 +19,7 @@ from database import (
     get_alias_resolutions,
     delete_nickname_alias, reset_rating, delete_player, delete_player_from_all_ratings,
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
-    create_slide, get_all_slides, get_slide_by_id, update_slide, delete_slide,
+    create_slide, get_all_slides, get_slide_by_id, update_slide, update_slide_position, delete_slide,
     create_media_asset, get_media_assets, get_media_asset,
     get_media_asset_preview, get_media_assets_without_previews, set_media_preview,
     update_media_asset_title,
@@ -2160,6 +2160,18 @@ def admin_carousel():
                     flash('Ошибка при обновлении')
             else:
                 flash('Заполните текст слайда!')
+        elif action == 'position':
+            slide_id = request.form.get('slide_id', type=int)
+            position = request.form.get('position', type=int)
+            if slide_id and position is not None and update_slide_position(slide_id, max(0, position)):
+                increment_counter('admin_actions')
+                if request.headers.get('X-Carousel-Ajax') == '1':
+                    return jsonify({'success': True, 'slide_id': slide_id, 'position': max(0, position)})
+                flash('Позиция слайда обновлена.')
+            else:
+                if request.headers.get('X-Carousel-Ajax') == '1':
+                    return jsonify({'success': False, 'error': 'Не удалось изменить позицию.'}), 400
+                flash('Не удалось изменить позицию.')
         elif action == 'delete':
             slide_id = request.form.get('slide_id')
             if slide_id:
