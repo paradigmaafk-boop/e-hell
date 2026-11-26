@@ -364,6 +364,10 @@
     window.ACTIVE_TAB = {{ active_tab|tojson }};
 </script>
 <script>
+    const COORDS_S1 = [
+        "1322.00,690.00,1286.00,700.00,1250.00,725.00,1216.00,750.00,1180.00,775.00,1146.00,800.00,1110.00,825.00,1128.00,850.00,1162.00,875.00,1198.00,900.00,1234.00,925.00,1270.00,950.00,1304.00,975.00,1322.00,990.00,1332.00,975.00,1366.00,950.00,1400.00,925.00,1434.00,900.00,1468.00,875.00,1502.00,850.00,1534.00,825.00,1508.00,800.00,1472.00,775.00,1438.00,750.00,1402.00,725.00,1366.00,700.00",
+{% include '_state_coords_s1.html' %}
+    ];
     const COORDS_S2 = [
 {% include '_state_coords_s2.html' %}
     ];
@@ -388,10 +392,10 @@
     ];
     const DEFAULT_STROKE = '#333';
     const MAP_VIEWBOX = {
-        s1: '50 40 950 950', s2: '0 0 2048 1372',
+        s1: '0 0 2528 1692', s2: '0 0 2048 1372',
         s3: '50 40 950 950', s4: '0 0 2048 2048'
     };
-    const MAP_COORDS = {s1: COORDS_S3, s2: COORDS_S2, s3: COORDS_S3, s4: COORDS_S4};
+    const MAP_COORDS = {s1: COORDS_S1, s2: COORDS_S2, s3: COORDS_S3, s4: COORDS_S4};
     let RAW_COORDS = COORDS_S3;
     const svg = document.getElementById('map-svg');
     let cells = [];
@@ -434,7 +438,7 @@
         return {cx: (minX + maxX) / 2, cy: (minY + maxY) / 2, w: maxX - minX, h: maxY - minY};
     }
     function chooseFontSize(b) {
-        const scale = (season === 's2' || season === 's4') ? 2 : 1;
+        const scale = (season === 's1' || season === 's2' || season === 's4') ? 2 : 1;
         return Math.max(8 * scale, Math.min(22 * scale, Math.min(b.w, b.h) / 3.4));
     }
 
