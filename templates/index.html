@@ -123,12 +123,17 @@
             left: auto;
             right: auto;
             bottom: auto;
-            min-height: 10.5rem;
+            min-height: 13rem;
+            height: 13rem;
+            max-height: 13rem;
             padding: 1.2rem 1.5rem 1.4rem;
             color: #fff7ef;
             pointer-events: none;
             background: linear-gradient(180deg, #150a04, #050101);
             border-top: 1px solid var(--line);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         .slide-content h2 {
             font-family: 'Forum', serif;
@@ -138,6 +143,7 @@
             letter-spacing: 3px;
             text-transform: uppercase;
             margin: 0 0 0.5rem;
+            flex: 0 0 auto;
             background: linear-gradient(90deg, #ff2200 0%, #ff6600 20%, #ffb800 40%, #ffec80 50%, #ffb800 60%, #ff6600 80%, #ff2200 100%);
             background-size: 300% 100%;
             -webkit-background-clip: text;
@@ -155,9 +161,14 @@
             font-size: 1.1rem;
             line-height: 1.55;
             display: block;
-            overflow: hidden;
+            flex: 1 1 auto;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
             text-shadow: 0 1px 12px rgba(0,0,0,0.7);
         }
+        .slide-content p::-webkit-scrollbar { display: none; }
         .slide-views {
             position: absolute;
             top: 0.8rem;
@@ -408,7 +419,7 @@
                 flex: 0 0 auto;
                 min-height: 0;
             }
-            .slide-content { min-height: 0; padding: 0.8rem 0.95rem 0.95rem; }
+            .slide-content { min-height: 12rem; height: 12rem; max-height: 12rem; padding: 0.8rem 0.95rem 0.95rem; }
             .slide-content h2 { font-size: 1.15rem; margin-bottom: 0.3rem; letter-spacing: 1.5px; }
             .slide-content p { font-size: 0.98rem; line-height: 1.45; display: block; -webkit-line-clamp: unset; }
             .slide-views { top: 0.55rem; right: 0.55rem; font-size: 0.66rem; padding: 0.24rem 0.45rem; }
@@ -508,6 +519,7 @@
                 max-height: none !important;
                 flex: 0 0 auto;
             }
+            .slide-content { min-height: 10.5rem; height: 10.5rem; max-height: 10.5rem; }
             .carousel-caption {
                 height: 10.5rem;
                 padding: 0.8rem 1.1rem 0.9rem;
