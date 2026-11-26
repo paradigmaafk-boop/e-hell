@@ -821,7 +821,7 @@ td.points-cell {
 
 .rating-row {
     display: grid;
-    grid-template-columns: 56px 1fr auto auto;
+    grid-template-columns: 56px minmax(0, 1fr) 170px minmax(180px, auto);
     align-items: center;
     gap: 1rem;
     padding: 0.6rem 1rem 0.6rem 0.75rem;
@@ -895,6 +895,7 @@ td.points-cell {
     font-variant-numeric: tabular-nums;
     color: var(--accent-warm);
     white-space: nowrap;
+    text-align: right;
 }
 .rating-points small {
     font-size: 0.7rem;
@@ -905,6 +906,7 @@ td.points-cell {
 .rating-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.4rem;
     flex-shrink: 0;
 }

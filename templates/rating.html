@@ -140,13 +140,22 @@
         .apples-badge.clicked {
             animation: appleClick 0.4s ease;
         }
-        /* Золотой болтик рядом с яблоком — только иконка */
+        /* Золотой болтик рядом с яблоком */
         .bolts-badge {
             display: inline-flex;
             align-items: center;
+            gap: 0.28rem;
             margin-left: 0.45rem;
+            padding: 0.1rem 0.5rem;
+            border-radius: 999px;
+            background: rgba(255, 209, 102, 0.09);
+            border: 1px solid rgba(255, 209, 102, 0.38);
+            color: #ffd166;
+            font-size: 0.78rem;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
             vertical-align: middle;
-            line-height: 1;
+            line-height: 1.35;
             white-space: nowrap;
         }
         .bolts-badge .gold-bolt-icon {
@@ -161,6 +170,11 @@
             height: 1.45rem;
             vertical-align: -0.28rem;
             margin-left: 0.2rem;
+        }
+        body.light-theme .bolts-badge {
+            background: rgba(184, 119, 0, 0.08);
+            border-color: rgba(184, 119, 0, 0.35);
+            color: #8a5a00;
         }
         @keyframes appleClick {
             0%   { transform: scale(1); }
@@ -225,6 +239,24 @@
         .rating-stats-line .stat-sep {
             color: var(--line);
         }
+        .rating-stats-line.total-stats {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 0.7fr);
+            gap: 0.2rem 0.8rem;
+            align-items: baseline;
+        }
+        .rating-stats-line.total-stats .stat-item {
+            display: flex;
+            align-items: baseline;
+            min-width: 0;
+            gap: 0.35rem;
+        }
+        .rating-stats-line.total-stats .stat-value {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .rating-stats-line.total-stats .stat-sep { display: none; }
 
         .flying-apple {
             position: fixed;
@@ -563,16 +595,76 @@
         }
 
         @media (max-width: 780px) {
+            .rating-row {
+                grid-template-columns: 34px minmax(0, 1fr) 90px minmax(62px, auto);
+                gap: 0.4rem;
+                padding: 0.35rem 0.55rem;
+                border-radius: 10px;
+            }
+            .rating-circle {
+                width: 32px;
+                height: 32px;
+                font-size: 0.95rem;
+            }
+            .rating-row.p1 .rating-circle { font-size: 1.05rem; }
+            .rating-name {
+                font-size: 0.86rem;
+                line-height: 1.15;
+                margin-bottom: 0;
+            }
+            .rating-row.p1 .rating-name { font-size: 0.92rem; }
+            .rating-tier {
+                font-size: 0.54rem;
+                letter-spacing: 1.2px;
+                line-height: 1.2;
+                margin-top: 0.05rem;
+            }
+            .rating-points { font-size: 0.9rem; }
+            .rating-row.p1 .rating-points { font-size: 1rem; }
+            .rating-btn {
+                width: 28px;
+                height: 28px;
+                padding: 0;
+                justify-content: center;
+                border-radius: 7px;
+            }
+            .rating-btn-text { display: none; }
+            .rating-actions { gap: 0.2rem; }
+            .apples-badge {
+                font-size: 0.68rem;
+                padding: 0.08rem 0.4rem;
+                margin-left: 0.3rem;
+            }
+            .bolts-badge {
+                font-size: 0.68rem;
+                padding: 0.08rem 0.4rem;
+                margin-left: 0.3rem;
+            }
+            .bolts-badge .gold-bolt-icon { width: 1rem; height: 1rem; }
+
             .rating-stats-line {
-                font-size: 0.72rem;
-                gap: 0.3rem 0.55rem;
-                margin-top: 0.3rem;
+                font-size: 0.62rem;
+                gap: 0.15rem 0.35rem;
+                margin-top: 0.12rem;
             }
-            .rating-stats-line .stat-item .stat-value {
-                font-size: 0.85rem;
+            .rating-stats-line .stat-item { gap: 0.2rem; }
+            .rating-stats-line .stat-item .stat-value { font-size: 0.72rem; }
+            .rating-row.p1 .rating-stats-line { font-size: 0.64rem; }
+            .rating-row.p1 .rating-stats-line .stat-item .stat-value { font-size: 0.75rem; }
+
+            .rating-stats-line.total-stats {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.1rem 0.35rem;
             }
-            .rating-row.p1 .rating-stats-line { font-size: 0.75rem; }
-            .rating-row.p1 .rating-stats-line .stat-item .stat-value { font-size: 0.9rem; }
+            .rating-stats-line.total-stats .stat-label { display: none; }
+            .rating-stats-line.total-stats .stat-item::before {
+                color: var(--dim);
+                font-size: 0.58rem;
+                letter-spacing: 0;
+            }
+            .rating-stats-line.total-stats .stat-duel::before { content: "Д"; }
+            .rating-stats-line.total-stats .stat-arc::before { content: "А"; }
+            .rating-stats-line.total-stats .stat-bm::before { content: "БМ"; }
 
             .rating-title-row {
                 margin-top: 1rem;
@@ -594,18 +686,32 @@
         }
 
         @media (max-width: 480px) {
+            .rating-row {
+                grid-template-columns: 30px minmax(0, 1fr) 64px minmax(60px, auto);
+                gap: 0.32rem;
+                padding: 0.3rem 0.45rem;
+            }
+            .assoc-btn { display: none; }
+            .rating-circle { width: 28px; height: 28px; font-size: 0.86rem; }
+            .rating-row.p1 .rating-circle { font-size: 0.95rem; }
+            .rating-name { font-size: 0.8rem; }
+            .rating-row.p1 .rating-name { font-size: 0.86rem; }
+            .rating-tier { font-size: 0.5rem; letter-spacing: 1px; }
+            .rating-points { font-size: 0.84rem; }
+            .rating-row.p1 .rating-points { font-size: 0.92rem; }
+            .rating-btn { width: 26px; height: 26px; }
             .rating-stats-line {
-                font-size: 0.68rem;
-                gap: 0.25rem 0.45rem;
+                font-size: 0.6rem;
+                gap: 0.1rem 0.25rem;
             }
-            .rating-stats-line .stat-item .stat-value {
-                font-size: 0.8rem;
+            .rating-stats-line .stat-item .stat-value { font-size: 0.68rem; }
+            .apples-badge,
+            .bolts-badge {
+                font-size: 0.64rem;
+                padding: 0.06rem 0.35rem;
+                margin-left: 0.25rem;
             }
-            .apples-badge {
-                font-size: 0.72rem;
-                padding: 0.12rem 0.5rem;
-                margin-left: 0.4rem;
-            }
+            .bolts-badge .gold-bolt-icon { width: 0.95rem; height: 0.95rem; }
 
             .rating-title-row {
                 margin-top: 0.85rem;
@@ -853,6 +959,7 @@
                         <span class="bolts-badge {% if not row[5] %}zero{% endif %}"
                               title="Золотые болтики: {{ row[5] }}{% if row[4] %}, +{{ row[4] }} к общему рейтингу{% endif %}">
                             {% include '_gold_bolt_icon.html' %}
+                            <span class="bolts-num">{{ row[5] }}</span>
                         </span>
                         {% if chart_type %}</a>{% else %}</span>{% endif %}
 
@@ -865,13 +972,13 @@
                             {% else %}🪨 Камень{% endif %}
                         </div>
 
-                        <div class="rating-stats-line">
-                            <span class="stat-item">
+                        <div class="rating-stats-line total-stats">
+                            <span class="stat-item stat-duel">
                                 <span class="stat-label">Дуэль</span>
                                 <span class="stat-value">{{ row[1] }}</span>
                             </span>
                             <span class="stat-sep">;</span>
-                            <span class="stat-item">
+                            <span class="stat-item stat-arc">
                                 <span class="stat-label">Аркадия</span>
                                 <span class="stat-value">{{ row[2] }}</span>
                             </span>
