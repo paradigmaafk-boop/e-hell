@@ -52,32 +52,106 @@
             background: #000;
             overflow: hidden;
             width: 100%;
-            aspect-ratio: 16 / 9;
-            flex: 0 1 auto;
+            flex: 1 1 auto;
             min-height: 0;
+            touch-action: pan-y;
+            cursor: grab;
+            user-select: none;
         }
+        .carousel-stage.dragging { cursor: grabbing; }
+
+        .carousel-track {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+            transition: transform 0.72s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+        .carousel-track.dragging { transition: none; }
 
         .slide {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 3.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #050101;
             display: flex;
             align-items: center;
             justify-content: center;
-            will-change: opacity;
         }
-        .slide.active { opacity: 1; }
         .slide img, .slide video {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
+            pointer-events: none;
         }
-
         .slide video:not(.video-ready) { opacity: 0; }
-        .slide video { transition: opacity 0.6s ease; }
+        .slide video { transition: opacity 0.4s ease; }
         .slide video.video-ready { opacity: 1; }
+
+        .slide-shade {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(3,1,0,0.08) 0%, rgba(3,1,0,0.05) 42%, rgba(3,1,0,0.78) 100%),
+                linear-gradient(90deg, rgba(3,1,0,0.35), transparent 55%);
+        }
+        .slide-content {
+            position: absolute;
+            z-index: 3;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 1.4rem 1.6rem 2.4rem;
+            color: #fff7ef;
+            pointer-events: none;
+        }
+        .slide-content h2 {
+            font-family: 'Forum', serif;
+            font-size: clamp(1.35rem, 2.4vw, 2.15rem);
+            line-height: 1.12;
+            letter-spacing: 1px;
+            margin: 0 0 0.55rem;
+            text-shadow: 0 2px 18px rgba(0,0,0,0.65);
+        }
+        .slide-content p {
+            margin: 0;
+            max-width: 44rem;
+            color: #f1ddc9;
+            font-size: 0.92rem;
+            line-height: 1.58;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-shadow: 0 1px 12px rgba(0,0,0,0.7);
+        }
+        .slide-views {
+            position: absolute;
+            top: 0.8rem;
+            right: 0.85rem;
+            z-index: 4;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.3rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(4,2,1,0.52);
+            border: 1px solid rgba(255,255,255,0.16);
+            color: #ffe1bd;
+            font-size: 0.72rem;
+            font-variant-numeric: tabular-nums;
+            backdrop-filter: blur(6px);
+            pointer-events: none;
+        }
+        .slide-views svg { width: 15px; height: 15px; display: block; }
 
         .slide-bg {
             width: 100%; height: 100%;
@@ -308,6 +382,11 @@
                 flex: 1 1 auto;
                 min-height: 0;
             }
+            .slide-content { padding: 0.9rem 1rem 1.7rem; }
+            .slide-content h2 { font-size: 1.12rem; margin-bottom: 0.35rem; }
+            .slide-content p { font-size: 0.8rem; line-height: 1.45; -webkit-line-clamp: 2; }
+            .slide-views { top: 0.55rem; right: 0.55rem; font-size: 0.66rem; padding: 0.24rem 0.45rem; }
+            .slide-views svg { width: 13px; height: 13px; }
 
             .carousel-caption {
                 flex: 0 0 auto;
@@ -551,48 +630,54 @@
         <section class="carousel">
 
             {% if slides %}
-            <div class="carousel-stage">
+            <div class="carousel-stage" id="carouselStage">
+                <div class="carousel-track" id="carouselTrack">
 
-                {% for slide in slides %}
-                {% set media_ver = slide[8]|replace(' ', 'T')|replace(':', '') ~ '-p2' %}
-                <div class="slide {% if loop.first %}active{% endif %}" data-type="{{ slide[3] or 'none' }}">
-                    {% if slide[4] %}
-                        {% if slide[3] == 'video' %}
-                            <div class="slide-bg" style="position:absolute; inset:0; z-index:0;"></div>
-                            <video
-                                src="{{ slide[4] }}?v={{ media_ver }}"
-                                {% if slide[9] %}poster="{{ slide[9] }}?v={{ media_ver }}"{% endif %}
-                                autoplay muted loop playsinline
-                                preload="auto"
-                                {% if loop.first %}data-priority="1"{% endif %}
-                            ></video>
+                    {% for slide in slides %}
+                    {% set media_ver = slide[8]|replace(' ', 'T')|replace(':', '') ~ '-p2' %}
+                    <article class="slide" data-slide-id="{{ slide[0] }}"
+                             data-views="{{ slide[10] if slide|length > 10 else 0 }}"
+                             data-type="{{ slide[3] or 'none' }}">
+                        {% if slide[4] %}
+                            {% if slide[3] == 'video' %}
+                                <video
+                                    src="{{ slide[4] }}?v={{ media_ver }}"
+                                    {% if slide[9] %}poster="{{ slide[9] }}?v={{ media_ver }}"{% endif %}
+                                    muted loop playsinline preload="metadata"
+                                ></video>
+                            {% else %}
+                                <img src="{{ slide[4] }}?v={{ media_ver }}" alt="{{ slide[1] or '' }}"
+                                     loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+                            {% endif %}
                         {% else %}
-                            <img src="{{ slide[4] }}?v={{ media_ver }}" alt="{{ slide[1] or '' }}" loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+                            <div class="slide-bg" style="position:absolute; inset:0;">Изображение не загружено</div>
                         {% endif %}
-                    {% else %}
-                        <div class="slide-bg">Изображение не загружено</div>
-                    {% endif %}
+
+                        <div class="slide-shade"></div>
+
+                        <div class="slide-views" aria-label="Просмотры">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6z"></path>
+                                <circle cx="12" cy="12" r="2.6"></circle>
+                            </svg>
+                            <span class="view-count">{{ slide[10] if slide|length > 10 else 0 }}</span>
+                        </div>
+
+                        <div class="slide-content">
+                            <h2>{{ slide[1] or 'Новости' }}</h2>
+                            <p>{{ slide[2] }}</p>
+                        </div>
+                    </article>
+                    {% endfor %}
+
                 </div>
-                {% endfor %}
 
                 {% if slides|length > 1 %}
                 <button class="nav-arrow prev" id="prevBtn" aria-label="Назад">‹</button>
                 <button class="nav-arrow next" id="nextBtn" aria-label="Вперёд">›</button>
-
                 <div class="dots" id="dots"></div>
                 {% endif %}
-
-            </div>
-
-            <div class="carousel-caption">
-                <div class="caption-wrapper" id="captionWrapper">
-                    <div class="caption-title" id="captionTitle">
-                        {{ slides[0][1] if slides[0][1] else 'Добро пожаловать!' }}
-                    </div>
-                    <p class="caption-text" id="captionText">
-                        {{ slides[0][2] }}
-                    </p>
-                </div>
             </div>
 
             {% else %}
@@ -650,92 +735,245 @@
     });
 
     (function carousel() {
-        const slides = document.querySelectorAll('.carousel .slide');
+        const stage = document.getElementById('carouselStage');
+        const track = document.getElementById('carouselTrack');
         const dotsContainer = document.getElementById('dots');
-        const captionWrapper = document.getElementById('captionWrapper');
-        const captionTitle = document.getElementById('captionTitle');
-        const captionText = document.getElementById('captionText');
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
-        if (!slides.length) return;
+        if (!stage || !track) return;
 
-        const slideData = [
-            {% for slide in slides %}
-            {
-                title: {{ (slide[1] or '')|tojson }},
-                text: {{ slide[2]|tojson }}
-            }{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ];
+        const originals = Array.from(track.querySelectorAll('.slide'));
+        if (!originals.length) return;
+        const realCount = originals.length;
 
-        const TEXT_ANIM_MS = 900;
-        let current = 0;
-        let timer = null;
-        let dots = [];
-        let textAnimBusy = false;
-
-        if (dotsContainer) {
-            slides.forEach((_, i) => {
-                const dot = document.createElement('button');
-                dot.className = 'dot' + (i === 0 ? ' active' : '');
-                dot.addEventListener('click', () => goTo(i));
-                dotsContainer.appendChild(dot);
-            });
-            dots = dotsContainer.querySelectorAll('.dot');
+        // Зацикливаем альбом: клоны первого и последнего слайда.
+        if (realCount > 1) {
+            const firstClone = originals[0].cloneNode(true);
+            const lastClone = originals[realCount - 1].cloneNode(true);
+            firstClone.classList.add('clone');
+            lastClone.classList.add('clone');
+            track.appendChild(firstClone);
+            track.insertBefore(lastClone, originals[0]);
         }
 
-        function goTo(i) {
-            current = (i + slides.length) % slides.length;
-            slides.forEach((s, idx) => s.classList.toggle('active', idx === current));
-            dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+        const slides = Array.from(track.querySelectorAll('.slide'));
+        let pos = realCount > 1 ? 1 : 0;
+        let width = stage.clientWidth;
+        let timer = null;
+        let dots = [];
+        let viewed = new Set();
 
-            const activeSlide = slides[current];
-            if (activeSlide) {
-                const video = activeSlide.querySelector('video');
-                if (video) video.play().catch(() => {});
-            }
+        function realIndex(p) {
+            if (realCount <= 1) return 0;
+            return ((p - 1) % realCount + realCount) % realCount;
+        }
 
-            if (captionWrapper && captionTitle && captionText && slideData[current]) {
-                if (textAnimBusy) {
-                    captionTitle.textContent = slideData[current].title || ' ';
-                    captionText.textContent = slideData[current].text || '';
+        if (dotsContainer) {
+            originals.forEach((_, i) => {
+                const dot = document.createElement('button');
+                dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.type = 'button';
+                dot.setAttribute('aria-label', 'Слайд ' + (i + 1));
+                dot.addEventListener('click', () => goToPosition(i + 1));
+                dotsContainer.appendChild(dot);
+            });
+            dots = Array.from(dotsContainer.querySelectorAll('.dot'));
+        }
+
+        function setVideo(p) {
+            slides.forEach((slide, idx) => {
+                const video = slide.querySelector('video');
+                if (!video) return;
+                if (idx === p) {
+                    video.currentTime = 0;
+                    video.play().catch(() => {});
                 } else {
-                    textAnimBusy = true;
-                    captionWrapper.classList.add('fade-out');
-                    setTimeout(() => {
-                        captionTitle.textContent = slideData[current].title || ' ';
-                        captionText.textContent = slideData[current].text || '';
-                        captionWrapper.classList.remove('fade-out');
-                        textAnimBusy = false;
-                    }, TEXT_ANIM_MS);
+                    video.pause();
                 }
-            }
+            });
+        }
 
+        function updateDots() {
+            const active = realIndex(pos);
+            dots.forEach((dot, idx) => dot.classList.toggle('active', idx === active));
+        }
+
+        function markView(p) {
+            const slide = originals[realIndex(p)];
+            if (!slide) return;
+            const id = slide.dataset.slideId;
+            if (!id || viewed.has(id)) return;
+            viewed.add(id);
+            fetch('/api/carousel/' + encodeURIComponent(id) + '/view', {
+                method: 'POST',
+                headers: {'Accept': 'application/json'}
+            }).then(r => r.json()).then(data => {
+                if (!data.success) return;
+                document.querySelectorAll('.slide[data-slide-id="' + id + '"] .view-count')
+                    .forEach(el => { el.textContent = data.views; });
+            }).catch(() => {});
+        }
+
+        function render(animate) {
+            if (!animate) track.classList.add('dragging');
+            track.style.transform = 'translate3d(' + (-pos * width) + 'px, 0, 0)';
+            if (!animate) {
+                void track.offsetWidth;
+                track.classList.remove('dragging');
+            }
+        }
+
+        function jumpTo(p) {
+            pos = p;
+            track.classList.add('dragging');
+            track.style.transform = 'translate3d(' + (-pos * width) + 'px, 0, 0)';
+            void track.offsetWidth;
+            track.classList.remove('dragging');
+            setVideo(pos);
+        }
+
+        function goToPosition(p, animate = true) {
+            if (realCount <= 1) return;
+            if (p < 0) p = 0;
+            if (p > slides.length - 1) p = slides.length - 1;
+            pos = p;
+            render(animate);
+            updateDots();
+            setVideo(pos);
+            markView(pos);
             resetTimer();
         }
 
-        function next() { goTo(current + 1); }
-        function prev() { goTo(current - 1); }
-        function startTimer() { timer = setInterval(next, 15000); }
-        function resetTimer() { clearInterval(timer); startTimer(); }
+        function next() {
+            if (realCount <= 1) return;
+            goToPosition(pos + 1);
+        }
+        function prev() {
+            if (realCount <= 1) return;
+            goToPosition(pos - 1);
+        }
+        function startTimer() {
+            if (realCount <= 1) return;
+            clearInterval(timer);
+            timer = setInterval(next, 7000);
+        }
+        function resetTimer() {
+            clearInterval(timer);
+            startTimer();
+        }
+
+        track.addEventListener('transitionend', (e) => {
+            if (e.target !== track || e.propertyName !== 'transform') return;
+            if (pos === realCount + 1) jumpTo(1);
+            else if (pos === 0) jumpTo(realCount);
+        });
+
+        // Свайп мышью и пальцем.
+        let dragActive = false;
+        let dragHorizontal = null;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        let dragDelta = 0;
+        let dragStartedAt = 0;
+        let dragBase = 0;
+
+        function onPointerDown(e) {
+            if (realCount <= 1) return;
+            if (e.target.closest('button, a')) return;
+            if (e.button !== undefined && e.button !== 0) return;
+            dragActive = true;
+            dragHorizontal = null;
+            dragStartX = e.clientX;
+            dragStartY = e.clientY;
+            dragDelta = 0;
+            dragStartedAt = performance.now();
+            dragBase = -pos * width;
+            stage.classList.add('dragging');
+            clearInterval(timer);
+            stage.setPointerCapture?.(e.pointerId);
+        }
+
+        function onPointerMove(e) {
+            if (!dragActive) return;
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            if (dragHorizontal === null) {
+                if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+                dragHorizontal = Math.abs(dx) > Math.abs(dy);
+                if (!dragHorizontal) {
+                    dragActive = false;
+                    stage.classList.remove('dragging');
+                    startTimer();
+                    return;
+                }
+                track.classList.add('dragging');
+            }
+            if (!dragHorizontal) return;
+            e.preventDefault();
+            dragDelta = dx;
+            let offset = dragBase + dx;
+            const min = -(slides.length - 1) * width;
+            if (offset > 0) offset *= 0.35;
+            if (offset < min) offset = min + (offset - min) * 0.35;
+            track.style.transform = 'translate3d(' + offset + 'px, 0, 0)';
+        }
+
+        function onPointerUp(e) {
+            if (!dragActive) {
+                stage.classList.remove('dragging');
+                return;
+            }
+            dragActive = false;
+            stage.classList.remove('dragging');
+            track.classList.remove('dragging');
+            const elapsed = Math.max(1, performance.now() - dragStartedAt);
+            const velocity = dragDelta / elapsed;
+            const threshold = Math.max(46, width * 0.16);
+            if (Math.abs(dragDelta) > threshold || Math.abs(velocity) > 0.55) {
+                if (dragDelta < 0) goToPosition(pos + 1);
+                else goToPosition(pos - 1);
+            } else {
+                goToPosition(pos);
+            }
+            stage.releasePointerCapture?.(e.pointerId);
+        }
+
+        stage.addEventListener('pointerdown', onPointerDown);
+        stage.addEventListener('pointermove', onPointerMove);
+        stage.addEventListener('pointerup', onPointerUp);
+        stage.addEventListener('pointercancel', onPointerUp);
 
         if (nextBtn) nextBtn.addEventListener('click', next);
         if (prevBtn) prevBtn.addEventListener('click', prev);
 
-        const stage = document.querySelector('.carousel');
-        if (stage) {
-            stage.addEventListener('mouseenter', () => clearInterval(timer));
-            stage.addEventListener('mouseleave', startTimer);
+        const carouselEl = document.querySelector('.carousel');
+        if (carouselEl) {
+            carouselEl.addEventListener('mouseenter', () => clearInterval(timer));
+            carouselEl.addEventListener('mouseleave', startTimer);
         }
-        if (slides.length > 1) startTimer();
-
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                clearInterval(timer);
-            } else if (slides.length > 1) {
-                resetTimer();
-            }
+            if (document.hidden) clearInterval(timer);
+            else resetTimer();
         });
+        window.addEventListener('resize', () => {
+            width = stage.clientWidth;
+            render(false);
+        });
+
+        // Подготовка видео, включая клоны.
+        slides.forEach(slide => {
+            const video = slide.querySelector('video');
+            if (!video) return;
+            if (video.readyState >= 2) video.classList.add('video-ready');
+            else video.addEventListener('loadeddata', () => video.classList.add('video-ready'), {once: true});
+        });
+
+        width = stage.clientWidth;
+        render(false);
+        updateDots();
+        setVideo(pos);
+        markView(pos);
+        if (realCount > 1) startTimer();
     })();
 </script>
 

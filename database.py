@@ -164,8 +164,18 @@ def init_db():
             position INTEGER DEFAULT 0,
             is_active BOOLEAN DEFAULT TRUE,
             created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
+            updated_at TEXT NOT NULL,
+            views INTEGER DEFAULT 0
         )
+    """)
+    cursor.execute("""
+        DO $$
+        BEGIN
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='carousel_slides' AND column_name='views') THEN
+                ALTER TABLE carousel_slides ADD COLUMN views INTEGER DEFAULT 0;
+            END IF;
+        END $$;
     """)
     cursor.execute("""
         DO $$
@@ -1875,11 +1885,11 @@ def get_all_slides(only_active=False):
     conn = get_connection()
     cursor = conn.cursor()
     if only_active:
-        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url
+        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views
                           FROM carousel_slides WHERE is_active = TRUE
                           ORDER BY position ASC, id ASC""")
     else:
-        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url
+        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views
                           FROM carousel_slides ORDER BY position ASC, id ASC""")
     data = cursor.fetchall()
     conn.close()
@@ -1889,7 +1899,7 @@ def get_all_slides(only_active=False):
 def get_slide_by_id(slide_id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url
+    cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views
                       FROM carousel_slides WHERE id = %s""", (slide_id,))
     data = cursor.fetchone()
     conn.close()
@@ -1910,6 +1920,23 @@ def update_slide(slide_id, title, content, media_type, media_url, position, is_a
         print(f"Error updating slide: {e}")
         conn.rollback()
         return False
+    finally:
+        conn.close()
+
+
+def increment_slide_views(slide_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE carousel_slides SET views = COALESCE(views, 0) + 1 WHERE id = %s RETURNING views",
+                       (slide_id,))
+        row = cursor.fetchone()
+        conn.commit()
+        return row[0] if row else None
+    except Exception as e:
+        print(f"Error incrementing slide views: {e}")
+        conn.rollback()
+        return None
     finally:
         conn.close()
 
