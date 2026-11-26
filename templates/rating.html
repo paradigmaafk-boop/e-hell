@@ -775,6 +775,13 @@
                 </span>
                 {% endif %}
             </div>
+            {% if session.get('role') in ['admin', 'super_admin'] and rating_type in ['duel', 'arcadia'] %}
+            <a href="{{ url_for('admin_ratings_manual', rating=rating_type) }}"
+               class="rating-btn" style="text-decoration:none; white-space:nowrap;"
+               title="Добавить игрока или изменить очки вручную">
+                ✏ <span class="rating-btn-text">Править вручную</span>
+            </a>
+            {% endif %}
             {% if rating_type != 'total' and last_update_date %}
             <div class="rating-update-date">
                 Дата обновления: <b>{{ last_update_date }}</b>

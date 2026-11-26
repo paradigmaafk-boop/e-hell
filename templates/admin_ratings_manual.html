@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ручное редактирование рейтинга | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
+    <style>
+        .manual-tabs {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin: 1.1rem 0 1.25rem;
+        }
+        .manual-tabs a {
+            padding: 0.55rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: rgba(10,5,3,0.55);
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+        .manual-tabs a.active,
+        .manual-tabs a:hover {
+            border-color: var(--accent);
+            color: var(--accent-warm);
+            background: rgba(255,69,0,0.1);
+        }
+        .manual-grid {
+            display: grid;
+            grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .manual-grid { grid-template-columns: 1fr; }
+        }
+        .manual-card {
+            background: rgba(10,5,3,0.62);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        .manual-card-head {
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid var(--line);
+            font-family: 'Forum', serif;
+            color: var(--accent-warm);
+            letter-spacing: 1px;
+            font-size: 1rem;
+        }
+        .manual-add {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .manual-add label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-size: 0.74rem;
+            color: var(--dim);
+            letter-spacing: 0.5px;
+        }
+        .manual-add input {
+            width: 100%;
+            padding: 0.55rem 0.65rem;
+            border-radius: 7px;
+            border: 1px solid var(--line);
+            background: rgba(10,5,3,0.7);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+        .manual-add input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .manual-note {
+            color: var(--dim);
+            font-size: 0.76rem;
+            line-height: 1.5;
+            padding: 0 1rem 1rem;
+        }
+        .manual-table-wrap { overflow-x: auto; }
+        table.manual-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+        table.manual-table th {
+            text-align: left;
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--line);
+            color: var(--dim);
+            font-size: 0.68rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        table.manual-table td {
+            padding: 0.55rem 0.8rem;
+            border-bottom: 1px solid var(--line-soft);
+            vertical-align: middle;
+        }
+        table.manual-table tr:last-child td { border-bottom: none; }
+        .manual-rank { color: var(--dim); font-variant-numeric: tabular-nums; width: 3rem; }
+        .manual-nick { font-weight: 700; color: var(--text); }
+        .manual-points-input {
+            width: 8.5rem;
+            padding: 0.4rem 0.55rem;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            background: rgba(10,5,3,0.7);
+            color: var(--accent-warm);
+            font-family: inherit;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+        .manual-points-input:focus { outline: none; border-color: var(--accent); }
+        .manual-save { padding: 0.42rem 0.65rem; font-size: 0.75rem; }
+        .manual-empty { padding: 1.2rem; color: var(--muted); font-size: 0.85rem; }
+        body.light-theme .manual-card { background: #fffbf2; }
+        body.light-theme .manual-add input,
+        body.light-theme .manual-points-input { background: #fff; }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#ff2200"/>
+            <stop offset="40%"  stop-color="#ff8800"/>
+            <stop offset="70%"  stop-color="#ffcc00"/>
+            <stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <linearGradient id="fireStroke2" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#ffcc00"/>
+            <stop offset="50%"  stop-color="#ff6600"/>
+            <stop offset="100%" stop-color="#ff2200"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%"   stop-color="#ffec80"/>
+            <stop offset="40%"  stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">[HEL] Ацкое Пламя</span>
+            </div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
+        <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
+        <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
+        <a href="/rating/events"><span class="nav-full">Ивенты</span><span class="nav-short">Ивенты</span></a>
+        {% if state_available %}
+        <a href="/state"><span class="nav-full">Штат</span><span class="nav-short">Штат</span></a>
+        {% endif %}
+        <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
+    </nav>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="page-head">
+        <h1 class="page-title">Ручное редактирование</h1>
+        <p class="page-sub">
+            Добавление игроков и правка очков без загрузки Excel.
+            Общий рейтинг и Ивенты считаются автоматически.
+        </p>
+    </div>
+
+    <div class="manual-tabs">
+        <a href="{{ url_for('admin_ratings_manual', rating='duel') }}"
+           class="{% if rating_type == 'duel' %}active{% endif %}">⚔️ Дуэль</a>
+        <a href="{{ url_for('admin_ratings_manual', rating='arcadia') }}"
+           class="{% if rating_type == 'arcadia' %}active{% endif %}">🌿 Аркадия</a>
+    </div>
+
+    <div class="manual-grid">
+        <section class="manual-card">
+            <div class="manual-card-head">➕ Добавить игрока вручную</div>
+            <form method="POST" action="{{ url_for('admin_ratings_manual_add') }}" class="manual-add">
+                <input type="hidden" name="rating_type" value="{{ rating_type }}">
+                <label>
+                    Ник игрока
+                    <input type="text" name="nickname" maxlength="120" required
+                           placeholder="Введите ник" autocomplete="off">
+                </label>
+                <label>
+                    Очки
+                    <input type="number" name="points" value="0" step="1" required>
+                </label>
+                <button type="submit" class="btn btn-primary">Добавить в {{ display_name }}</button>
+            </form>
+            <div class="manual-note">
+                Если игрока ещё нет в этом рейтинге, появится новая строка.
+                Если он уже есть — используйте правку очков справа.
+            </div>
+        </section>
+
+        <section class="manual-card">
+            <div class="manual-card-head">Игроки · {{ display_name }} ({{ rating|length }})</div>
+            {% if rating %}
+            <div class="manual-table-wrap">
+                <table class="manual-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Игрок</th>
+                            <th>Очки</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rating %}
+                        <tr id="player-{{ loop.index }}">
+                            <td class="manual-rank">{{ loop.index }}</td>
+                            <td class="manual-nick">{{ row[0] }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin_ratings_manual_edit') }}"
+                                      style="display:flex; gap:0.5rem; align-items:center; margin:0;">
+                                    <input type="hidden" name="rating_type" value="{{ rating_type }}">
+                                    <input type="hidden" name="nickname" value="{{ row[0] }}">
+                                    <input type="number" class="manual-points-input" name="points"
+                                           value="{{ row[1] }}" step="1" required>
+                                    <button type="submit" class="btn manual-save">💾 Сохранить</button>
+                                </form>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('player_profile', rating_type=rating_type, nickname=row[0]) }}"
+                                   class="btn manual-save">📈</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="manual-empty">В этом рейтинге пока нет игроков. Добавьте первого слева.</div>
+            {% endif %}
+        </section>
+    </div>
+
+    <a href="/admin" class="back-link">← В админ-панель</a>
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            body.classList.toggle('light-theme');
+            toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+            localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+        });
+        if (localStorage.getItem('theme') === 'light') {
+            body.classList.add('light-theme');
+            toggleBtn.textContent = '☀️';
+        }
+    }
+</script>
+
+</body>
+</html>

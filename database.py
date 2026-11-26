@@ -752,6 +752,89 @@ def save_rating(rating_type, data_list):
         conn.close()
 
 
+def add_player_to_rating(rating_type, nickname, points=0):
+    """Добавляет игрока в Дуэль/Аркадию вручную.
+
+    История пишется в дату последнего обновления, чтобы не создавать
+    «пустой» новый срез и не ломать среднее по союзу.
+    """
+    if rating_type not in ('duel', 'arcadia'):
+        return False, 'Неверный тип рейтинга.'
+    nickname = (nickname or '').strip()
+    if not nickname:
+        return False, 'Укажите ник игрока.'
+    if len(nickname) > 120:
+        return False, 'Ник слишком длинный (максимум 120 символов).'
+    try:
+        points = int(points)
+    except (TypeError, ValueError):
+        return False, 'Очки должны быть целым числом.'
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT nickname FROM players_{rating_type} WHERE LOWER(nickname) = LOWER(%s) LIMIT 1",
+                       (nickname,))
+        existing = cursor.fetchone()
+        if existing:
+            return False, f'Игрок «{existing[0]}» уже есть в этом рейтинге.'
+        cursor.execute(f"SELECT MAX(date) FROM history_{rating_type}")
+        row = cursor.fetchone()
+        history_date = (row[0] if row and row[0] else now)
+        cursor.execute(f"""INSERT INTO players_{rating_type} (nickname, points, last_updated)
+                           VALUES (%s, %s, %s)""", (nickname, points, now))
+        cursor.execute(f"""INSERT INTO history_{rating_type} (nickname, points, date)
+                           VALUES (%s, %s, %s)""", (nickname, points, history_date))
+        conn.commit()
+        return True, f'Игрок «{nickname}» добавлен с {points} очками.'
+    except Exception as e:
+        print(f"add_player_to_rating error: {e}")
+        conn.rollback()
+        return False, 'Не удалось добавить игрока.'
+    finally:
+        conn.close()
+
+
+def update_player_points(rating_type, nickname, points):
+    """Меняет текущие очки вручную в срезе последнего обновления."""
+    if rating_type not in ('duel', 'arcadia'):
+        return False, 'Неверный тип рейтинга.'
+    nickname = (nickname or '').strip()
+    if not nickname:
+        return False, 'Не указан игрок.'
+    try:
+        points = int(points)
+    except (TypeError, ValueError):
+        return False, 'Очки должны быть целым числом.'
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(f"SELECT 1 FROM players_{rating_type} WHERE nickname = %s", (nickname,))
+        if not cursor.fetchone():
+            return False, f'Игрок «{nickname}» не найден в этом рейтинге.'
+        cursor.execute(f"SELECT MAX(date) FROM history_{rating_type}")
+        row = cursor.fetchone()
+        history_date = (row[0] if row and row[0] else now)
+        cursor.execute(f"""UPDATE players_{rating_type}
+                           SET points = %s, last_updated = %s
+                           WHERE nickname = %s""", (points, now, nickname))
+        # Правим точку последнего среза, а не создаём новый неполный день.
+        cursor.execute(f"""DELETE FROM history_{rating_type}
+                           WHERE nickname = %s AND date = %s""",
+                       (nickname, history_date))
+        cursor.execute(f"""INSERT INTO history_{rating_type} (nickname, points, date)
+                           VALUES (%s, %s, %s)""", (nickname, points, history_date))
+        conn.commit()
+        return True, f'Очки игрока «{nickname}» обновлены: {points}.'
+    except Exception as e:
+        print(f"update_player_points error: {e}")
+        conn.rollback()
+        return False, 'Не удалось сохранить очки.'
+    finally:
+        conn.close()
+
+
 def get_latest_rating(rating_type):
     conn = get_connection()
     cursor = conn.cursor()

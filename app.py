@@ -38,6 +38,7 @@ from database import (
     get_events_rating, get_events_player_history, get_bolt_bonus_history,
     get_duel_union_average, get_gold_bolt_value, recalculate_gold_bolt_bonuses,
     reset_gold_bolts, reset_gold_bolts_given_by_user, reset_gold_bolts_for_player,
+    add_player_to_rating, update_player_points,
     get_setting, set_setting,
     update_user_squads, get_squads_by_nickname_map,
     get_last_update_date,
@@ -1246,6 +1247,62 @@ def admin_bolts_reset_player(nickname):
     else:
         flash(f'Ошибка при сбросе болтиков игрока {nickname}.')
     return redirect(url_for('admin_bolts'))
+
+
+@app.route('/admin/ratings-manual')
+@admin_required
+def admin_ratings_manual():
+    rating_type = request.args.get('rating', 'duel')
+    if rating_type not in ('duel', 'arcadia'):
+        rating_type = 'duel'
+    return render_template('admin_ratings_manual.html',
+                           rating_type=rating_type,
+                           display_name=get_rating_display_name(rating_type),
+                           rating=get_latest_rating(rating_type))
+
+
+@app.route('/admin/ratings-manual/add', methods=['POST'])
+@admin_required
+def admin_ratings_manual_add():
+    rating_type = request.form.get('rating_type', 'duel')
+    if rating_type not in ('duel', 'arcadia'):
+        flash('Неверный тип рейтинга.')
+        return redirect(url_for('admin_ratings_manual'))
+    nickname = request.form.get('nickname', '').strip()
+    points = request.form.get('points', '0')
+    ok, message = add_player_to_rating(rating_type, nickname, points)
+    if ok:
+        increment_counter('admin_actions')
+        if rating_type == 'duel':
+            _avg, _bonus, updated = recalculate_gold_bolt_bonuses()
+            if updated:
+                message += f' Стоимость болтиков пересчитана: {_bonus} очков.'
+        flash(message)
+    else:
+        flash(message)
+    return redirect(url_for('admin_ratings_manual', rating=rating_type))
+
+
+@app.route('/admin/ratings-manual/edit', methods=['POST'])
+@admin_required
+def admin_ratings_manual_edit():
+    rating_type = request.form.get('rating_type', 'duel')
+    if rating_type not in ('duel', 'arcadia'):
+        flash('Неверный тип рейтинга.')
+        return redirect(url_for('admin_ratings_manual'))
+    nickname = request.form.get('nickname', '').strip()
+    points = request.form.get('points', '')
+    ok, message = update_player_points(rating_type, nickname, points)
+    if ok:
+        increment_counter('admin_actions')
+        if rating_type == 'duel':
+            _avg, _bonus, updated = recalculate_gold_bolt_bonuses()
+            if updated:
+                message += f' Стоимость болтиков пересчитана: {_bonus} очков.'
+        flash(message)
+    else:
+        flash(message)
+    return redirect(url_for('admin_ratings_manual', rating=rating_type))
 
 
 @app.route('/admin/reset-state-tables', methods=['POST'])
