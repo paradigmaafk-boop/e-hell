@@ -341,26 +341,44 @@
         }
 
         @media (min-width: 901px) {
+            html, body { height: 100vh; overflow: hidden; }
             .nav { display: none !important; }
             .page {
                 grid-template-rows: auto 1fr;
-                padding: 0.75rem 2rem;
+                height: 100vh;
+                min-height: 0;
+                padding: 0.75rem 2rem 1.1rem;
             }
             .main-grid {
-                align-items: center;
-                padding-top: 0;
+                align-items: stretch;
+                padding-top: 0.7rem;
+                min-height: 0;
+                overflow: hidden;
             }
             .side-nav { align-self: start; }
             .carousel {
-                height: auto;
-                max-height: none;
-                align-self: center;
+                height: 100%;
+                max-height: 100%;
+                align-self: stretch;
                 width: 100%;
             }
             .carousel-stage {
                 aspect-ratio: auto;
                 max-height: none;
-                flex: 0 0 auto;
+                flex: 1 1 auto;
+                min-height: 0;
+            }
+            .carousel-track { height: 100%; }
+            .slide { height: 100%; }
+            .slide-media {
+                flex: 1 1 auto;
+                aspect-ratio: auto;
+                min-height: 0;
+            }
+            .slide-content {
+                min-height: 15rem;
+                height: 15rem;
+                max-height: 15rem;
             }
             .carousel-caption {
                 height: 10.5rem;
@@ -419,7 +437,7 @@
                 flex: 0 0 auto;
                 min-height: 0;
             }
-            .slide-content { min-height: 12rem; height: 12rem; max-height: 12rem; padding: 0.8rem 0.95rem 0.95rem; }
+            .slide-content { min-height: 14rem; height: 14rem; max-height: 14rem; padding: 0.8rem 0.95rem 0.95rem; }
             .slide-content h2 { font-size: 1.15rem; margin-bottom: 0.3rem; letter-spacing: 1.5px; }
             .slide-content p { font-size: 0.98rem; line-height: 1.45; display: block; -webkit-line-clamp: unset; }
             .slide-views { top: 0.55rem; right: 0.55rem; font-size: 0.66rem; padding: 0.24rem 0.45rem; }
@@ -519,7 +537,7 @@
                 max-height: none !important;
                 flex: 0 0 auto;
             }
-            .slide-content { min-height: 10.5rem; height: 10.5rem; max-height: 10.5rem; }
+            .slide-content { min-height: 12.5rem; height: 12.5rem; max-height: 12.5rem; }
             .carousel-caption {
                 height: 10.5rem;
                 padding: 0.8rem 1.1rem 0.9rem;
