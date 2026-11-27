@@ -608,6 +608,7 @@ def get_player_rank_data(linked_nickname):
                 'duel_points': row[1],
                 'arcadia_points': row[2],
                 'total_points': row[3],
+                'events_points': row[5] if len(row) > 5 else 0,
                 'bolt_bonus': row[4] if len(row) > 4 else 0,
                 'bolt_count': row[5] if len(row) > 5 else 0,
             }
@@ -1080,6 +1081,7 @@ def cabinet():
                     'duel_points': 0,
                     'arcadia_points': 0,
                     'total_points': 0,
+                    'events_points': 0,
                 }
     else:
         preview_active = 'current'
