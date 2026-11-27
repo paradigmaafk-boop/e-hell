@@ -85,7 +85,7 @@
         <div class="header-right">
             {% if session.get('user_id') %}
                 <span class="user">Привет, <b>{{ session['username'] }}</b></span>
-                <a href="/cabinet" class="link-btn header-link">👤 Кабинет</a>
+                <a href="/cabinet" class="link-btn header-link">Кабинет</a>
                 <a href="/logout" class="link-btn header-link">Выйти</a>
             {% else %}
                 <a href="/register" class="link-btn header-link" style="color: var(--accent-warm); font-weight: 600;">Регистрация</a>

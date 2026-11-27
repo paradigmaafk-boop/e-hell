@@ -286,6 +286,42 @@ body::before {
     100% { background-position: 300% 50%; }
 }
 
+.moon,
+.theme-toggle { display: none !important; }
+body { color-scheme: dark; }
+
+.header-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(10, 5, 3, 0.45);
+    color: var(--muted);
+    text-decoration: none;
+    flex-shrink: 0;
+}
+.header-bell:hover { border-color: var(--accent); color: var(--accent-warm); }
+.header-bell svg { width: 18px; height: 18px; display: block; }
+.header-bell-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.6rem;
+    font-weight: 800;
+    line-height: 16px;
+    text-align: center;
+}
+
 .lang-switch {
     display: inline-flex;
     align-items: center;
@@ -299,7 +335,7 @@ body::before {
     display: flex;
     align-items: center;
     gap: 0.22rem;
-    padding: 0.2rem 0.3rem;
+    padding: 0.2rem 0.35rem;
     border-radius: 5px;
     text-decoration: none;
     color: var(--dim);

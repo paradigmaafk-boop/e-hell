@@ -10,16 +10,33 @@
         box.className = 'lang-switch';
         box.setAttribute('aria-label', 'Language');
         box.innerHTML =
-            '<a href="/language/ru?next=' + next + '" class="' + (lang === 'ru' ? 'active' : '') + '" title="Русский">' +
-            '<span class="lang-flag flag-ru"></span><span>RU</span></a>' +
-            '<a href="/language/en?next=' + next + '" class="' + (lang === 'en' ? 'active' : '') + '" title="English">' +
-            '<span class="lang-flag flag-en"></span><span>EN</span></a>';
-        const moon = right.querySelector('.moon, .theme-toggle');
-        if (moon) right.insertBefore(box, moon);
-        else right.appendChild(box);
+            '<a href="/language/ru?next=' + next + '" class="' + (lang === 'ru' ? 'active' : '') + '" title="Русский">RUS</a>' +
+            '<a href="/language/en?next=' + next + '" class="' + (lang === 'en' ? 'active' : '') + '" title="English">EN</a>';
+        right.appendChild(box);
+
+        if (info.admin && info.unread) {
+            const bell = document.createElement('a');
+            bell.className = 'header-bell';
+            bell.href = '/admin/applications';
+            bell.title = lang === 'en' ? 'Applications' : 'Заявки';
+            bell.setAttribute('aria-label', bell.title);
+            bell.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+                'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+                '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>' +
+                '<path d="M10.3 21a2 2 0 0 0 3.4 0"></path></svg>';
+            if (info.unread) {
+                const count = document.createElement('span');
+                count.className = 'header-bell-count';
+                count.textContent = info.unread;
+                bell.appendChild(count);
+            }
+            right.appendChild(bell);
+        }
     }
 
     addLanguageSwitch();
+    document.body.classList.remove('light-theme');
     if (lang !== 'en') return;
 
     document.documentElement.lang = 'en';
@@ -296,6 +313,18 @@
         "Расскажите о себе: сила, T10, активность, опыт, состав команды, почему хотите к нам.": "Tell us about yourself: power, T10, activity, experience, team, and why you want to join us.",
         "Подать заявку на интервью": "Apply for an interview",
         "Сделать окном заявки": "Make application slide",
+        "Текущий рейтинг": "Current rating",
+        "золотых болтиков": "golden bolts",
+        "ВСЕГО ЗАМЕРОВ": "TOTAL MEASUREMENTS",
+        "МАКСИМУМ": "MAXIMUM",
+        "РОСТ ЗА ВСЁ ВРЕМЯ": "GROWTH OVER ALL TIME",
+        "ТЕКУЩИЙ РЕЗУЛЬТАТ": "CURRENT RESULT",
+        "Навык 1": "Skill 1",
+        "Навык 2": "Skill 2",
+        "Навык 3": "Skill 3",
+        "Навык 4": "Skill 4",
+        "Каждый золотой болт — это участие в ивенте союза. Доказательство того, что тебе не всё равно.": "Every golden bolt is participation in an alliance event. Proof that you care.",
+        "или": "or",
         "Дуэль": "Duel",
         "Аркадия": "Arcadia",
         "БМ": "GB",
@@ -344,6 +373,13 @@
     };
 
     const patterns = [
+        [/^Аккаунт\s*#(.+)$/, "Account #$1"],
+        [/^Ник «(.+)» не найден в рейтинге\. Проверьте привязку или обратитесь к администратору\.$/, "Nickname “$1” was not found in the rating. Check the link or contact an administrator."],
+        [/^Прогресс в разделе Рейтинг Аркадии$/, "Progress in the Arcadia Rating"],
+        [/^Прогресс в разделе Рейтинг Дуэли$/, "Progress in the Duel Rating"],
+        [/^Прогресс в разделе (.+)$/, "Progress in $1"],
+        [/^Сохраняется в виде\s*(.+)$/, "Saved as $1"],
+        [/^Навык\s*(\d+)$/, "Skill $1"],
         [/^Привет,\s*$/, "Hello, "],
         [/^Дарителей:\s*(.+)$/, "Givers: $1"],
         [/^Всего очков\s*(.+)$/, "Total points: $1"],

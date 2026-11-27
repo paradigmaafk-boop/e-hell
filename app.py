@@ -85,21 +85,36 @@ def set_language(lang):
 
 @app.after_request
 def inject_language_switcher(response):
-    if response.mimetype != 'text/html' or request.path.startswith('/admin'):
+    if response.mimetype != 'text/html':
         return response
-    lang = current_language()
     try:
         html = response.get_data(as_text=True)
     except Exception:
         return response
+    theme_reset = '<script>try{localStorage.removeItem("theme");}catch(e){}</script>'
+    if request.path.startswith('/admin'):
+        if '</head>' in html:
+            html = html.replace('</head>', theme_reset + '</head>', 1)
+            response.set_data(html)
+        return response
+    lang = current_language()
     html = re.sub(r'(<html\b[^>]*?)\s+lang="[^"]*"', r'\1', html, count=1)
     html = re.sub(r'<html\b', f'<html lang="{lang}"', html, count=1)
     next_path = request.full_path.rstrip('?') or '/'
-    payload = json.dumps({'lang': lang, 'next': next_path}, ensure_ascii=False)
+    is_admin_user = session.get('role') in ('admin', 'super_admin')
+    unread_apps = count_unread_applications() if is_admin_user else 0
+    payload = json.dumps({
+        'lang': lang,
+        'next': next_path,
+        'admin': is_admin_user,
+        'unread': unread_apps,
+    }, ensure_ascii=False)
     script = (
         f'<script>window.__I18N__ = {payload};</script>'
-        '<script src="/static/i18n.js?v=2" defer></script>'
+        '<script src="/static/i18n.js?v=3" defer></script>'
     )
+    if '</head>' in html:
+        html = html.replace('</head>', '<script>try{localStorage.removeItem("theme");}catch(e){}</script></head>', 1)
     if '</body>' in html:
         html = html.replace('</body>', script + '</body>', 1)
     else:
