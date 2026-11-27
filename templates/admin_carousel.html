@@ -192,6 +192,28 @@
         .album-meta { color: var(--dim); font-size: 0.68rem; margin-top: auto; padding-top: 0.35rem; }
         .album-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
         .album-actions .btn { font-size: 0.76rem; padding: 0.35rem 0.65rem; }
+        .album-drag-handle {
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--line);
+            border-radius: 7px;
+            background: rgba(255,255,255,0.03);
+            color: var(--muted);
+            cursor: grab;
+            font-size: 1rem;
+            touch-action: none;
+            user-select: none;
+        }
+        .album-drag-handle:active { cursor: grabbing; }
+        .album-card.dragging {
+            opacity: 0.45;
+            border-color: var(--accent);
+            box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+        }
+        .album-card.drop-target { border-color: var(--accent-warm); }
         .album-apply-badge {
             display: inline-flex;
             align-items: center;
@@ -422,7 +444,7 @@
         <div class="album-toolbar">
             <div>
                 <div class="section-title" style="margin:0;">Слайды карусели</div>
-                <div class="album-count">{{ slides|length }} шт. · нажмите «Изменить», чтобы открыть редактор</div>
+                <div class="album-count">{{ slides|length }} шт. · зажмите ⠿, чтобы перетащить слайд</div>
             </div>
             <button type="button" class="btn btn-primary" id="openCreateSlide">+ Добавить слайд</button>
         </div>
@@ -430,7 +452,7 @@
         {% if slides %}
         <div class="album-grid">
             {% for slide in slides %}
-            <article class="album-card">
+            <article class="album-card" data-slide-id="{{ slide[0] }}">
                 <div class="album-thumb">
                     {% if slide[4] %}
                         {% if slide[3] == 'video' %}
@@ -464,7 +486,8 @@
                         {% if slide[3] == 'video' and not slide[9] %} · без постера{% endif %}
                     </div>
                     <div class="album-actions">
-                        <button type="button" class="btn" onclick="openEditSlide({{ loop.index0 }})">Изменить</button>
+                        <button type="button" class="album-drag-handle" title="Перетащить слайд" aria-label="Перетащить слайд">⠿</button>
+                        <button type="button" class="btn" onclick="openEditSlideById({{ slide[0] }})">Изменить</button>
                         {% if slide[11] %}
                         <span class="album-apply-badge">Окно заявки</span>
                         {% else %}
@@ -788,11 +811,15 @@
         openCarouselModal('createModal');
     });
 
+    function openEditSlideById(slideId) {
+        const index = SLIDE_DATA.findIndex(item => String(item.id) === String(slideId));
+        if (index >= 0) openEditSlide(index);
+    }
+
     function openEditSlide(index) {
         const s = SLIDE_DATA[index];
         if (!s) return;
-        rememberCarouselScroll();
-        document.getElementById('editSlideNumber').textContent = '#' + s.position;
+        rememberCarouselScroll();        document.getElementById('editSlideNumber').textContent = '#' + s.position;
         document.getElementById('edit-slide-id').value = s.id;
         document.getElementById('edit-title').value = s.title || '';
         document.getElementById('edit-content').value = s.content || '';
@@ -991,6 +1018,95 @@
             setTimeout(restoreScroll, 80);
         });
     }
+
+    function renumberCards() {
+        document.querySelectorAll('.album-card').forEach((card, index) => {
+            card.dataset.position = index;
+            const form = card.querySelector('.album-pos-form');
+            if (form) {
+                form.dataset.index = index;
+                const input = form.querySelector('input[name="position"]');
+                if (input) input.value = index;
+            }
+            const item = SLIDE_DATA.find(s => String(s.id) === String(card.dataset.slideId));
+            if (item) item.position = index;
+        });
+    }
+
+    (function setupSlideDrag() {
+        let draggingCard = null;
+        let dragPointer = null;
+        let initialOrder = '';
+        let moved = false;
+
+        function cardOrder() {
+            return Array.from(document.querySelectorAll('.album-card'))
+                .map(card => card.dataset.slideId).join(',');
+        }
+
+        function finishDrag() {
+            if (!draggingCard) return;
+            const card = draggingCard;
+            draggingCard = null;
+            dragPointer = null;
+            card.classList.remove('dragging');
+            document.querySelectorAll('.album-card.drop-target').forEach(el => el.classList.remove('drop-target'));
+            document.body.style.userSelect = '';
+            // Даём последнему pointermove вставить карточку, затем фиксируем порядок.
+            setTimeout(() => {
+                renumberCards();
+                const order = cardOrder();
+                if (!moved || order === initialOrder) return;
+                const data = new FormData();
+                data.append('action', 'reorder');
+                data.append('order', order);
+                fetch('/admin/carousel', {
+                    method: 'POST',
+                    headers: {'X-Carousel-Ajax': '1'},
+                    body: data
+                }).then(r => r.json()).then(res => {
+                    if (!res.success) throw new Error(res.error || 'Ошибка');
+                }).catch(() => {
+                    alert('Не удалось сохранить порядок. Страница будет обновлена.');
+                    window.location.reload();
+                });
+            }, 0);
+        }
+
+        document.querySelectorAll('.album-drag-handle').forEach(handle => {
+            handle.addEventListener('pointerdown', (e) => {
+                if (e.button !== undefined && e.button !== 0) return;
+                draggingCard = handle.closest('.album-card');
+                if (!draggingCard) return;
+                dragPointer = e.pointerId;
+                initialOrder = cardOrder();
+                moved = false;
+                draggingCard.classList.add('dragging');
+                document.body.style.userSelect = 'none';
+                handle.setPointerCapture?.(e.pointerId);
+                e.preventDefault();
+            });
+
+            handle.addEventListener('pointermove', (e) => {
+                if (!draggingCard || e.pointerId !== dragPointer) return;
+                e.preventDefault();
+                const under = document.elementFromPoint(e.clientX, e.clientY);
+                const target = under && under.closest ? under.closest('.album-card') : null;
+                if (!target || target === draggingCard) return;
+                const rect = target.getBoundingClientRect();
+                const centerY = rect.top + rect.height / 2;
+                const centerX = rect.left + rect.width / 2;
+                const before = e.clientY < centerY || (Math.abs(e.clientY - centerY) < rect.height * 0.25 && e.clientX < centerX);
+                if (before) target.parentNode.insertBefore(draggingCard, target);
+                else target.parentNode.insertBefore(draggingCard, target.nextSibling);
+                renumberCards();
+                moved = true;
+            });
+
+            handle.addEventListener('pointerup', finishDrag);
+            handle.addEventListener('pointercancel', finishDrag);
+        });
+    })();
 
     document.querySelectorAll('.album-picker').forEach(select => {
         select.addEventListener('change', () => {

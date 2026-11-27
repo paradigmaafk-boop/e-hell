@@ -21,6 +21,7 @@ from database import (
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, update_slide_position, delete_slide,
     increment_slide_views, set_apply_slide,
+    reorder_slides,
     create_application, get_applications, count_unread_applications,
     mark_all_applications_read, delete_application,
     create_media_asset, get_media_assets, get_media_asset,
@@ -2282,6 +2283,21 @@ def admin_carousel():
                 if request.headers.get('X-Carousel-Ajax') == '1':
                     return jsonify({'success': False, 'error': 'Не удалось изменить позицию.'}), 400
                 flash('Не удалось изменить позицию.')
+        elif action == 'reorder':
+            raw = (request.form.get('order') or '').strip()
+            try:
+                ids = [int(x) for x in raw.split(',') if x.strip()]
+            except (TypeError, ValueError):
+                ids = []
+            if ids and reorder_slides(ids):
+                increment_counter('admin_actions')
+                if request.headers.get('X-Carousel-Ajax') == '1':
+                    return jsonify({'success': True, 'order': ids})
+                flash('Порядок слайдов сохранён.')
+            else:
+                if request.headers.get('X-Carousel-Ajax') == '1':
+                    return jsonify({'success': False, 'error': 'Не удалось сохранить порядок.'}), 400
+                flash('Не удалось сохранить порядок слайдов.')
         elif action == 'set_apply_slide':
             slide_id = request.form.get('slide_id', type=int)
             if slide_id and get_slide_by_id(slide_id) and set_apply_slide(slide_id):

@@ -1992,6 +1992,23 @@ def set_apply_slide(slide_id):
         conn.close()
 
 
+def reorder_slides(slide_ids):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        for position, slide_id in enumerate(slide_ids):
+            cursor.execute("UPDATE carousel_slides SET position = %s WHERE id = %s",
+                           (position, int(slide_id)))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error reordering slides: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
 def create_application(state, union_name, nickname, coordinates, message, user_id=None):
     conn = get_connection()
     cursor = conn.cursor()
