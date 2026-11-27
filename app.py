@@ -60,6 +60,52 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.secret_key = os.environ.get('SECRET_KEY', 'your_secret_key_here_change_it_to_something_secret')
 
+SUPPORTED_LANGUAGES = ('ru', 'en')
+
+
+def current_language():
+    lang = request.cookies.get('lang', 'ru')
+    return lang if lang in SUPPORTED_LANGUAGES else 'ru'
+
+
+@app.route('/language/<lang>')
+def set_language(lang):
+    if lang not in SUPPORTED_LANGUAGES:
+        lang = 'ru'
+    next_url = request.args.get('next') or request.referrer or '/'
+    if not next_url.startswith('/') or next_url.startswith('//'):
+        next_url = '/'
+    response = redirect(next_url)
+    response.set_cookie('lang', lang, max_age=60 * 60 * 24 * 365, samesite='Lax')
+    return response
+
+
+@app.after_request
+def inject_language_switcher(response):
+    if response.mimetype != 'text/html' or request.path.startswith('/admin'):
+        return response
+    lang = current_language()
+    try:
+        html = response.get_data(as_text=True)
+    except Exception:
+        return response
+    html = re.sub(r'(<html\b[^>]*?)\s+lang="[^"]*"', r'\1', html, count=1)
+    html = re.sub(r'<html\b', f'<html lang="{lang}"', html, count=1)
+    next_path = request.full_path.rstrip('?') or '/'
+    payload = json.dumps({'lang': lang, 'next': next_path}, ensure_ascii=False)
+    script = (
+        f'<script>window.__I18N__ = {payload};</script>'
+        '<script src="/static/i18n.js?v=1" defer></script>'
+    )
+    if '</body>' in html:
+        html = html.replace('</body>', script + '</body>', 1)
+    else:
+        html += script
+    response.set_data(html)
+    response.headers['Vary'] = 'Cookie'
+    return response
+
+
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'xlsx', 'xls'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
