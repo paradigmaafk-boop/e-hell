@@ -95,7 +95,7 @@ def inject_language_switcher(response):
     payload = json.dumps({'lang': lang, 'next': next_path}, ensure_ascii=False)
     script = (
         f'<script>window.__I18N__ = {payload};</script>'
-        '<script src="/static/i18n.js?v=1" defer></script>'
+        '<script src="/static/i18n.js?v=2" defer></script>'
     )
     if '</body>' in html:
         html = html.replace('</body>', script + '</body>', 1)

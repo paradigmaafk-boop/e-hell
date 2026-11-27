@@ -355,6 +355,8 @@
         const norm = normalize(text);
         if (!norm) return null;
         if (Object.prototype.hasOwnProperty.call(EN, norm)) return EN[norm];
+        const upper = norm.toUpperCase();
+        if (upper !== norm && Object.prototype.hasOwnProperty.call(EN, upper)) return EN[upper];
         for (const [re, replacement] of patterns) {
             if (re.test(norm)) return norm.replace(re, replacement);
         }
