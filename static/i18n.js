@@ -65,7 +65,6 @@
         "Калькулятор Турбочерепашки": "Turbo Turtle calculator",
         "Общий рейтинг": "Overall rating",
         "Рейтинг Ивентов →": "Events rating →",
-        "Для получения золотого болта участвуй в ивентах союза.": "To earn a golden bolt, take part in alliance events.",
         "Главная": "Home",
         "Навигация": "Navigation",
         "Разделы": "Sections",
