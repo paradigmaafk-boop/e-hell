@@ -192,6 +192,17 @@
         .album-meta { color: var(--dim); font-size: 0.68rem; margin-top: auto; padding-top: 0.35rem; }
         .album-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
         .album-actions .btn { font-size: 0.76rem; padding: 0.35rem 0.65rem; }
+        .album-apply-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.6rem;
+            border: 1px solid rgba(255, 184, 0, 0.5);
+            border-radius: 7px;
+            color: var(--accent-warm);
+            background: rgba(255, 184, 0, 0.1);
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
         .album-empty {
             grid-column: 1 / -1;
             text-align: center;
@@ -454,6 +465,15 @@
                     </div>
                     <div class="album-actions">
                         <button type="button" class="btn" onclick="openEditSlide({{ loop.index0 }})">Изменить</button>
+                        {% if slide[11] %}
+                        <span class="album-apply-badge">Окно заявки</span>
+                        {% else %}
+                        <form method="POST" action="/admin/carousel">
+                            <input type="hidden" name="action" value="set_apply_slide">
+                            <input type="hidden" name="slide_id" value="{{ slide[0] }}">
+                            <button type="submit" class="btn">Сделать окном заявки</button>
+                        </form>
+                        {% endif %}
                         <form method="POST" onsubmit="return confirm('Удалить слайд?');" style="display:inline;">
                             <input type="hidden" name="action" value="delete">
                             <input type="hidden" name="slide_id" value="{{ slide[0] }}">

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявки | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
+    <style>
+        .apps-list { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+        .app-card {
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(10, 5, 3, 0.58);
+            overflow: hidden;
+        }
+        .app-card.unread { border-color: rgba(255, 184, 0, 0.55); }
+        .app-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--line-soft);
+        }
+        .app-name { font-family: 'Forum', serif; color: var(--accent-warm); font-size: 1.1rem; }
+        .app-date { color: var(--dim); font-size: 0.75rem; }
+        .app-body { padding: 0.85rem 1rem; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 0.6rem; }
+        .app-field { min-width: 0; }
+        .app-field span { display: block; color: var(--dim); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.15rem; }
+        .app-field b { color: var(--text); font-size: 0.86rem; word-break: break-word; }
+        .app-message { grid-column: 1 / -1; color: var(--muted); font-size: 0.88rem; line-height: 1.55; white-space: pre-wrap; padding-top: 0.3rem; border-top: 1px solid var(--line-soft); }
+        .app-actions { display: flex; justify-content: flex-end; padding: 0 1rem 0.8rem; }
+        .apps-empty { text-align: center; padding: 3rem 1rem; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; }
+        body.light-theme .app-card { background: #fffbf2; }
+        @media (max-width: 700px) {
+            .app-body { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff2200"/><stop offset="40%" stop-color="#ff8800"/>
+            <stop offset="70%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffec80"/><stop offset="40%" stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text"><span class="brand-name">[HEL] Ацкое Пламя</span></div>
+        </a>
+        <div class="header-right">
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/admin" class="link-btn header-link">Админ-панель</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    {% include '_admin_nav.html' %}
+
+    <div class="page-head">
+        <h1 class="page-title">Заявки на интервью</h1>
+        <p class="page-sub">Новые заявки с сайта. Дата и время подачи фиксируются автоматически.</p>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for message in messages %}<div class="flash-message">{{ message }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    {% if applications %}
+    <div class="apps-list">
+        {% for app in applications %}
+        <article class="app-card {% if not app[8] %}unread{% endif %}">
+            <div class="app-head">
+                <div>
+                    <div class="app-name">{{ app[3] }}</div>
+                    <div class="app-date">{{ app[7] }}</div>
+                </div>
+                {% if not app[8] %}<span class="btn btn-small" style="cursor:default;">Новая</span>{% endif %}
+            </div>
+            <div class="app-body">
+                <div class="app-field"><span>Штат</span><b>{{ app[1] }}</b></div>
+                <div class="app-field"><span>Союз</span><b>{{ app[2] }}</b></div>
+                <div class="app-field"><span>Координаты</span><b>{{ app[4] }}</b></div>
+                <div class="app-field"><span>ID заявки</span><b>#{{ app[0] }}</b></div>
+                <div class="app-message">{{ app[5] }}</div>
+            </div>
+            <div class="app-actions">
+                <form method="POST" action="/admin/applications/{{ app[0] }}/delete"
+                      onsubmit="return confirm('Удалить заявку?');">
+                    <button type="submit" class="btn btn-small btn-danger">Удалить</button>
+                </form>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="apps-empty">
+        <p>Пока нет заявок.</p>
+    </div>
+    {% endif %}
+
+    <a href="/admin" class="back-link">← В админ-панель</a>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+</script>
+</body>
+</html>

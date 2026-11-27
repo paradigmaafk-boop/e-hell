@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявка на интервью | [HEL] Ацкое Пламя</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for("static", filename="favicon.svg") }}">
+    <style>
+        .apply-page { max-width: 720px; margin: 1.5rem auto 3rem; }
+        .apply-hero {
+            padding: 1.4rem 1.5rem;
+            border: 1px solid var(--accent);
+            border-radius: 16px;
+            background:
+                radial-gradient(circle at 100% 0%, rgba(255, 184, 0, 0.14), transparent 55%),
+                linear-gradient(180deg, rgba(27, 14, 6, 0.95), rgba(8, 3, 1, 0.98));
+            margin-bottom: 1rem;
+        }
+        .apply-hero h1 {
+            font-family: 'Forum', serif;
+            font-size: clamp(1.7rem, 4vw, 2.4rem);
+            color: var(--accent-warm);
+            letter-spacing: 1.5px;
+            margin-bottom: 0.55rem;
+        }
+        .apply-hero p { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+        .apply-form {
+            padding: 1.3rem 1.4rem;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: rgba(10, 5, 3, 0.58);
+        }
+        .apply-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+        .apply-field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 0.9rem; }
+        .apply-field.full { grid-column: 1 / -1; }
+        .apply-field label { font-size: 0.75rem; color: var(--dim); letter-spacing: 0.5px; }
+        .apply-field label b { color: var(--accent-warm); }
+        .apply-field input,
+        .apply-field textarea {
+            width: 100%;
+            padding: 0.65rem 0.75rem;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: rgba(5, 2, 1, 0.6);
+            color: var(--text);
+            font: inherit;
+            font-size: 0.92rem;
+        }
+        .apply-field textarea { min-height: 8rem; resize: vertical; }
+        .apply-field input:focus, .apply-field textarea:focus { outline: none; border-color: var(--accent); }
+        .apply-submit {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 0.3rem;
+        }
+        .apply-submit small { color: var(--dim); font-size: 0.72rem; }
+        .apply-success {
+            padding: 1.5rem;
+            border: 1px solid #4c9a5f;
+            border-radius: 16px;
+            background: rgba(20, 55, 30, 0.35);
+            text-align: center;
+        }
+        .apply-success h2 { font-family: 'Forum', serif; color: #a9e6b5; font-size: 1.6rem; margin-bottom: 0.5rem; }
+        .apply-success p { color: var(--muted); line-height: 1.6; }
+        .apply-back { display: inline-block; margin-top: 1rem; color: var(--accent-warm); text-decoration: none; }
+        body.light-theme .apply-form { background: #fffbf2; }
+        body.light-theme .apply-field input, body.light-theme .apply-field textarea { background: #fff; }
+        @media (max-width: 600px) {
+            .apply-page { margin-top: 0.8rem; }
+            .apply-grid { grid-template-columns: 1fr; }
+            .apply-form { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+    <defs>
+        <linearGradient id="fireStroke" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff2200"/><stop offset="40%" stop-color="#ff8800"/>
+            <stop offset="70%" stop-color="#ffcc00"/><stop offset="100%" stop-color="#ff6600"/>
+        </linearGradient>
+        <radialGradient id="axisGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffec80"/><stop offset="40%" stop-color="#ffb800"/>
+            <stop offset="100%" stop-color="#ff4500" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>
+
+<div class="wrap">
+    <header class="header">
+        <a href="/" class="brand">
+            <div class="brand-emblem">
+                <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                    <circle class="ring-outer" cx="30" cy="30" r="24" />
+                    <circle class="ring-inner" cx="30" cy="30" r="18" />
+                    <g class="rotating-group">
+                        <path class="beam" d="M 30 6 L 27 16 L 30 14 L 33 16 Z" />
+                        <path class="beam" d="M 30 54 L 27 44 L 30 46 L 33 44 Z" />
+                        <path class="beam" d="M 6 30 L 16 27 L 14 30 L 16 33 Z" />
+                        <path class="beam" d="M 54 30 L 44 27 L 46 30 L 44 33 Z" />
+                    </g>
+                    <g class="rotating-group-reverse">
+                        <path class="beam-diag" d="M 13 13 L 20 20 L 22 18 L 20 22 Z" />
+                        <path class="beam-diag" d="M 47 47 L 40 40 L 38 42 L 40 38 Z" />
+                        <path class="beam-diag" d="M 47 13 L 40 20 L 42 22 L 38 20 Z" />
+                        <path class="beam-diag" d="M 13 47 L 20 40 L 22 42 L 18 40 Z" />
+                    </g>
+                    <circle class="axis-glow" cx="30" cy="30" r="7" />
+                    <circle class="axis-core" cx="30" cy="30" r="2.4" />
+                </svg>
+            </div>
+            <div class="brand-text"><span class="brand-name">[HEL] Ацкое Пламя</span></div>
+        </a>
+        <div class="header-right">
+            {% if session.get('user_id') %}
+            <span class="user">Привет, <b>{{ session['username'] }}</b></span>
+            <a href="/cabinet" class="link-btn header-link">Кабинет</a>
+            <a href="/logout" class="link-btn header-link">Выйти</a>
+            {% else %}
+            <a href="/register" class="link-btn header-link">Регистрация</a>
+            <a href="/login" class="link-btn header-link">Войти</a>
+            {% endif %}
+            <button class="moon" id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <a href="/rating/total"><span class="nav-full">Рейтинг</span><span class="nav-short">Рейтинг</span></a>
+        <a href="/rating/duel"><span class="nav-full">Рейтинг Дуэли</span><span class="nav-short">VS</span></a>
+        <a href="/rating/arcadia"><span class="nav-full">Рейтинг Аркадии</span><span class="nav-short">Аркадия</span></a>
+        <a href="/rating/events"><span class="nav-full">Ивенты</span><span class="nav-short">Ивенты</span></a>
+        <a href="/state"><span class="nav-full">Штат</span><span class="nav-short">Штат</span></a>
+        <a href="/calculator"><span class="nav-full">Калькулятор</span><span class="nav-short">Калькулятор</span></a>
+        {% if session.get('role') in ['admin', 'super_admin'] %}
+        <a href="/admin" class="nav-admin" title="Админ-панель">⚙</a>
+        {% endif %}
+    </nav>
+
+    <main class="apply-page">
+        {% if sent %}
+        <section class="apply-success">
+            <h2>Заявка отправлена</h2>
+            <p>Спасибо! Мы получили вашу заявку и свяжемся с вами. Дата и время подачи зафиксированы.</p>
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}{% for message in messages %}<p style="color:var(--accent-warm);">{{ message }}</p>{% endfor %}{% endif %}
+            {% endwith %}
+            <a class="apply-back" href="/">← Вернуться на главную</a>
+        </section>
+        {% else %}
+        <section class="apply-hero">
+            <h1>Заявка на интервью</h1>
+            <p>Хотите вступить в [HEL] или обсудить переход целым союзом? Заполните заявку — мы свяжемся с вами для интервью. Все поля обязательны.</p>
+        </section>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}{% for message in messages %}<div class="flash-message">{{ message }}</div>{% endfor %}{% endif %}
+        {% endwith %}
+
+        <form method="POST" class="apply-form" action="/apply">
+            <div class="apply-grid">
+                <div class="apply-field">
+                    <label>Штат <b>*</b></label>
+                    <input type="text" name="state" maxlength="80" required placeholder="Например: 657">
+                </div>
+                <div class="apply-field">
+                    <label>Союз <b>*</b></label>
+                    <input type="text" name="union_name" maxlength="80" required placeholder="Название союза">
+                </div>
+                <div class="apply-field">
+                    <label>Никнейм <b>*</b></label>
+                    <input type="text" name="nickname" maxlength="80" required value="{{ prefill_nickname }}" placeholder="Ваш игровой ник">
+                </div>
+                <div class="apply-field">
+                    <label>Координаты в игре <b>*</b></label>
+                    <input type="text" name="coordinates" maxlength="120" required placeholder="Например: X:512 Y:384">
+                </div>
+                <div class="apply-field full">
+                    <label>Текст заявки <b>*</b></label>
+                    <textarea name="message" maxlength="4000" required placeholder="Расскажите о себе: сила, T10, активность, опыт, состав команды, почему хотите к нам."></textarea>
+                </div>
+            </div>
+            <div class="apply-submit">
+                <small>Дата и время подачи фиксируются автоматически.</small>
+                <button type="submit" class="btn btn-primary">Отправить заявку</button>
+            </div>
+        </form>
+        {% endif %}
+    </main>
+</div>
+
+<script>
+    const toggleBtn = document.getElementById('theme-toggle');
+    const body = document.body;
+    toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('light-theme');
+        toggleBtn.textContent = body.classList.contains('light-theme') ? '☀️' : '🌙';
+        localStorage.setItem('theme', body.classList.contains('light-theme') ? 'light' : 'dark');
+    });
+    if (localStorage.getItem('theme') === 'light') {
+        body.classList.add('light-theme');
+        toggleBtn.textContent = '☀️';
+    }
+</script>
+</body>
+</html>

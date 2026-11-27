@@ -9,6 +9,28 @@
     <a href="/admin" class="{% if admin_path == '/admin' %}active{% endif %}">
         Статистика сайта
     </a>
+    <details class="admin-bell">
+        <summary class="{% if admin_path.startswith('/admin/applications') %}active{% endif %}">
+            <span>🔔 Заявки</span>
+            {% if admin_unread_applications %}
+            <span class="bell-count">{{ admin_unread_applications }}</span>
+            {% endif %}
+        </summary>
+        <div class="bell-menu">
+            <div class="bell-menu-title">Последние заявки</div>
+            {% if admin_recent_applications %}
+                {% for app in admin_recent_applications %}
+                <a href="/admin/applications" class="bell-item">
+                    <b>{{ app[3] }}</b>
+                    <span>{{ app[1] }} / {{ app[2] }} · {{ app[7] }}</span>
+                </a>
+                {% endfor %}
+            {% else %}
+            <div class="bell-empty">Новых заявок нет.</div>
+            {% endif %}
+            <a href="/admin/applications" class="bell-all">Все заявки →</a>
+        </div>
+    </details>
     <a href="/manage-nicknames" class="{% if admin_path == '/manage-nicknames' %}active{% endif %}">
         Переименования ников
     </a>

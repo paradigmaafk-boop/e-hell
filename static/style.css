@@ -2264,6 +2264,93 @@ body.light-theme textarea::placeholder {
     color: #ff9a87;
     background: rgba(224, 57, 43, 0.08);
 }
+.admin-bell {
+    position: fixed;
+    bottom: 1.2rem;
+    right: 1.4rem;
+    z-index: 90;
+    min-width: 0;
+    width: max-content;
+}
+.admin-bell summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    min-height: 46px;
+    padding: 0.55rem 0.8rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.015);
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.admin-bell summary::-webkit-details-marker { display: none; }
+.admin-bell summary:hover,
+.admin-bell summary.active,
+.admin-bell[open] summary {
+    border-color: rgba(255, 69, 0, 0.55);
+    color: var(--accent-warm);
+    background: rgba(255, 69, 0, 0.09);
+}
+.bell-count {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.64rem;
+    line-height: 18px;
+    text-align: center;
+    font-weight: 800;
+}
+.bell-menu {
+    position: absolute;
+    z-index: 80;
+    bottom: calc(100% + 0.4rem);
+    right: 0;
+    left: auto;
+    width: min(370px, calc(100vw - 2rem));
+    padding: 0.55rem;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: #140a05;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+}
+.bell-menu-title {
+    color: var(--accent-warm);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.25rem 0.4rem 0.45rem;
+}
+.bell-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.45rem 0.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--text);
+}
+.bell-item:hover { background: rgba(255, 69, 0, 0.1); }
+.bell-item b { font-size: 0.8rem; }
+.bell-item span { color: var(--dim); font-size: 0.68rem; }
+.bell-empty { color: var(--dim); font-size: 0.78rem; padding: 0.55rem; }
+.bell-all {
+    display: block;
+    margin-top: 0.3rem;
+    padding: 0.45rem 0.5rem;
+    border-top: 1px solid var(--line-soft);
+    color: var(--accent-warm);
+    text-decoration: none;
+    font-size: 0.78rem;
+}
+body.light-theme .bell-menu { background: #fffbf2; }
 @media (max-width: 900px) {
     .admin-subnav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

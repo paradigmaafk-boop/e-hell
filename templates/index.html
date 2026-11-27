@@ -191,6 +191,34 @@
         }
         .slide-views svg { width: 15px; height: 15px; display: block; }
 
+        .slide-apply {
+            position: absolute;
+            z-index: 5;
+            left: 50%;
+            bottom: 0.7rem;
+            transform: translateX(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.58rem 1.2rem;
+            border: 1px solid rgba(255, 224, 160, 0.75);
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ff4500, #ff8a00 55%, #ffc247);
+            color: #1a0b03;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-decoration: none;
+            box-shadow: 0 6px 22px rgba(255, 98, 0, 0.45);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            white-space: nowrap;
+        }
+        .slide-apply:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 9px 28px rgba(255, 120, 0, 0.6);
+        }
+
         .slide-bg {
             width: 100%; height: 100%;
             background:
@@ -444,6 +472,7 @@
             .slide-content p { font-size: 0.98rem; line-height: 1.45; display: block; -webkit-line-clamp: unset; }
             .slide-views { top: 0.55rem; right: 0.55rem; font-size: 0.66rem; padding: 0.24rem 0.45rem; }
             .slide-views svg { width: 13px; height: 13px; }
+            .slide-apply { bottom: 0.5rem; padding: 0.5rem 0.9rem; font-size: 0.72rem; }
 
             .carousel-caption {
                 flex: 0 0 auto;
@@ -735,6 +764,9 @@
                             {% else %}
                                 <div class="slide-bg" style="position:absolute; inset:0;">Изображение не загружено</div>
                             {% endif %}
+                            {% if slide|length > 11 and slide[11] %}
+                            <a class="slide-apply" href="/apply">Подать заявку на интервью</a>
+                            {% endif %}
                         </div>
 
                         <div class="slide-views" aria-label="Просмотры">
@@ -937,7 +969,7 @@
         function startTimer() {
             if (realCount <= 1) return;
             clearInterval(timer);
-            timer = setInterval(next, 7000);
+            timer = setInterval(next, 21000);
         }
         function resetTimer() {
             clearInterval(timer);

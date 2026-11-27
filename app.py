@@ -20,7 +20,9 @@ from database import (
     delete_nickname_alias, reset_rating, delete_player, delete_player_from_all_ratings,
     add_vacation_record, get_all_vacation_records, delete_vacation_record,
     create_slide, get_all_slides, get_slide_by_id, update_slide, update_slide_position, delete_slide,
-    increment_slide_views,
+    increment_slide_views, set_apply_slide,
+    create_application, get_applications, count_unread_applications,
+    mark_all_applications_read, delete_application,
     create_media_asset, get_media_assets, get_media_asset,
     get_media_asset_preview, get_media_assets_without_previews, set_media_preview,
     update_media_asset_title,
@@ -612,6 +614,16 @@ def inject_navigation_state():
     return {
         'state_available': True,
         'current_linked_nickname': linked or '',
+        'admin_unread_applications': (
+            count_unread_applications()
+            if session.get('role') in ('admin', 'super_admin') and request.path.startswith('/admin')
+            else 0
+        ),
+        'admin_recent_applications': (
+            get_applications(5)
+            if session.get('role') in ('admin', 'super_admin') and request.path.startswith('/admin')
+            else []
+        ),
     }
 
 
@@ -2143,6 +2155,49 @@ def carousel_slide_view(slide_id):
     return jsonify({'success': True, 'views': views})
 
 
+@app.route('/apply', methods=['GET', 'POST'])
+def apply():
+    if request.method == 'POST':
+        state = request.form.get('state', '').strip()
+        union_name = request.form.get('union_name', '').strip()
+        nickname = request.form.get('nickname', '').strip()
+        coordinates = request.form.get('coordinates', '').strip()
+        message = request.form.get('message', '').strip()
+        if not all([state, union_name, nickname, coordinates, message]):
+            flash('Заполните все обязательные поля заявки.')
+        else:
+            user_id = session.get('user_id')
+            app_id = create_application(state, union_name, nickname, coordinates, message, user_id)
+            if app_id:
+                flash(f'Заявка отправлена {datetime.now().strftime("%d.%m.%Y %H:%M")}.')
+                return redirect(url_for('apply', sent=1))
+            flash('Не удалось отправить заявку. Попробуйте ещё раз.')
+    return render_template(
+        'apply.html',
+        sent=request.args.get('sent') == '1',
+        prefill_nickname=session.get('linked_nickname') or '',
+    )
+
+
+@app.route('/admin/applications')
+@admin_required
+def admin_applications():
+    applications = get_applications()
+    mark_all_applications_read()
+    return render_template('admin_applications.html', applications=applications)
+
+
+@app.route('/admin/applications/<int:app_id>/delete', methods=['POST'])
+@admin_required
+def admin_application_delete(app_id):
+    if delete_application(app_id):
+        flash('Заявка удалена.')
+    else:
+        flash('Не удалось удалить заявку.')
+    return redirect(url_for('admin_applications'))
+
+
+
 @app.route('/admin/carousel', methods=['GET', 'POST'])
 @admin_required
 def admin_carousel():
@@ -2227,6 +2282,13 @@ def admin_carousel():
                 if request.headers.get('X-Carousel-Ajax') == '1':
                     return jsonify({'success': False, 'error': 'Не удалось изменить позицию.'}), 400
                 flash('Не удалось изменить позицию.')
+        elif action == 'set_apply_slide':
+            slide_id = request.form.get('slide_id', type=int)
+            if slide_id and get_slide_by_id(slide_id) and set_apply_slide(slide_id):
+                increment_counter('admin_actions')
+                flash('Слайд назначен окном подачи заявок.')
+            else:
+                flash('Не удалось назначить слайд для заявок.')
         elif action == 'delete':
             slide_id = request.form.get('slide_id')
             if slide_id:

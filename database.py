@@ -165,7 +165,8 @@ def init_db():
             is_active BOOLEAN DEFAULT TRUE,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
-            views INTEGER DEFAULT 0
+            views INTEGER DEFAULT 0,
+            is_apply_slide BOOLEAN DEFAULT FALSE
         )
     """)
     cursor.execute("""
@@ -175,7 +176,24 @@ def init_db():
                            WHERE table_name='carousel_slides' AND column_name='views') THEN
                 ALTER TABLE carousel_slides ADD COLUMN views INTEGER DEFAULT 0;
             END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+                           WHERE table_name='carousel_slides' AND column_name='is_apply_slide') THEN
+                ALTER TABLE carousel_slides ADD COLUMN is_apply_slide BOOLEAN DEFAULT FALSE;
+            END IF;
         END $$;
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS applications (
+            id SERIAL PRIMARY KEY,
+            state TEXT NOT NULL,
+            union_name TEXT NOT NULL,
+            nickname TEXT NOT NULL,
+            coordinates TEXT NOT NULL,
+            message TEXT NOT NULL,
+            user_id INTEGER,
+            created_at TEXT NOT NULL,
+            is_read BOOLEAN DEFAULT FALSE
+        )
     """)
     cursor.execute("""
         DO $$
@@ -1885,11 +1903,11 @@ def get_all_slides(only_active=False):
     conn = get_connection()
     cursor = conn.cursor()
     if only_active:
-        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views
+        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views, is_apply_slide
                           FROM carousel_slides WHERE is_active = TRUE
                           ORDER BY position ASC, id ASC""")
     else:
-        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views
+        cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views, is_apply_slide
                           FROM carousel_slides ORDER BY position ASC, id ASC""")
     data = cursor.fetchall()
     conn.close()
@@ -1899,7 +1917,7 @@ def get_all_slides(only_active=False):
 def get_slide_by_id(slide_id):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views
+    cursor.execute("""SELECT id, title, content, media_type, media_url, position, is_active, created_at, updated_at, poster_url, views, is_apply_slide
                       FROM carousel_slides WHERE id = %s""", (slide_id,))
     data = cursor.fetchone()
     conn.close()
@@ -1952,6 +1970,99 @@ def update_slide_position(slide_id, position):
         return True
     except Exception as e:
         print(f"Error updating slide position: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def set_apply_slide(slide_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE carousel_slides SET is_apply_slide = FALSE")
+        cursor.execute("UPDATE carousel_slides SET is_apply_slide = TRUE WHERE id = %s", (slide_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error setting apply slide: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def create_application(state, union_name, nickname, coordinates, message, user_id=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    try:
+        cursor.execute("""
+            INSERT INTO applications
+                (state, union_name, nickname, coordinates, message, user_id, created_at, is_read)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, FALSE)
+            RETURNING id
+        """, (state, union_name, nickname, coordinates, message, user_id, now))
+        app_id = cursor.fetchone()[0]
+        conn.commit()
+        return app_id
+    except Exception as e:
+        print(f"Error creating application: {e}")
+        conn.rollback()
+        return None
+    finally:
+        conn.close()
+
+
+def get_applications(limit=None):
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = """SELECT id, state, union_name, nickname, coordinates, message,
+                      user_id, created_at, is_read
+               FROM applications ORDER BY created_at DESC, id DESC"""
+    if limit:
+        query += " LIMIT %s"
+        cursor.execute(query, (limit,))
+    else:
+        cursor.execute(query)
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+
+def count_unread_applications():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM applications WHERE is_read = FALSE")
+    n = cursor.fetchone()[0]
+    conn.close()
+    return n
+
+
+def mark_all_applications_read():
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE applications SET is_read = TRUE WHERE is_read = FALSE")
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error marking applications read: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+
+def delete_application(app_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM applications WHERE id = %s", (app_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error deleting application: {e}")
         conn.rollback()
         return False
     finally:
